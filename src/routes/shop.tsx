@@ -20,7 +20,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-const CATEGORIES = ["All", "Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear"];
+const CATEGORIES = ["All", "Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear", "Jorts", "Sweatpants Wide Leg", "Japanese Trousers", "Boxy Shirts"];
 
 function Shop() {
   const { q, category } = Route.useSearch();
