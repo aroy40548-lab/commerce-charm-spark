@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useProducts } from "@/hooks/useProducts";
+import { useCategories, useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 
 type ShopSearch = { q?: string | undefined; category?: string | undefined };
@@ -20,11 +20,12 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-const CATEGORIES = ["All", "Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear", "Jorts", "Sweatpants Wide Leg", "Japanese Trousers", "Boxy Shirts"];
 
 function Shop() {
   const { q, category } = Route.useSearch();
   const { data: products, isLoading } = useProducts();
+  const { data: cats } = useCategories();
+  const CATEGORIES = ["All", ...(cats ?? []).map((c) => c.name)];
 
   const filtered = (products ?? []).filter((p) => {
     const matchesCategory = !category || category === "All" || p.node.productType === category;
