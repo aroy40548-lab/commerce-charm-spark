@@ -6,8 +6,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { formatMoney } from "@/lib/shopify";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useCustomerStore } from "@/stores/customerStore";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -65,43 +64,24 @@ function WishlistSheet() {
 }
 
 function AccountSheet() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  if (!user) {
-    return (
-      <Link to="/auth" aria-label="Sign in" className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-muted">
-        <User className="h-5 w-5" strokeWidth={1.6} />
-      </Link>
-    );
-  }
+  const email = useCustomerStore((s) => s.email);
+  const token = useCustomerStore((s) => s.token);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const signedIn = mounted && !!token;
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button aria-label="Account" className="grid h-9 w-9 place-items-center rounded-full bg-foreground text-background">
-          <span className="text-xs font-semibold uppercase">{user.email?.[0] ?? "U"}</span>
-        </button>
-      </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle className="zk-label text-sm">My account</SheetTitle>
-          <SheetDescription>{user.email}</SheetDescription>
-        </SheetHeader>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Order confirmations and tracking are emailed to you after checkout.
-        </p>
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            navigate({ to: "/", replace: true });
-          }}
-          className="zk-label mt-6 w-full rounded-full border border-border py-3 text-xs"
-        >
-          Sign out
-        </button>
-      </SheetContent>
-    </Sheet>
+    <Link
+      to={signedIn ? "/account" : "/auth"}
+      aria-label={signedIn ? "My account" : "Sign in"}
+      className={`grid h-9 w-9 place-items-center rounded-full transition-colors ${signedIn ? "bg-foreground text-background" : "hover:bg-muted"}`}
+    >
+      {signedIn ? (
+        <span className="text-xs font-semibold uppercase">{email?.[0] ?? "U"}</span>
+      ) : (
+        <User className="h-5 w-5" strokeWidth={1.6} />
+      )}
+    </Link>
   );
 }
 
