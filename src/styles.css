@@ -144,3 +144,38 @@
     color: var(--color-foreground);
   }
 }
+
+@theme inline {
+  --color-ink: var(--ink);
+  --font-display: "Archivo", "Archivo Black", system-ui, sans-serif;
+  --font-sans: "Inter Tight", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+@utility zk-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}
+
+@utility zk-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+@utility zk-pill {
+  border-radius: 9999px;
+}
