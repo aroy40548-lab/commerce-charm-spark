@@ -25,8 +25,7 @@ export function Footer() {
         <div>
           <h3 className="zk-label text-[11px] text-background/50">Support</h3>
           <p className="mt-3 text-sm text-background/70">
-            Secure checkout, shipping and returns are handled by Shopify. Questions? Reach us at
-            hello@zankyo.store
+            Customer Support & Questions? Reach us at help@zankyo.in
           </p>
         </div>
       </div>
