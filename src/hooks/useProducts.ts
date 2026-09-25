@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProductByHandle, fetchProducts } from "@/lib/shopify";
+import { fetchCategories, fetchProductByHandle, fetchProducts } from "@/lib/catalog";
 
 export function useProducts() {
   return useQuery({
-    queryKey: ["shopify-products"],
-    queryFn: () => fetchProducts(50),
+    queryKey: ["products"],
+    queryFn: () => fetchProducts(100),
     staleTime: 30_000,
     refetchOnWindowFocus: true,
   });
@@ -13,10 +13,14 @@ export function useProducts() {
 // Live stock: refetch every 30s and when the tab regains focus.
 export function useProduct(handle: string) {
   return useQuery({
-    queryKey: ["shopify-product", handle],
+    queryKey: ["product", handle],
     queryFn: () => fetchProductByHandle(handle),
     staleTime: 0,
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
   });
+}
+
+export function useCategories() {
+  return useQuery({ queryKey: ["categories"], queryFn: fetchCategories, staleTime: 60_000 });
 }

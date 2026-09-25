@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatMoney, type ShopifyProduct } from "@/lib/shopify";
+import { formatMoney, type Product } from "@/lib/catalog";
 import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 
 
-export function ProductCard({ product }: { product: ShopifyProduct }) {
+export function ProductCard({ product }: { product: Product }) {
   const node = product.node;
   const addItem = useCartStore((s) => s.addItem);
   const isLoading = useCartStore((s) => s.isLoading);

@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Camera, Loader2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useProduct, useProducts } from "@/hooks/useProducts";
-import { formatMoney } from "@/lib/shopify";
+import { formatMoney } from "@/lib/catalog";
 import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
