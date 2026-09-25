@@ -14,7 +14,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { useCartSync } from "@/hooks/useCartSync";
 import { observeDecartLauncher } from "@/lib/decart";
 
 function NotFoundComponent() {
@@ -120,7 +119,6 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function AppShell() {
-  useCartSync();
   useEffect(() => observeDecartLauncher(), []);
 
   return (

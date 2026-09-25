@@ -2,16 +2,10 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useCustomerStore } from "@/stores/customerStore";
-import {
-  addressCreate,
-  addressDelete,
-  addressUpdate,
-  fetchCustomer,
-  type AddressInput,
-  type MailingAddress,
-} from "@/lib/shopifyCustomer";
-import { formatMoney } from "@/lib/shopify";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { formatMoney } from "@/lib/catalog";
+import { AddressFields, EMPTY_ADDRESS, formatAddress, type AddressInput } from "@/components/AddressForm";
 
 export const Route = createFileRoute("/account")({
   ssr: false,
@@ -27,58 +21,49 @@ export const Route = createFileRoute("/account")({
   component: Account,
 });
 
-const EMPTY: AddressInput = {
-  firstName: "", lastName: "", address1: "", address2: "", city: "", province: "", zip: "", country: "India", phone: "",
+export const STATUS_LABEL: Record<string, string> = {
+  pending: "Awaiting payment", paid: "Paid · preparing", shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled", refunded: "Refunded",
 };
-const inputCls = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground";
 
 function Account() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const token = useCustomerStore((s) => s.validToken());
-  const logout = useCustomerStore((s) => s.logout);
+  const { user, loading } = useAuth();
   const [editing, setEditing] = useState<{ id: string | null; data: AddressInput } | null>(null);
 
   useEffect(() => {
-    if (!token) navigate({ to: "/auth", replace: true });
-  }, [token, navigate]);
+    if (!loading && !user) navigate({ to: "/auth", search: { next: "/account" }, replace: true });
+  }, [loading, user, navigate]);
 
-  const { data: customer, isLoading } = useQuery({
-    queryKey: ["customer", token],
-    queryFn: () => fetchCustomer(token!),
-    enabled: !!token,
+  const { data } = useQuery({
+    queryKey: ["account", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const [p, o, a] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle(),
+        supabase.from("orders").select("*, order_items(title, variant_title, quantity)").eq("user_id", user!.id).neq("status", "pending").order("created_at", { ascending: false }),
+        supabase.from("addresses").select("*").eq("user_id", user!.id).order("created_at"),
+      ]);
+      return { profile: p.data, orders: o.data ?? [], addresses: a.data ?? [] };
+    },
   });
 
-  if (!token) return null;
-  if (isLoading) return <p className="py-20 text-center text-sm text-muted-foreground">Loading your account…</p>;
-  if (!customer) {
-    return (
-      <div className="py-20 text-center text-sm">
-        <p>Your session expired.</p>
-        <button onClick={() => { logout(); navigate({ to: "/auth" }); }} className="mt-4 underline">Sign in again</button>
-      </div>
-    );
-  }
+  if (loading || !user) return null;
+  if (!data) return <p className="py-20 text-center text-sm text-muted-foreground">Loading your account…</p>;
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["customer"] });
+  const refresh = () => qc.invalidateQueries({ queryKey: ["account"] });
 
   const saveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing) return;
-    try {
-      if (editing.id) await addressUpdate(token, editing.id, editing.data);
-      else await addressCreate(token, editing.data);
-      toast.success("Address saved");
-      setEditing(null);
-      refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Couldn't save address");
-    }
-  };
-
-  const toInput = (a: MailingAddress): AddressInput => {
-    const { id: _id, ...rest } = a;
-    return Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, v ?? ""])) as AddressInput;
+    const row = { ...editing.data, user_id: user.id };
+    const { error } = editing.id
+      ? await supabase.from("addresses").update(row).eq("id", editing.id)
+      : await supabase.from("addresses").insert({ ...row, is_default: data.addresses.length === 0 });
+    if (error) return toast.error(error.message);
+    toast.success("Address saved");
+    setEditing(null);
+    refresh();
   };
 
   return (
@@ -86,11 +71,11 @@ function Account() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="zk-label text-xs text-muted-foreground">My account</p>
-          <h1 className="zk-display mt-1 text-4xl">Hi, {customer.firstName || "there"}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{customer.email}</p>
+          <h1 className="zk-display mt-1 text-4xl">Hi, {data.profile?.first_name || "there"}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
         </div>
         <button
-          onClick={async () => { await logout(); qc.removeQueries({ queryKey: ["customer"] }); navigate({ to: "/", replace: true }); }}
+          onClick={async () => { await supabase.auth.signOut(); qc.clear(); navigate({ to: "/", replace: true }); }}
           className="zk-label rounded-full border border-border px-5 py-2 text-xs"
         >
           Sign out
@@ -98,26 +83,23 @@ function Account() {
       </div>
 
       <section className="mt-10">
-        <h2 className="zk-label text-sm">Orders</h2>
-        {customer.orders.edges.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            No orders yet. <Link to="/shop" className="underline">Start shopping</Link>
-          </p>
+        <h2 className="zk-label text-sm">My orders</h2>
+        {data.orders.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No orders yet. <Link to="/shop" search={{ q: undefined, category: undefined }} className="underline">Start shopping</Link></p>
         ) : (
           <div className="mt-3 divide-y divide-border rounded-xl border border-border">
-            {customer.orders.edges.map(({ node: o }) => (
+            {data.orders.map((o) => (
               <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
                 <div>
-                  <p className="font-semibold">Order #{o.orderNumber}</p>
+                  <p className="font-semibold">Order #{o.order_number}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(o.processedAt).toLocaleDateString("en-IN")} · {o.lineItems.edges.map((l) => `${l.node.title} ×${l.node.quantity}`).join(", ")}
+                    {new Date(o.created_at).toLocaleDateString("en-IN")} · {o.order_items.map((l) => `${l.title} (${l.variant_title}) ×${l.quantity}`).join(", ")}
                   </p>
+                  {o.awb_code && <p className="text-xs text-muted-foreground">{o.courier_name ?? "Courier"} · AWB {o.awb_code} · {o.tracking_status}</p>}
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">{formatMoney(o.totalPrice.amount, o.totalPrice.currencyCode)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(o.financialStatus ?? "").toLowerCase()} · {o.fulfillmentStatus.toLowerCase().replace(/_/g, " ")}
-                  </p>
+                  <p className="font-semibold">{formatMoney(o.total)}</p>
+                  <p className="text-xs text-muted-foreground">{STATUS_LABEL[o.status] ?? o.status}</p>
                 </div>
               </div>
             ))}
@@ -128,22 +110,19 @@ function Account() {
       <section className="mt-10">
         <div className="flex items-center justify-between">
           <h2 className="zk-label text-sm">Addresses</h2>
-          <button onClick={() => setEditing({ id: null, data: EMPTY })} className="text-sm underline">Add address</button>
+          <button onClick={() => setEditing({ id: null, data: EMPTY_ADDRESS })} className="text-sm underline">Add address</button>
         </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {customer.addresses.edges.map(({ node: a }) => (
+          {data.addresses.map((a) => (
             <div key={a.id} className="rounded-xl border border-border p-4 text-sm">
-              {customer.defaultAddress?.id === a.id && <p className="zk-label mb-1 text-[10px] text-accent">Default</p>}
-              <p className="font-medium">{a.firstName} {a.lastName}</p>
-              <p className="text-muted-foreground">{[a.address1, a.address2, a.city, a.province, a.zip, a.country].filter(Boolean).join(", ")}</p>
-              {a.phone && <p className="text-muted-foreground">{a.phone}</p>}
+              {a.is_default && <p className="zk-label mb-1 text-[10px] text-accent">Default</p>}
+              <p className="font-medium">{a.full_name}</p>
+              <p className="text-muted-foreground">{formatAddress({ ...a, address2: a.address2 ?? "" })}</p>
+              <p className="text-muted-foreground">{a.phone}</p>
               <div className="mt-3 flex gap-4 text-xs">
-                <button onClick={() => setEditing({ id: a.id, data: toInput(a) })} className="underline">Edit</button>
+                <button onClick={() => setEditing({ id: a.id, data: { full_name: a.full_name, phone: a.phone, address1: a.address1, address2: a.address2 ?? "", city: a.city, state: a.state, pincode: a.pincode, country: a.country } })} className="underline">Edit</button>
                 <button
-                  onClick={async () => {
-                    try { await addressDelete(token, a.id); toast.success("Address removed"); refresh(); }
-                    catch (err) { toast.error(err instanceof Error ? err.message : "Couldn't remove"); }
-                  }}
+                  onClick={async () => { await supabase.from("addresses").delete().eq("id", a.id); toast.success("Address removed"); refresh(); }}
                   className="text-destructive underline"
                 >
                   Delete
@@ -151,29 +130,13 @@ function Account() {
               </div>
             </div>
           ))}
-          {customer.addresses.edges.length === 0 && !editing && (
-            <p className="text-sm text-muted-foreground">No saved addresses. You can also add one during checkout.</p>
-          )}
+          {data.addresses.length === 0 && !editing && <p className="text-sm text-muted-foreground">No saved addresses. You can also add one during checkout.</p>}
         </div>
 
         {editing && (
-          <form onSubmit={saveAddress} className="mt-4 grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-2">
-            {(
-              [
-                ["firstName", "First name"], ["lastName", "Last name"], ["address1", "Address"], ["address2", "Apartment, etc. (optional)"],
-                ["city", "City"], ["province", "State"], ["zip", "PIN code"], ["country", "Country"], ["phone", "Phone"],
-              ] as const
-            ).map(([k, label]) => (
-              <input
-                key={k}
-                required={k !== "address2" && k !== "phone"}
-                placeholder={label}
-                value={editing.data[k] ?? ""}
-                onChange={(e) => setEditing({ ...editing, data: { ...editing.data, [k]: e.target.value } })}
-                className={inputCls}
-              />
-            ))}
-            <div className="flex gap-2 sm:col-span-2">
+          <form onSubmit={saveAddress} className="mt-4 space-y-3 rounded-xl border border-border p-4">
+            <AddressFields value={editing.data} onChange={(d) => setEditing({ ...editing, data: d })} />
+            <div className="flex gap-2">
               <button className="zk-label rounded-full bg-foreground px-5 py-2 text-xs text-background">Save</button>
               <button type="button" onClick={() => setEditing(null)} className="zk-label rounded-full border border-border px-5 py-2 text-xs">Cancel</button>
             </div>

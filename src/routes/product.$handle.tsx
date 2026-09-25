@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Camera, Loader2, Heart } from "lucide-react";
 import { toast } from "sonner";
-import { useProduct, useProducts } from "@/hooks/useProducts";
-import { formatMoney } from "@/lib/shopify";
+import { useCategories, useProduct, useProducts } from "@/hooks/useProducts";
+import { formatMoney } from "@/lib/catalog";
 import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
@@ -26,12 +26,13 @@ export const Route = createFileRoute("/product/$handle")({
   component: ProductDetail,
 });
 
-const CATEGORIES = ["Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear", "Jorts", "Sweatpants Wide Leg", "Japanese Trousers", "Boxy Shirts"];
 
 function ProductDetail() {
   const { handle } = Route.useParams();
   const { data: product, isLoading } = useProduct(handle);
   const { data: allProducts } = useProducts();
+  const { data: cats } = useCategories();
+  const CATEGORIES = (cats ?? []).map((c) => c.name);
   const addItem = useCartStore((s) => s.addItem);
   const cartLoading = useCartStore((s) => s.isLoading);
   const wishlist = useWishlistStore((s) => s.items);

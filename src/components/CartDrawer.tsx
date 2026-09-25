@@ -1,62 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { ShoppingBag, Minus, Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
+import { ShoppingBag, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
-import { formatMoney, storefrontApiRequest } from "@/lib/shopify";
-import { toast } from "sonner";
-import { useCustomerStore } from "@/stores/customerStore";
-import { cartAttachCustomer } from "@/lib/shopifyCustomer";
-
-const PROMOS: Record<string, { type: "percent" | "flat"; value: number; label: string }> = {
-  ZANKYO10: { type: "percent", value: 10, label: "10% off" },
-  GENZ500: { type: "flat", value: 500, label: "₹500 off" },
-};
+import { formatMoney } from "@/lib/catalog";
 
 export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const [promoInput, setPromoInput] = useState("");
-  const [promo, setPromo] = useState<string | null>(null);
-  const { items, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart } = useCartStore();
+  const navigate = useNavigate();
+  const { items, updateQuantity, removeItem } = useCartStore();
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + parseFloat(i.price.amount) * i.quantity, 0);
   const currency = items[0]?.price.currencyCode ?? "INR";
-  const rule = promo ? PROMOS[promo] : null;
-  const discount = rule ? (rule.type === "percent" ? (subtotal * rule.value) / 100 : Math.min(rule.value, subtotal)) : 0;
 
-  useEffect(() => {
-    if (isOpen) syncCart();
-  }, [isOpen, syncCart]);
-
-  const handleCheckout = async () => {
-    const checkoutUrl = getCheckoutUrl();
-    const cartId = useCartStore.getState().cartId;
-    if (!checkoutUrl || !cartId) return;
-    const win = window.open("about:blank", "_blank");
-    try {
-      // Re-check live stock before paying
-      const ids = items.map((i) => i.variantId);
-      const res = await storefrontApiRequest(
-        `query($ids: [ID!]!) { nodes(ids: $ids) { ... on ProductVariant { id availableForSale } } }`,
-        { ids },
-      );
-      const soldOut = (res?.data?.nodes ?? []).filter((n: { id: string; availableForSale: boolean } | null) => n && !n.availableForSale);
-      if (soldOut.length > 0) {
-        for (const n of soldOut) await removeItem(n.id);
-        toast.error("Some items just sold out and were removed from your bag.");
-        win?.close();
-        return;
-      }
-      const { validToken, email } = useCustomerStore.getState();
-      const token = validToken();
-      if (token) await cartAttachCustomer(cartId, token, email ?? undefined);
-      if (win) win.location.href = checkoutUrl;
-      else window.open(checkoutUrl, "_blank");
-      setIsOpen(false);
-    } catch {
-      win?.close();
-      toast.error("Couldn't start checkout. Please try again.");
-    }
+  const handleCheckout = () => {
+    setIsOpen(false);
+    navigate({ to: "/checkout" });
   };
 
   return (
@@ -147,56 +107,17 @@ export function CartDrawer() {
               </div>
 
               <div className="flex-shrink-0 space-y-4 border-t border-border bg-background pt-4">
-                <div className="flex gap-2">
-                  <input
-                    value={promoInput}
-                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                    placeholder="Discount token"
-                    className="h-10 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
-                  />
-                  <button
-                    onClick={() => setPromo(PROMOS[promoInput] ? promoInput : null)}
-                    className="zk-label h-10 rounded-full bg-muted px-4 text-[11px] text-foreground"
-                  >
-                    Apply
-                  </button>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="zk-label text-xs">Subtotal</span>
+                  <span className="text-xl font-bold">{formatMoney(subtotal, currency)}</span>
                 </div>
-                {promoInput && !PROMOS[promoInput] && (
-                  <p className="text-xs text-destructive">That token isn't valid.</p>
-                )}
-                {rule && (
-                  <p className="text-xs text-accent">
-                    {promo} applied — {rule.label}. Enter it again at checkout to redeem it on your order.
-                  </p>
-                )}
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal</span>
-                    <span>{formatMoney(subtotal, currency)}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-accent">
-                      <span>Discount</span>
-                      <span>-{formatMoney(discount, currency)}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="zk-label text-xs">Total</span>
-                    <span className="text-xl font-bold">{formatMoney(subtotal - discount, currency)}</span>
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground">Shipping and discount codes are applied at checkout.</p>
                 <button
                   onClick={handleCheckout}
-                  disabled={items.length === 0 || isLoading || isSyncing}
+                  disabled={items.length === 0}
                   className="zk-label flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background disabled:opacity-60"
                 >
-                  {isLoading || isSyncing ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <ExternalLink className="h-4 w-4" /> Proceed to checkout
-                    </>
-                  )}
+                  Checkout <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </>

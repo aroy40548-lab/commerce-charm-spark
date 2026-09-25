@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Search, User, Heart, X } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CartDrawer } from "@/components/CartDrawer";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import { useWishlistStore } from "@/stores/wishlistStore";
-import { formatMoney } from "@/lib/shopify";
-import { useCustomerStore } from "@/stores/customerStore";
+import { formatMoney } from "@/lib/catalog";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -64,11 +64,9 @@ function WishlistSheet() {
 }
 
 function AccountSheet() {
-  const email = useCustomerStore((s) => s.email);
-  const token = useCustomerStore((s) => s.token);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const signedIn = mounted && !!token;
+  const { user } = useAuth();
+  const email = user?.email;
+  const signedIn = !!user;
 
   return (
     <Link
