@@ -38,7 +38,7 @@ export const useCartStore = create<CartStore>()(
         if (quantity <= 0) { await get().removeItem(variantId); return; }
         set({ items: get().items.map((i) => (i.variantId === variantId ? { ...i, quantity } : i)) });
       },
-      removeItem: async (variantId) => set({ items: get().items.filter((i) => i.variantId !== variantId) }),
+      removeItem: async (variantId) => { set({ items: get().items.filter((i) => i.variantId !== variantId) }); },
       clearCart: () => set({ items: [] }),
     }),
     {
