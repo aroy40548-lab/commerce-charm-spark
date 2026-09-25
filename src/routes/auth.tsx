@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { ZankyoStar } from "@/components/ZankyoStar";
+import { useCustomerStore } from "@/stores/customerStore";
+import { customerRecover } from "@/lib/shopifyCustomer";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — ZANKYO" },
-      { name: "description", content: "Sign in or create your ZANKYO account with email or Google." },
+      { name: "description", content: "Sign in or create your ZANKYO account to track orders and save addresses." },
       { property: "og:title", content: "Sign in — ZANKYO" },
       { property: "og:description", content: "Sign in or create your ZANKYO account." },
     ],
@@ -17,9 +17,16 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const inputCls =
+  "w-full rounded-full border border-border bg-background px-5 py-3 text-sm outline-none focus:border-foreground";
+
 function AuthPage() {
   const navigate = useNavigate();
+  const login = useCustomerStore((s) => s.login);
+  const register = useCustomerStore((s) => s.register);
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,40 +36,23 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast.success("Check your email to confirm your account.");
+        await register({ firstName, lastName, email, password });
+        toast.success("Account created — welcome to ZANKYO!");
+        navigate({ to: "/account" });
       } else if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await login(email, password);
         toast.success("Welcome back!");
-        navigate({ to: "/" });
+        navigate({ to: "/account" });
       } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
-        if (error) throw error;
-        toast.success("Password reset link sent to your email.");
+        await customerRecover(email);
+        toast.success("If that email has an account, a reset link is on its way.");
+        setMode("signin");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setBusy(false);
     }
-  };
-
-  const google = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) {
-      toast.error("Google sign-in failed");
-      return;
-    }
-    if (result.redirected) return;
-    navigate({ to: "/" });
   };
 
   const title = mode === "signup" ? "Create account" : mode === "signin" ? "Sign in" : "Reset password";
@@ -72,44 +62,18 @@ function AuthPage() {
       <ZankyoStar className="mx-auto h-8 w-8" />
       <h1 className="zk-display mt-4 text-center text-4xl">{title}</h1>
 
-      {mode !== "forgot" && (
-        <>
-          <button
-            onClick={google}
-            className="mt-8 flex w-full items-center justify-center gap-2 rounded-full border border-border py-3 text-sm font-medium hover:bg-muted"
-          >
-            Continue with Google
-          </button>
-          <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+      <form onSubmit={submit} className="mt-8 space-y-3">
+        {mode === "signup" && (
+          <div className="flex gap-3">
+            <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className={inputCls} />
+            <input required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" className={inputCls} />
           </div>
-        </>
-      )}
-
-      <form onSubmit={submit} className={`space-y-3 ${mode === "forgot" ? "mt-8" : ""}`}>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className="w-full rounded-full border border-border bg-background px-5 py-3 text-sm outline-none focus:border-foreground"
-        />
-        {mode !== "forgot" && (
-          <input
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="w-full rounded-full border border-border bg-background px-5 py-3 text-sm outline-none focus:border-foreground"
-          />
         )}
-        <button
-          disabled={busy}
-          className="zk-label w-full rounded-full bg-foreground py-3 text-xs text-background disabled:opacity-50"
-        >
+        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className={inputCls} />
+        {mode !== "forgot" && (
+          <input type="password" required minLength={5} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className={inputCls} />
+        )}
+        <button disabled={busy} className="zk-label w-full rounded-full bg-foreground py-3 text-xs text-background disabled:opacity-50">
           {busy ? "Please wait…" : title}
         </button>
       </form>

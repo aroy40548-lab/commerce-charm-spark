@@ -11,10 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CollectionsRouteImport } from './routes/collections'
-import { Route as LookbookRouteImport } from './routes/lookbook'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 
@@ -28,6 +27,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -36,16 +40,6 @@ const AuthRoute = AuthRouteImport.update({
 const CollectionsRoute = CollectionsRouteImport.update({
   id: '/collections',
   path: '/collections',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LookbookRoute = LookbookRouteImport.update({
-  id: '/lookbook',
-  path: '/lookbook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -62,20 +56,18 @@ const ProductHandleRoute = ProductHandleRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/collections': typeof CollectionsRoute
-  '/lookbook': typeof LookbookRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/collections': typeof CollectionsRoute
-  '/lookbook': typeof LookbookRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
 }
@@ -83,10 +75,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/collections': typeof CollectionsRoute
-  '/lookbook': typeof LookbookRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/product/$handle': typeof ProductHandleRoute
 }
@@ -95,30 +86,27 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/account'
     | '/auth'
     | '/collections'
-    | '/lookbook'
-    | '/reset-password'
     | '/shop'
     | '/product/$handle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/account'
     | '/auth'
     | '/collections'
-    | '/lookbook'
-    | '/reset-password'
     | '/shop'
     | '/product/$handle'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/account'
     | '/auth'
     | '/collections'
-    | '/lookbook'
-    | '/reset-password'
     | '/shop'
     | '/product/$handle'
   fileRoutesById: FileRoutesById
@@ -126,10 +114,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
   CollectionsRoute: typeof CollectionsRoute
-  LookbookRoute: typeof LookbookRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
   ShopRoute: typeof ShopRoute
   ProductHandleRoute: typeof ProductHandleRoute
 }
@@ -150,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -162,20 +156,6 @@ declare module '@tanstack/react-router' {
       path: '/collections'
       fullPath: '/collections'
       preLoaderRoute: typeof CollectionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lookbook': {
-      id: '/lookbook'
-      path: '/lookbook'
-      fullPath: '/lookbook'
-      preLoaderRoute: typeof LookbookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -198,10 +178,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
   CollectionsRoute: CollectionsRoute,
-  LookbookRoute: LookbookRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
   ShopRoute: ShopRoute,
   ProductHandleRoute: ProductHandleRoute,
 }
