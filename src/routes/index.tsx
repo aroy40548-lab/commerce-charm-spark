@@ -1,24 +1,209 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, ArrowLeft, Crosshair } from "lucide-react";
+import { useProducts } from "@/hooks/useProducts";
+import { ProductCard } from "@/components/ProductCard";
+import { ZankyoStar } from "@/components/ZankyoStar";
+import heroImg from "@/assets/hero-zankyo.jpg";
+import shadowsImg from "@/assets/banner-shadows.jpg";
+import genzImg from "@/assets/banner-genz.jpg";
+import teeImg from "@/assets/chaos-skull-tee.jpg";
+import denimImg from "@/assets/tribal-washed-denim.jpg";
+import hoodieImg from "@/assets/doom-zip-hoodie.jpg";
+import capImg from "@/assets/z-star-cap.jpg";
+import beltImg from "@/assets/spiked-belt.jpg";
+import sneakerImg from "@/assets/rift-skate-sneakers.jpg";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "ZANKYO — More Than Just Clothes" },
+      {
+        name: "description",
+        content:
+          "ZANKYO streetwear: Y2K cyber-sigilism graphic tees, baggy denim, hoodies, headwear and footwear built for a different generation.",
+      },
+      { property: "og:title", content: "ZANKYO — More Than Just Clothes" },
+      {
+        property: "og:description",
+        content: "Y2K graphic tees, baggy denim and hoodies. Wear your story.",
+      },
+    ],
+  }),
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const CATEGORIES = [
+  { label: "Tees", image: teeImg },
+  { label: "Baggy Jeans", image: denimImg },
+  { label: "Hoodies", image: hoodieImg },
+  { label: "Headwear", image: capImg },
+  { label: "Accessories", image: beltImg },
+  { label: "Footwear", image: sneakerImg },
+];
+
+function Home() {
+  const { data: products, isLoading } = useProducts();
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div>
+      {/* Hero */}
+      <section className="relative isolate overflow-hidden bg-ink">
+        <img
+          src={heroImg}
+          alt="Two models in ZANKYO streetwear on brutalist concrete steps"
+          width={1920}
+          height={1088}
+          className="absolute inset-0 h-full w-full object-cover opacity-90"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
+        <div className="relative mx-auto flex min-h-[420px] max-w-[1600px] flex-col justify-center px-4 py-16 sm:px-6 md:min-h-[540px]">
+          <p className="zk-label text-[11px] text-white/70">Streetwear</p>
+          <h1 className="zk-display mt-2 flex items-center text-6xl text-white sm:text-7xl md:text-8xl">
+            ZANKYO
+            <ZankyoStar className="-ml-4 h-14 w-14 text-accent md:h-20 md:w-20" />
+          </h1>
+          <p className="zk-label mt-3 text-[11px] leading-6 text-white/80">
+            More than just clothes
+            <br />
+            Built for a different generation
+          </p>
+          <Link
+            to="/shop"
+            search={{ q: undefined, category: undefined }}
+            className="zk-label mt-7 inline-flex w-fit items-center gap-3 rounded-full border border-white/70 bg-black/30 px-7 py-3.5 text-xs text-white backdrop-blur transition-colors hover:bg-white hover:text-ink"
+          >
+            Shop now <ArrowRight className="h-4 w-4" />
+          </Link>
+
+          <div className="mt-12 flex items-center gap-3 text-white/80">
+            <Crosshair className="h-7 w-7" strokeWidth={1} />
+            <span className="zk-label text-[10px] leading-4">
+              Wear
+              <br />
+              your story
+            </span>
+          </div>
+
+          <p className="zk-display absolute right-6 top-10 hidden -rotate-6 text-2xl leading-7 text-white/90 lg:block">
+            Gen Z
+            <br />
+            vibes
+            <br />
+            worldwide
+          </p>
+          <div className="absolute bottom-6 right-6 hidden items-center gap-4 text-xs text-white/60 md:flex">
+            <span>—</span>
+            <span className="text-white">01</span>
+            <span>02</span>
+            <span>03</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          {CATEGORIES.map((cat) => (
+            <Link
+              key={cat.label}
+              to="/shop"
+              search={{ q: undefined, category: cat.label }}
+              className="group relative h-36 overflow-hidden rounded-xl bg-ink"
+            >
+              <img
+                src={cat.image}
+                alt={cat.label}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full scale-150 object-cover opacity-70 transition-transform duration-500 group-hover:scale-[1.7]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/10" />
+              <span className="zk-label absolute bottom-4 left-4 text-xs text-white">{cat.label}</span>
+              <span className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full border border-white/70 text-white">
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* New arrivals */}
+      <section className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2">
+            <ZankyoStar className="h-4 w-4" />
+            <span className="zk-label text-lg not-italic">New Arrivals</span>
+          </h2>
+          <Link
+            to="/shop"
+            search={{ q: undefined, category: undefined }}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
+            View All <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 xl:grid-cols-8">
+          {isLoading &&
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-square animate-pulse rounded-xl bg-card" />
+            ))}
+          {products?.map((product) => <ProductCard key={product.node.id} product={product} />)}
+        </div>
+        {!isLoading && products?.length === 0 && (
+          <p className="py-16 text-center text-sm text-muted-foreground">No products found</p>
+        )}
+      </section>
+
+      {/* Editorial banners */}
+      <section className="mx-auto grid max-w-[1600px] gap-4 px-4 pb-4 sm:px-6 md:grid-cols-2">
+        <div className="relative h-72 overflow-hidden rounded-2xl bg-ink md:h-80">
+          <img src={shadowsImg} alt="Shadows collection" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-80" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
+          <div className="relative flex h-full flex-col justify-end p-8">
+            <p className="zk-label text-[10px] text-white/60">Collection</p>
+            <h2 className="zk-display mt-1 text-4xl not-italic tracking-[0.12em] text-white">SHADOWS</h2>
+            <p className="zk-label mt-2 text-[10px] leading-5 text-white/70">
+              Raw details.
+              <br />
+              Bigger stories.
+            </p>
+            <Link
+              to="/collections"
+              className="zk-label mt-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/70 px-6 py-3 text-[11px] text-white hover:bg-white hover:text-ink"
+            >
+              Explore <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative h-72 overflow-hidden rounded-2xl bg-ink md:h-80">
+          <img src={genzImg} alt="Gen Z lookbook" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-85" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
+          <div className="relative flex h-full flex-col justify-end p-8">
+            <p className="zk-label text-[10px] text-white/60">Lookbook</p>
+            <h2 className="zk-display mt-1 text-4xl not-italic tracking-[0.12em] text-white">GEN Z</h2>
+            <p className="zk-label mt-2 text-[10px] leading-5 text-white/70">
+              Real people.
+              <br />
+              Real outfits.
+            </p>
+            <Link
+              to="/lookbook"
+              className="zk-label mt-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/70 px-6 py-3 text-[11px] text-white hover:bg-white hover:text-ink"
+            >
+              View lookbook <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="absolute bottom-6 right-6 flex gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-ink">
+              <ArrowLeft className="h-4 w-4" />
+            </span>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-ink">
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
