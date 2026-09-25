@@ -2,12 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 
-type ShopSearch = { q?: string; category?: string };
+type ShopSearch = { q?: string | undefined; category?: string | undefined };
 
 export const Route = createFileRoute("/shop")({
   validateSearch: (search: Record<string, unknown>): ShopSearch => ({
-    q: typeof search.q === "string" && search.q ? search.q : undefined,
-    category: typeof search.category === "string" && search.category ? search.category : undefined,
+    q: typeof search["q"] === "string" && search["q"] ? search["q"] : undefined,
+    category: typeof search["category"] === "string" && search["category"] ? search["category"] : undefined,
   }),
   head: () => ({
     meta: [

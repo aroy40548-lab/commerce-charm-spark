@@ -53,10 +53,10 @@ function Home() {
           alt="Two models in ZANKYO streetwear on brutalist concrete steps"
           width={1920}
           height={1088}
-          className="absolute inset-0 h-full w-full object-cover opacity-90"
+          className="absolute inset-0 h-full w-full object-cover object-top opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
-        <div className="relative mx-auto flex min-h-[420px] max-w-[1600px] flex-col justify-center px-4 py-16 sm:px-6 md:min-h-[540px]">
+        <div className="relative mx-auto flex min-h-[480px] max-w-[1600px] flex-col justify-center px-4 py-16 sm:px-6 md:min-h-[640px] lg:min-h-[720px]">
           <p className="zk-label text-[11px] text-white/70">Streetwear</p>
           <h1 className="zk-display mt-2 flex items-center text-6xl text-white sm:text-7xl md:text-8xl">
             ZANKYO
