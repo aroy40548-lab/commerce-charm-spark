@@ -60,7 +60,7 @@ function Account() {
     const { error } = editing.id
       ? await supabase.from("addresses").update(row).eq("id", editing.id)
       : await supabase.from("addresses").insert({ ...row, is_default: data.addresses.length === 0 });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Address saved");
     setEditing(null);
     refresh();

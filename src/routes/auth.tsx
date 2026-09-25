@@ -5,7 +5,7 @@ import { ZankyoStar } from "@/components/ZankyoStar";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
-type AuthSearch = { next?: string };
+type AuthSearch = { next?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): AuthSearch => ({

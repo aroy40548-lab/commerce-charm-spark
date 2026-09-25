@@ -119,7 +119,7 @@ function Editor({ draft, setDraft, cats, onDone }: { draft: Draft; setDraft: (d:
   const remove = async () => {
     if (!draft.id || !confirm("Delete this product permanently?")) return;
     const { error } = await supabase.from("products").delete().eq("id", draft.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Product deleted");
     onDone();
   };

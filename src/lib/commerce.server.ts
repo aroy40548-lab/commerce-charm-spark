@@ -104,7 +104,7 @@ export async function shiprocket(path: string, method: "GET" | "POST", body?: un
   const token = await shiprocketToken();
   const res = await fetch(`https://apiv2.shiprocket.in/v1/external${path}`, {
     method, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? JSON.stringify(body) : null,
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(json?.message ?? `Shiprocket error ${res.status}`);

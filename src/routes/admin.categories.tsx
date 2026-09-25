@@ -21,7 +21,7 @@ function Categories() {
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.from("categories").insert({ name, position: (cats?.length ?? 0) + 1 });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setName(""); refresh();
   };
   const update = async (id: string, patch: { name?: string; image_url?: string; position?: number }) => {
@@ -38,7 +38,7 @@ function Categories() {
     if (!f) return;
     const path = `categories/${crypto.randomUUID()}.${f.name.split(".").pop() ?? "jpg"}`;
     const { error } = await supabase.storage.from("product-images").upload(path, f, { contentType: f.type });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     update(id, { image_url: `storage:${path}` });
   };
 

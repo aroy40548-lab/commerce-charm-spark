@@ -9,7 +9,7 @@ import { formatMoney } from "@/lib/catalog";
 import { createShipment, refreshTracking, refundOrder } from "@/lib/admin.functions";
 import { btn, btnGhost, Card, PageHeader, StatusBadge } from "@/components/admin/ui";
 
-type S = { id?: string; status?: string };
+type S = { id?: string | undefined; status?: string | undefined };
 export const Route = createFileRoute("/admin/orders")({
   validateSearch: (s: Record<string, unknown>): S => ({
     id: typeof s["id"] === "string" ? s["id"] : undefined,
