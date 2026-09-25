@@ -145,7 +145,8 @@ function ProductDetail() {
                     key={v.id}
                     onClick={() => setVariantId(v.id)}
                     disabled={!v.availableForSale}
-                    className={`min-w-12 rounded-lg border px-4 py-2 text-sm transition-colors disabled:opacity-40 ${
+                    title={v.availableForSale ? "In stock" : "Sold out"}
+                    className={`min-w-12 rounded-lg border px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
                       selected?.id === v.id ? "border-foreground bg-foreground text-background" : "border-border"
                     }`}
                   >
@@ -153,6 +154,9 @@ function ProductDetail() {
                   </button>
                 ))}
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {selected?.availableForSale ? `${selected.title} is in stock` : "This size is sold out"}
+              </p>
             </div>
           )}
 
@@ -161,7 +165,7 @@ function ProductDetail() {
             disabled={cartLoading || !selected?.availableForSale}
             className="zk-label mt-7 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-xs text-background disabled:opacity-60"
           >
-            {cartLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add to cart"}
+            {cartLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : selected?.availableForSale ? "Add to cart" : "Sold out"}
           </button>
 
           <button
