@@ -5,7 +5,6 @@ import { formatMoney, type ShopifyProduct } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 
-const SWATCHES = ["#111111", "#5A1827", "#71717A"];
 
 export function ProductCard({ product }: { product: ShopifyProduct }) {
   const node = product.node;
@@ -76,16 +75,7 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
             </span>
           )}
         </div>
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex gap-1.5">
-            {SWATCHES.map((c) => (
-              <span
-                key={c}
-                className="h-3.5 w-3.5 rounded-full border border-border"
-                style={{ backgroundColor: c }}
-              />
-            ))}
-          </div>
+        <div className="flex items-center justify-end pt-1">
           <button
             onClick={handleAdd}
             disabled={isLoading || !variant}
