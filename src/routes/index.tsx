@@ -180,7 +180,7 @@ function Home() {
           <img src={genzImg} alt="Gen Z lookbook" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-85" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
           <div className="relative flex h-full flex-col justify-end p-8">
-            <p className="zk-label text-[10px] text-white/60">Lookbook</p>
+            <p className="zk-label text-[10px] text-white/60">New drop</p>
             <h2 className="zk-display mt-1 text-4xl not-italic tracking-[0.12em] text-white">GEN Z</h2>
             <p className="zk-label mt-2 text-[10px] leading-5 text-white/70">
               Real people.
