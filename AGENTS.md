@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Commerce runs on Lovable Cloud (no Shopify): catalog read via browser client (public RLS), admin CRUD via browser client gated by has_role RLS, payments/shipping/refunds via server fns in src/lib/*.functions.ts with secrets in commerce.server.ts. Why: single source of truth, server-enforced security.
+- Admin panel lives under /admin (hidden storefront chrome); admin.zankyo.in redirects to /admin and zankyo.in blocks /admin. Why: one deployment serves both domains.
+- Admin-uploaded images are stored as "storage:<path>" in the private product-images bucket and served via /api/public/img/*. Why: workspace blocks public buckets.

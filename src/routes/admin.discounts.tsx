@@ -22,7 +22,7 @@ function Discounts() {
       code: f.code.trim().toUpperCase(), kind: f.kind, value: Number(f.value), min_order: Number(f.min_order || 0),
       expires_at: f.expires_at ? new Date(f.expires_at).toISOString() : null, usage_limit: f.usage_limit ? Number(f.usage_limit) : null,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setF(blank); refresh(); toast.success("Discount created");
   };
 

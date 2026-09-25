@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -120,6 +121,24 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function AppShell() {
   useEffect(() => observeDecartLauncher(), []);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  // admin.zankyo.in serves only the admin panel; the public store never shows it.
+  useEffect(() => {
+    const host = window.location.hostname;
+    if (host.startsWith("admin.") && !isAdmin && pathname !== "/auth") window.location.replace("/admin");
+    if ((host === "zankyo.in" || host === "www.zankyo.in") && isAdmin) window.location.replace("https://admin.zankyo.in/admin");
+  }, [isAdmin, pathname]);
+
+  if (isAdmin) {
+    return (
+      <>
+        <Outlet />
+        <Toaster position="top-center" />
+      </>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
