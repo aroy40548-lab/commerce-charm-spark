@@ -174,6 +174,9 @@ function ProductDetail() {
           >
             <Camera className="h-4 w-4" /> Virtual try-on (AI)
           </button>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            Use a laptop or computer for the best experience.
+          </p>
 
           <button
             onClick={() =>

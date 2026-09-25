@@ -96,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
     scripts: [
-      { src: "https://anywear.decart.ai/widget/latest/anywear.js?domain=latency-rho.vercel.app", async: true },
+      { src: "https://anywear.decart.ai/widget/latest/anywear.js?domain=zankyo.in", async: true },
     ],
   }),
   shellComponent: RootShell,
