@@ -5,6 +5,10 @@ import hoodie from "@/assets/doom-zip-hoodie.jpg";
 import cap from "@/assets/z-star-cap.jpg";
 import belt from "@/assets/spiked-belt.jpg";
 import shoes from "@/assets/rift-skate-sneakers.jpg";
+import jortsImg from "@/assets/cross-stitch-jorts.jpg";
+import sweatImg from "@/assets/void-wide-sweatpants.jpg";
+import japImg from "@/assets/kyoto-pleated-trousers.jpg";
+import boxyImg from "@/assets/flame-boxy-shirt.jpg";
 
 export const Route = createFileRoute("/collections")({
   head: () => ({
@@ -25,6 +29,10 @@ const ITEMS = [
   { name: "Headwear", img: cap },
   { name: "Accessories", img: belt },
   { name: "Footwear", img: shoes },
+  { name: "Jorts", img: jortsImg },
+  { name: "Sweatpants Wide Leg", img: sweatImg },
+  { name: "Japanese Trousers", img: japImg },
+  { name: "Boxy Shirts", img: boxyImg },
 ];
 
 function Collections() {

@@ -12,6 +12,10 @@ import hoodieImg from "@/assets/doom-zip-hoodie.jpg";
 import capImg from "@/assets/z-star-cap.jpg";
 import beltImg from "@/assets/spiked-belt.jpg";
 import sneakerImg from "@/assets/rift-skate-sneakers.jpg";
+import jortsImg from "@/assets/cross-stitch-jorts.jpg";
+import sweatImg from "@/assets/void-wide-sweatpants.jpg";
+import japImg from "@/assets/kyoto-pleated-trousers.jpg";
+import boxyImg from "@/assets/flame-boxy-shirt.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,6 +43,10 @@ const CATEGORIES = [
   { label: "Headwear", image: capImg },
   { label: "Accessories", image: beltImg },
   { label: "Footwear", image: sneakerImg },
+  { label: "Jorts", image: jortsImg },
+  { label: "Sweatpants Wide Leg", image: sweatImg },
+  { label: "Japanese Trousers", image: japImg },
+  { label: "Boxy Shirts", image: boxyImg },
 ];
 
 function Home() {
@@ -102,7 +110,7 @@ function Home() {
 
       {/* Categories */}
       <section className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
           {CATEGORIES.map((cat) => (
             <Link
               key={cat.label}

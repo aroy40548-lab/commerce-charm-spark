@@ -26,7 +26,7 @@ export const Route = createFileRoute("/product/$handle")({
   component: ProductDetail,
 });
 
-const CATEGORIES = ["Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear"];
+const CATEGORIES = ["Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear", "Jorts", "Sweatpants Wide Leg", "Japanese Trousers", "Boxy Shirts"];
 
 function ProductDetail() {
   const { handle } = Route.useParams();
