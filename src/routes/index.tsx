@@ -188,10 +188,10 @@ function Home() {
               Real outfits.
             </p>
             <Link
-              to="/lookbook"
+              to="/shop"
               className="zk-label mt-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/70 px-6 py-3 text-[11px] text-white hover:bg-white hover:text-ink"
             >
-              View lookbook <ArrowRight className="h-4 w-4" />
+              Shop the drop <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="absolute bottom-6 right-6 flex gap-2">

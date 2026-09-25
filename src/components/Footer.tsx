@@ -19,7 +19,6 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm text-background/80">
             <li><Link to="/shop">All products</Link></li>
             <li><Link to="/collections">Collections</Link></li>
-            <li><Link to="/lookbook">Lookbook</Link></li>
             <li><Link to="/about">About</Link></li>
           </ul>
         </div>

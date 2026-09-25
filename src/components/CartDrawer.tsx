@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShoppingBag, Minus, Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
-import { formatMoney } from "@/lib/shopify";
+import { formatMoney, storefrontApiRequest } from "@/lib/shopify";
+import { toast } from "sonner";
+import { useCustomerStore } from "@/stores/customerStore";
+import { cartAttachCustomer } from "@/lib/shopifyCustomer";
 
 const PROMOS: Record<string, { type: "percent" | "flat"; value: number; label: string }> = {
   ZANKYO10: { type: "percent", value: 10, label: "10% off" },
@@ -25,11 +28,34 @@ export function CartDrawer() {
     if (isOpen) syncCart();
   }, [isOpen, syncCart]);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     const checkoutUrl = getCheckoutUrl();
-    if (checkoutUrl) {
-      window.open(checkoutUrl, "_blank");
+    const cartId = useCartStore.getState().cartId;
+    if (!checkoutUrl || !cartId) return;
+    const win = window.open("about:blank", "_blank");
+    try {
+      // Re-check live stock before paying
+      const ids = items.map((i) => i.variantId);
+      const res = await storefrontApiRequest(
+        `query($ids: [ID!]!) { nodes(ids: $ids) { ... on ProductVariant { id availableForSale } } }`,
+        { ids },
+      );
+      const soldOut = (res?.data?.nodes ?? []).filter((n: { id: string; availableForSale: boolean } | null) => n && !n.availableForSale);
+      if (soldOut.length > 0) {
+        for (const n of soldOut) await removeItem(n.id);
+        toast.error("Some items just sold out and were removed from your bag.");
+        win?.close();
+        return;
+      }
+      const { validToken, email } = useCustomerStore.getState();
+      const token = validToken();
+      if (token) await cartAttachCustomer(cartId, token, email ?? undefined);
+      if (win) win.location.href = checkoutUrl;
+      else window.open(checkoutUrl, "_blank");
       setIsOpen(false);
+    } catch {
+      win?.close();
+      toast.error("Couldn't start checkout. Please try again.");
     }
   };
 
