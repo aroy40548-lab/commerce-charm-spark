@@ -6,6 +6,8 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { formatMoney } from "@/lib/shopify";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -64,21 +66,41 @@ function WishlistSheet() {
 }
 
 function AccountSheet() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  if (!user) {
+    return (
+      <Link to="/auth" aria-label="Sign in" className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-muted">
+        <User className="h-5 w-5" strokeWidth={1.6} />
+      </Link>
+    );
+  }
+
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button aria-label="Account" className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-muted">
-          <User className="h-5 w-5" strokeWidth={1.6} />
+        <button aria-label="Account" className="grid h-9 w-9 place-items-center rounded-full bg-foreground text-background">
+          <span className="text-xs font-semibold uppercase">{user.email?.[0] ?? "U"}</span>
         </button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="zk-label text-sm">Orders</SheetTitle>
-          <SheetDescription>Order confirmations and tracking are emailed by ZANKYO after checkout.</SheetDescription>
+          <SheetTitle className="zk-label text-sm">My account</SheetTitle>
+          <SheetDescription>{user.email}</SheetDescription>
         </SheetHeader>
         <p className="mt-4 text-sm text-muted-foreground">
-          You can check out as a guest — no account needed. Use the email you checked out with to track your order.
+          Order confirmations and tracking are emailed to you after checkout.
         </p>
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            navigate({ to: "/", replace: true });
+          }}
+          className="zk-label mt-6 w-full rounded-full border border-border py-3 text-xs"
+        >
+          Sign out
+        </button>
       </SheetContent>
     </Sheet>
   );
