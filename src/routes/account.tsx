@@ -21,7 +21,7 @@ export const Route = createFileRoute("/account")({
   component: Account,
 });
 
-export const STATUS_LABEL: Record<string, string> = {
+const STATUS_LABEL: Record<string, string> = {
   pending: "Awaiting payment", paid: "Paid · preparing", shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled", refunded: "Refunded",
 };
 
