@@ -179,3 +179,14 @@
 @utility zk-pill {
   border-radius: 9999px;
 }
+
+/* Hide the Decart Anywear floating launcher; the modal stays visible. */
+#anywear-launcher,
+[class*="anywear-launcher"],
+[id*="anywear-fab"],
+[data-anywear-launcher] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: fixed !important;
+  z-index: -9999 !important;
+}
