@@ -3,6 +3,7 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { LayoutDashboard, Package, Tags, ShoppingCart, Users, Percent, Settings, LogOut, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import { Button } from "@/components/ui/button";
@@ -88,65 +89,22 @@ function AdminLayout() {
 }
 
 function AdminLogin() {
-  const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "resend">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const cls = "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground";
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const google = async () => {
     setBusy(true);
-    try {
-      if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      } else if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/admin` } });
-        if (error) throw error;
-        if (!data.session) { toast.success("Check your inbox to confirm your email, then sign in."); setMode("signin"); }
-      } else if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth` });
-        if (error) throw error;
-        toast.success("Reset link sent if the account exists.");
-        setMode("signin");
-      } else {
-        const { error } = await supabase.auth.resend({
-          type: "signup",
-          email,
-          options: { emailRedirectTo: `${window.location.origin}/admin` },
-        });
-        if (error) throw error;
-        toast.success("A new confirmation link has been sent. Check your inbox and spam folder.");
-        setMode("signin");
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Sign-in failed");
-    } finally { setBusy(false); }
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/admin` });
+    if (result.error) { toast.error(result.error.message ?? "Google sign-in failed"); setBusy(false); }
   };
 
   return (
     <div className="grid min-h-screen place-items-center bg-muted/30 px-4">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-2xl border border-border bg-background p-8">
+      <div className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-background p-8">
         <div className="flex items-center gap-2"><ZankyoStar className="h-5 w-5" /><span className="zk-display text-xl">ZANKYO Admin</span></div>
-        <p className="pb-2 text-sm text-muted-foreground">{mode === "signup" ? "Create your admin login" : mode === "forgot" ? "Reset your password" : mode === "resend" ? "Resend your confirmation email" : "Sign in to manage your store"}</p>
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className={cls} />
-        {mode !== "forgot" && mode !== "resend" && <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className={cls} />}
-        <Button disabled={busy} className="zk-label h-11 w-full text-xs">
-          {busy ? "Please wait…" : mode === "signup" ? "Create login" : mode === "forgot" ? "Send reset link" : mode === "resend" ? "Resend confirmation" : "Sign in"}
+        <p className="text-sm text-muted-foreground">Sign in with your admin Google account to manage your store.</p>
+        <Button onClick={google} disabled={busy} className="zk-label h-11 w-full text-xs">
+          {busy ? "Please wait…" : "Continue with Google"}
         </Button>
-        <div className="flex justify-between pt-2 text-xs text-muted-foreground">
-          {mode === "signin" ? (
-            <>
-              <Button type="button" variant="link" onClick={() => setMode("signup")} className="h-auto p-0 text-xs text-muted-foreground">Create login</Button>
-              <Button type="button" variant="link" onClick={() => setMode("resend")} className="h-auto p-0 text-xs text-muted-foreground">Resend confirmation</Button>
-              <Button type="button" variant="link" onClick={() => setMode("forgot")} className="h-auto p-0 text-xs text-muted-foreground">Forgot password</Button>
-            </>
-          ) : (
-            <Button type="button" variant="link" onClick={() => setMode("signin")} className="h-auto p-0 text-xs text-muted-foreground">Back to sign in</Button>
-          )}
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
