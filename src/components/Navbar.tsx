@@ -84,14 +84,20 @@ function AccountSheet() {
 
 export function Navbar() {
   const [query, setQuery] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
+
+  const submitSearch = () => {
+    navigate({ to: "/shop", search: { q: query || undefined, category: undefined } });
+    setMobileSearchOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-6 px-4 sm:px-6">
-        <Link to="/" className="flex shrink-0 items-center gap-2">
+      <div className="mx-auto grid h-16 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 sm:px-6 lg:flex lg:gap-6">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
           <ZankyoStar className="h-6 w-6 text-foreground" />
-          <span className="zk-display text-2xl leading-none">ZANKYO</span>
+          <span className="zk-display truncate text-2xl leading-none">ZANKYO</span>
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-7 lg:flex">
@@ -107,11 +113,11 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-0.5 sm:ml-auto sm:gap-1 lg:gap-2">
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              navigate({ to: "/shop", search: { q: query || undefined, category: undefined } });
+                submitSearch();
             }}
             className="hidden items-center gap-2 rounded-full border border-border px-4 py-2 md:flex"
           >
@@ -123,19 +129,51 @@ export function Navbar() {
               className="w-44 bg-transparent text-sm outline-none placeholder:text-muted-foreground lg:w-56"
             />
           </form>
+          <button
+            type="button"
+            aria-label={mobileSearchOpen ? "Close search" : "Search"}
+            aria-expanded={mobileSearchOpen}
+            onClick={() => setMobileSearchOpen((open) => !open)}
+            className="grid h-11 w-11 place-items-center rounded-full transition-colors active:bg-muted md:hidden"
+          >
+            {mobileSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+          </button>
           <AccountSheet />
           <WishlistSheet />
           <CartDrawer />
         </div>
       </div>
 
-      <nav className="flex items-center gap-5 overflow-x-auto border-t border-border px-4 py-2 lg:hidden">
+      {mobileSearchOpen && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitSearch();
+          }}
+          className="border-t border-border px-4 py-3 md:hidden"
+        >
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-full border border-border px-3">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search products"
+              aria-label="Search products"
+              className="h-11 min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+            />
+            <button type="submit" className="zk-label h-11 shrink-0 px-2 text-[10px]">Search</button>
+          </div>
+        </form>
+      )}
+
+      <nav className="mobile-scroll-hint flex items-center gap-1 overflow-x-auto border-t border-border px-3 py-1 lg:hidden">
         {NAV.map((item) => (
           <Link
             key={item.to}
             to={item.to}
             activeOptions={{ exact: item.to === "/" }}
-            className="whitespace-nowrap text-sm text-muted-foreground data-[status=active]:text-foreground"
+            className="flex h-10 shrink-0 items-center whitespace-nowrap px-3 text-sm text-muted-foreground data-[status=active]:font-semibold data-[status=active]:text-foreground"
           >
             {item.label}
           </Link>

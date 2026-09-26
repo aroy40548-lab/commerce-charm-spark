@@ -23,7 +23,7 @@ export function CartDrawer() {
       <SheetTrigger asChild>
         <button
           aria-label="Open bag"
-          className="relative grid h-9 w-9 place-items-center rounded-full text-foreground transition-colors hover:bg-muted"
+          className="relative grid h-11 w-11 place-items-center rounded-full text-foreground transition-colors hover:bg-muted active:bg-muted"
         >
           <ShoppingBag className="h-5 w-5" strokeWidth={1.6} />
           {totalItems > 0 && (
@@ -33,7 +33,7 @@ export function CartDrawer() {
           )}
         </button>
       </SheetTrigger>
-      <SheetContent className="flex h-full w-full flex-col sm:max-w-lg">
+      <SheetContent className="flex h-dvh w-full flex-col p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:p-6">
         <SheetHeader className="flex-shrink-0">
           <SheetTitle className="zk-label text-sm">Your Bag</SheetTitle>
           <SheetDescription>
@@ -54,8 +54,8 @@ export function CartDrawer() {
               <div className="min-h-0 flex-1 overflow-y-auto pr-1">
                 <div className="space-y-4">
                   {items.map((item) => (
-                    <div key={item.variantId} className="flex gap-4">
-                      <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-card">
+                    <div key={item.variantId} className="grid grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-3 sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:gap-4">
+                      <div className="h-18 w-18 shrink-0 overflow-hidden rounded-lg bg-card sm:h-20 sm:w-20">
                         {item.product.node.images?.edges?.[0]?.node && (
                           <img
                             src={item.product.node.images.edges[0].node.url}
@@ -74,25 +74,25 @@ export function CartDrawer() {
                           {formatMoney(item.price.amount, item.price.currencyCode)}
                         </p>
                       </div>
-                      <div className="flex flex-shrink-0 flex-col items-end gap-2">
+                      <div className="flex shrink-0 flex-col items-end gap-1">
                         <button
                           onClick={() => removeItem(item.variantId)}
                           aria-label="Remove"
-                          className="text-muted-foreground transition-colors hover:text-foreground"
+                          className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
-                        <div className="flex items-center gap-1 rounded-full border border-border px-1">
+                        <div className="flex items-center rounded-full border border-border">
                           <button
-                            className="grid h-6 w-6 place-items-center"
+                            className="grid h-10 w-10 place-items-center rounded-l-full active:bg-muted"
                             onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
                             aria-label="Decrease quantity"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
-                          <span className="w-6 text-center text-sm">{item.quantity}</span>
+                          <span className="w-7 text-center text-sm">{item.quantity}</span>
                           <button
-                            className="grid h-6 w-6 place-items-center"
+                            className="grid h-10 w-10 place-items-center rounded-r-full active:bg-muted"
                             onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
                             aria-label="Increase quantity"
                           >
@@ -105,16 +105,16 @@ export function CartDrawer() {
                 </div>
               </div>
 
-              <div className="flex-shrink-0 space-y-4 border-t border-border bg-background pt-4">
+              <div className="shrink-0 space-y-3 border-t border-border bg-background pt-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="zk-label text-xs">Subtotal</span>
                   <span className="text-xl font-bold">{formatMoney(subtotal, currency)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Shipping at checkout: Standard ₹100 (7–14 days) or Diamond ₹500 (2–4 days). Discount codes apply at checkout.</p>
+                <p className="text-xs leading-5 text-muted-foreground">Shipping at checkout: Standard ₹100 (7–14 days) or Diamond ₹500 (2–4 days). Discount codes apply at checkout.</p>
                 <button
                   onClick={handleCheckout}
                   disabled={items.length === 0 || isLoading || isSyncing}
-                  className="zk-label flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background disabled:opacity-60"
+                  className="zk-label flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background active:opacity-80 disabled:opacity-60"
                 >
                   {isLoading || isSyncing ? "Updating…" : "Checkout"} <ArrowRight className="h-4 w-4" />
                 </button>

@@ -39,14 +39,14 @@ function Shop() {
   });
 
   return (
-    <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-[1600px] overflow-hidden px-4 py-8 sm:px-6 sm:py-10">
       <h1 className="zk-display text-4xl">Shop</h1>
       {q && <p className="mt-2 text-sm text-muted-foreground">Results for “{q}”</p>}
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[200px_1fr]">
+      <div className="mt-6 grid gap-7 lg:mt-8 lg:grid-cols-[200px_1fr] lg:gap-8">
         <aside>
           <h2 className="zk-label text-[11px] text-muted-foreground">Categories</h2>
-          <ul className="mt-3 flex gap-2 overflow-x-auto lg:flex-col lg:gap-1 lg:overflow-visible">
+          <ul className="mobile-scroll-hint -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0">
             {CATEGORIES.map((c) => {
               const active = (category ?? "All") === c;
               return (
@@ -54,7 +54,7 @@ function Shop() {
                   <Link
                     to="/shop"
                     search={{ q, category: c === "All" ? undefined : c }}
-                    className={`block whitespace-nowrap rounded-full px-4 py-2 text-sm transition-colors lg:rounded-lg ${
+                    className={`flex min-h-11 items-center whitespace-nowrap rounded-full px-4 py-2 text-sm transition-colors lg:min-h-0 lg:rounded-lg ${
                       active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted"
                     }`}
                   >
@@ -68,7 +68,7 @@ function Shop() {
 
         <div>
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-4 sm:gap-y-8 md:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="aspect-square animate-pulse rounded-xl bg-card" />
               ))}
@@ -76,7 +76,7 @@ function Shop() {
           ) : filtered.length === 0 ? (
             <p className="py-20 text-center text-sm text-muted-foreground">No products found</p>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-4 sm:gap-y-8 md:grid-cols-3 xl:grid-cols-4">
               {filtered.map((p) => (
                 <ProductCard key={p.node.id} product={p} />
               ))}

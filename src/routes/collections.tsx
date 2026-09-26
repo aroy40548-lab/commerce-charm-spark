@@ -37,19 +37,19 @@ const ITEMS = [
 
 function Collections() {
   return (
-    <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-[1600px] overflow-hidden px-4 py-8 sm:px-6 sm:py-10">
       <h1 className="zk-display text-4xl">Collections</h1>
-      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
+      <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-4 md:grid-cols-3">
         {ITEMS.map((c) => (
           <Link
             key={c.name}
             to="/shop"
             search={{ category: c.name }}
-            className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-card"
+            className="group relative block aspect-[4/5] overflow-hidden rounded-lg bg-card"
           >
             <img src={c.img} alt={c.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <span className="zk-label absolute bottom-4 left-4 text-sm text-white">{c.name}</span>
+            <span className="zk-label absolute inset-x-3 bottom-3 break-words text-[10px] leading-4 text-white sm:inset-x-4 sm:bottom-4 sm:text-sm">{c.name}</span>
           </Link>
         ))}
       </div>

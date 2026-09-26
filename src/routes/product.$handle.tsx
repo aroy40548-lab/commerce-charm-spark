@@ -101,8 +101,8 @@ function ProductDetail() {
   };
 
   return (
-    <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6">
-      <div className="grid gap-10 lg:grid-cols-[180px_1fr_380px]">
+    <div className="mx-auto max-w-[1600px] overflow-hidden px-4 py-6 sm:px-6 sm:py-10">
+      <div className="grid gap-7 sm:gap-10 lg:grid-cols-[180px_1fr_380px]">
         <aside className="hidden lg:block">
           <h2 className="zk-label text-[11px] text-muted-foreground">Categories</h2>
           <ul className="mt-3 space-y-1">
@@ -120,14 +120,14 @@ function ProductDetail() {
           </ul>
         </aside>
 
-        <div className="rounded-xl bg-card p-6">
+        <div className="rounded-lg bg-card p-3 sm:p-6">
           {image && (
-            <img src={image.url} alt={node.title} className="h-auto w-full rounded-xl object-cover" />
+            <img src={image.url} alt={node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" />
           )}
         </div>
 
         <div>
-          <h1 className="zk-display text-3xl leading-tight">{node.title}</h1>
+          <h1 className="zk-display break-words text-3xl leading-tight">{node.title}</h1>
           <div className="mt-3 flex items-baseline gap-3">
             <span className="text-2xl font-bold">
               {selected ? formatMoney(selected.price.amount, selected.price.currencyCode) : ""}
@@ -151,7 +151,7 @@ function ProductDetail() {
                     onClick={() => setVariantId(v.id)}
                     disabled={!v.availableForSale}
                     title={v.availableForSale ? "In stock" : "Sold out"}
-                    className={`min-w-12 rounded-lg border px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
+                    className={`min-h-11 min-w-12 rounded-lg border px-4 py-2 text-sm transition-colors active:opacity-80 disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
                       selected?.id === v.id ? "border-foreground bg-foreground text-background" : "border-border"
                     }`}
                   >
@@ -168,18 +168,18 @@ function ProductDetail() {
           <button
             onClick={handleAdd}
             disabled={cartLoading || !selected?.availableForSale}
-            className="zk-label mt-7 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-xs text-background disabled:opacity-60"
+            className="zk-label mt-7 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-xs text-background active:opacity-80 disabled:opacity-60"
           >
             {cartLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : selected?.availableForSale ? "Add to cart" : "Sold out"}
           </button>
 
           <button
             onClick={handleTryOn}
-            className="zk-label mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted"
+            className="zk-label mt-3 hidden w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted lg:flex"
           >
             <Camera className="h-4 w-4" /> Virtual try-on (AI)
           </button>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          <p className="mt-2 hidden text-center text-[11px] text-muted-foreground lg:block">
             Use a laptop or computer for this feature
           </p>
 
@@ -193,7 +193,7 @@ function ProductDetail() {
                 currencyCode: node.priceRange.minVariantPrice.currencyCode,
               })
             }
-            className="mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            className="mt-3 flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground active:text-foreground lg:mt-4"
           >
             <Heart className={`h-4 w-4 ${wished ? "fill-accent text-accent" : ""}`} />
             {wished ? "Saved to wishlist" : "Save to wishlist"}
@@ -202,9 +202,9 @@ function ProductDetail() {
       </div>
 
       {related.length > 0 && (
-        <section className="mt-20">
+        <section className="mt-14 sm:mt-20">
           <h2 className="zk-label text-sm">You may also like</h2>
-          <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-4 sm:gap-y-8 md:grid-cols-4">
             {related.map((p) => (
               <Link key={p.node.id} to="/product/$handle" params={{ handle: p.node.handle }} className="group block">
                 <div className="overflow-hidden rounded-xl bg-card p-4">

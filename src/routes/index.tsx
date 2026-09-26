@@ -64,11 +64,11 @@ function Home() {
           className="absolute inset-0 h-full w-full object-cover object-top opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
-        <div className="relative mx-auto flex min-h-[480px] max-w-[1600px] flex-col justify-center px-4 py-16 sm:px-6 md:min-h-[640px] lg:min-h-[720px]">
+        <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[720px]">
           <p className="zk-label text-[11px] text-white/70">Streetwear</p>
-          <h1 className="zk-display mt-2 flex items-center text-6xl text-white sm:text-7xl md:text-8xl">
+          <h1 className="zk-display mt-2 flex min-w-0 items-center text-5xl text-white sm:text-7xl md:text-8xl">
             ZANKYO
-            <ZankyoStar className="-ml-4 h-14 w-14 text-accent md:h-20 md:w-20" />
+            <ZankyoStar className="h-12 w-12 shrink-0 text-accent sm:-ml-4 sm:h-14 sm:w-14 md:h-20 md:w-20" />
           </h1>
           <p className="zk-label mt-3 text-[11px] leading-6 text-white/80">
             More than just clothes
@@ -110,13 +110,13 @@ function Home() {
 
       {/* Categories */}
       <section className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
           {CATEGORIES.map((cat) => (
             <Link
               key={cat.label}
               to="/shop"
               search={{ q: undefined, category: cat.label }}
-              className="group relative h-36 overflow-hidden rounded-xl bg-ink"
+              className="group relative h-32 overflow-hidden rounded-lg bg-ink sm:h-36"
             >
               <img
                 src={cat.image}
@@ -125,7 +125,7 @@ function Home() {
                 className="absolute inset-0 h-full w-full scale-150 object-cover opacity-70 transition-transform duration-500 group-hover:scale-[1.7]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/10" />
-              <span className="zk-label absolute bottom-4 left-4 text-xs text-white">{cat.label}</span>
+               <span className="zk-label absolute bottom-3 left-3 max-w-[calc(100%-3.5rem)] break-words text-[10px] leading-4 text-white sm:bottom-4 sm:left-4 sm:text-xs">{cat.label}</span>
               <span className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full border border-white/70 text-white">
                 <ArrowRight className="h-4 w-4" />
               </span>
@@ -150,7 +150,7 @@ function Home() {
           </Link>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 xl:grid-cols-8">
+        <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-4 sm:gap-y-8 md:grid-cols-4 xl:grid-cols-8">
           {isLoading &&
             Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="aspect-square animate-pulse rounded-xl bg-card" />

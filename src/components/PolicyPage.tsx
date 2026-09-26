@@ -15,10 +15,10 @@ interface PolicyPageProps {
 
 export function PolicyPage({ eyebrow, title, summary, facts, sections }: PolicyPageProps) {
   return (
-    <article className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+    <article className="mx-auto w-full max-w-5xl overflow-hidden px-4 py-10 sm:px-6 sm:py-16 lg:py-20">
       <header className="border-b border-border pb-10">
         <p className="zk-label text-xs text-muted-foreground">{eyebrow}</p>
-        <h1 className="zk-display mt-3 max-w-4xl text-5xl leading-none sm:text-7xl">{title}</h1>
+        <h1 className="zk-display mt-3 max-w-4xl break-words text-4xl leading-none sm:text-7xl">{title}</h1>
         <p className="mt-5 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{summary}</p>
         <dl className="mt-8 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
           {facts.map((fact) => (

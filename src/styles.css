@@ -154,7 +154,8 @@
 @layer base {
   body {
     font-family: var(--font-sans);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
+    overflow-x: hidden;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
@@ -166,7 +167,7 @@
   font-weight: 900;
   font-style: italic;
   text-transform: uppercase;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 @utility zk-label {
@@ -174,6 +175,25 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.18em;
+}
+
+@utility mobile-scroll-hint {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @utility zk-pill {
