@@ -48,7 +48,7 @@ export const signUpWithUsername = createServerFn({ method: "POST" })
       if (/already|registered|exists/i.test(error.message)) throw new Error("An account with this email already exists");
       if (/profiles_username/i.test(error.message)) throw new Error("That username is taken — try another one");
       console.error("createUser failed", error.message);
-      throw new Error("Could not create account");
+      throw new Error("Could not create account: " + error.message);
     }
     return passwordSignIn(data.email, data.password);
   });
