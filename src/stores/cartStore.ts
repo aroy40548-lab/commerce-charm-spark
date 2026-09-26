@@ -48,9 +48,7 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true });
         try {
           if (!cartId) {
-            const token = readCustomerToken();
-            const input: Record<string, unknown> = { lines: [{ quantity: item.quantity, merchandiseId: item.variantId }] };
-            if (token) input["buyerIdentity"] = { customerAccessToken: token };
+            const input = { lines: [{ quantity: item.quantity, merchandiseId: item.variantId }] };
             const data = await storefrontApiRequest(CART_CREATE_MUTATION, { input });
             const cart = data?.data?.cartCreate?.cart;
             if (data?.data?.cartCreate?.userErrors?.length) throw new Error(data.data.cartCreate.userErrors[0].message);
@@ -159,11 +157,3 @@ export const useCartStore = create<CartStore>()(
   ),
 );
 
-function readCustomerToken(): string | null {
-  try {
-    const raw = localStorage.getItem("zankyo-customer");
-    const t = raw ? JSON.parse(raw)?.state : null;
-    if (t?.accessToken && t?.expiresAt && new Date(t.expiresAt) > new Date()) return t.accessToken;
-  } catch { /* ignore */ }
-  return null;
-}
