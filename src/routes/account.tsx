@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { formatMoney } from "@/lib/catalog";
+import {
+  ADDRESS_CREATE, ADDRESS_DEFAULT, ADDRESS_DELETE, ADDRESS_UPDATE, CUSTOMER_QUERY, firstUserError, storefrontApiRequest,
+} from "@/lib/shopify";
+import { useCustomerStore, useCustomerToken } from "@/stores/customerStore";
 import { AddressFields, EMPTY_ADDRESS, formatAddress, type AddressInput } from "@/components/AddressForm";
 
 export const Route = createFileRoute("/account")({
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
       { title: "My account — ZANKYO" },
-      { name: "description", content: "Your ZANKYO orders, saved addresses and profile." },
+      { name: "description", content: "Your ZANKYO orders, tracking and saved addresses." },
       { property: "og:title", content: "My account — ZANKYO" },
       { property: "og:description", content: "Your ZANKYO orders and addresses." },
       { name: "robots", content: "noindex" },
@@ -21,90 +23,144 @@ export const Route = createFileRoute("/account")({
   component: Account,
 });
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Awaiting payment", paid: "Paid · preparing", shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled", refunded: "Refunded",
+type ShopAddress = { id: string; firstName: string | null; lastName: string | null; address1: string | null; address2: string | null; city: string | null; province: string | null; zip: string | null; country: string | null; phone: string | null };
+type Order = {
+  id: string; name: string; processedAt: string; financialStatus: string | null; fulfillmentStatus: string; canceledAt: string | null; statusUrl: string;
+  currentTotalPrice: { amount: string; currencyCode: string };
+  lineItems: { edges: Array<{ node: { title: string; quantity: number; variant: { title: string } | null } }> };
+  successfulFulfillments: Array<{ trackingCompany: string | null; trackingInfo: Array<{ number: string | null; url: string | null }> }> | null;
+};
+
+const FULFILL: Record<string, string> = {
+  UNFULFILLED: "Preparing", IN_PROGRESS: "Preparing", PARTIALLY_FULFILLED: "Partly shipped", FULFILLED: "Shipped",
+  ON_HOLD: "On hold", SCHEDULED: "Scheduled", RESTOCKED: "Returned", PENDING_FULFILLMENT: "Preparing", OPEN: "Preparing",
+};
+
+const toInput = (a: ShopAddress): AddressInput => ({
+  full_name: [a.firstName, a.lastName].filter(Boolean).join(" "), phone: a.phone ?? "", address1: a.address1 ?? "",
+  address2: a.address2 ?? "", city: a.city ?? "", state: a.province ?? "", pincode: a.zip ?? "", country: a.country ?? "India",
+});
+const toShopify = (a: AddressInput) => {
+  const [firstName, ...rest] = a.full_name.trim().split(/\s+/);
+  return { firstName, lastName: rest.join(" ") || "-", phone: a.phone.startsWith("+") ? a.phone : `+91${a.phone}`, address1: a.address1, address2: a.address2, city: a.city, province: a.state, zip: a.pincode, country: a.country || "India" };
 };
 
 function Account() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { user, loading } = useAuth();
+  const token = useCustomerToken();
+  const logout = useCustomerStore((s) => s.logout);
   const [editing, setEditing] = useState<{ id: string | null; data: AddressInput } | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth", search: { next: "/account" }, replace: true });
-  }, [loading, user, navigate]);
+    if (!token) navigate({ to: "/auth", search: { next: "/account" }, replace: true });
+  }, [token, navigate]);
 
-  const { data } = useQuery({
-    queryKey: ["account", user?.id],
-    enabled: !!user,
+  const { data, error } = useQuery({
+    queryKey: ["shopify-customer", token],
+    enabled: !!token,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
-      const [p, o, a] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle(),
-        supabase.from("orders").select("*, order_items(title, variant_title, quantity)").eq("user_id", user!.id).neq("status", "pending").order("created_at", { ascending: false }),
-        supabase.from("addresses").select("*").eq("user_id", user!.id).order("created_at"),
-      ]);
-      return { profile: p.data, orders: o.data ?? [], addresses: a.data ?? [] };
+      const res = await storefrontApiRequest(CUSTOMER_QUERY, { token });
+      const c = res?.data?.customer;
+      if (!c) throw new Error("Your session expired. Please sign in again.");
+      return c as {
+        firstName: string | null; lastName: string | null; email: string; defaultAddress: { id: string } | null;
+        addresses: { edges: Array<{ node: ShopAddress }> }; orders: { edges: Array<{ node: Order }> };
+      };
     },
   });
 
-  if (loading || !user) return null;
+  if (!token) return null;
+  if (error) return (
+    <div className="py-20 text-center text-sm">
+      <p className="text-muted-foreground">{error.message}</p>
+      <button onClick={async () => { await logout(); }} className="mt-4 underline">Sign in again</button>
+    </div>
+  );
   if (!data) return <p className="py-20 text-center text-sm text-muted-foreground">Loading your account…</p>;
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["account"] });
+  const refresh = () => qc.invalidateQueries({ queryKey: ["shopify-customer"] });
+  const orders = data.orders.edges.map((e) => e.node);
+  const current = orders.filter((o) => !o.canceledAt && o.fulfillmentStatus !== "FULFILLED");
+  const past = orders.filter((o) => o.canceledAt || o.fulfillmentStatus === "FULFILLED");
+
+  const run = async (query: string, vars: Record<string, unknown>, key: string, ok: string) => {
+    try {
+      const res = await storefrontApiRequest(query, { token, ...vars });
+      const err = firstUserError(res?.data?.[key]?.customerUserErrors);
+      if (err) { toast.error(err); return false; }
+      toast.success(ok);
+      refresh();
+      return true;
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Something went wrong");
+      return false;
+    }
+  };
 
   const saveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing) return;
-    const row = { ...editing.data, user_id: user.id };
-    const { error } = editing.id
-      ? await supabase.from("addresses").update(row).eq("id", editing.id)
-      : await supabase.from("addresses").insert({ ...row, is_default: data.addresses.length === 0 });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Address saved");
-    setEditing(null);
-    refresh();
+    const address = toShopify(editing.data);
+    const ok = editing.id
+      ? await run(ADDRESS_UPDATE, { id: editing.id, address }, "customerAddressUpdate", "Address saved")
+      : await run(ADDRESS_CREATE, { address }, "customerAddressCreate", "Address saved");
+    if (ok) setEditing(null);
   };
+
+  const OrderList = ({ list, empty }: { list: Order[]; empty: React.ReactNode }) =>
+    list.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">{empty}</p> : (
+      <div className="mt-3 divide-y divide-border rounded-xl border border-border">
+        {list.map((o) => {
+          const tracking = (o.successfulFulfillments ?? []).flatMap((f) => f.trackingInfo.map((t) => ({ ...t, company: f.trackingCompany })));
+          return (
+            <div key={o.id} className="flex flex-wrap items-start justify-between gap-2 p-4 text-sm">
+              <div className="min-w-0">
+                <p className="font-semibold">Order {o.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(o.processedAt).toLocaleDateString("en-IN")} · {o.lineItems.edges.map(({ node: l }) => `${l.title}${l.variant ? ` (${l.variant.title})` : ""} ×${l.quantity}`).join(", ")}
+                </p>
+                {tracking.map((t, i) => (
+                  <p key={i} className="text-xs text-muted-foreground">
+                    {t.company ?? "Courier"}{t.number ? ` · ${t.number}` : ""}{" "}
+                    {t.url && <a href={t.url} target="_blank" rel="noreferrer" className="underline">Track package</a>}
+                  </p>
+                ))}
+                <a href={o.statusUrl} target="_blank" rel="noreferrer" className="text-xs underline">Order details</a>
+              </div>
+              <div className="text-right">
+                <p className="font-semibold">{formatMoney(o.currentTotalPrice.amount, o.currentTotalPrice.currencyCode)}</p>
+                <p className="text-xs text-muted-foreground">{o.canceledAt ? "Cancelled" : FULFILL[o.fulfillmentStatus] ?? o.fulfillmentStatus}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="zk-label text-xs text-muted-foreground">My account</p>
-          <h1 className="zk-display mt-1 text-4xl">Hi, {data.profile?.first_name || "there"}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+          <h1 className="zk-display mt-1 text-4xl">Hi, {data.firstName || "there"}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{data.email}</p>
         </div>
-        <button
-          onClick={async () => { await supabase.auth.signOut(); qc.clear(); navigate({ to: "/", replace: true }); }}
-          className="zk-label rounded-full border border-border px-5 py-2 text-xs"
-        >
+        <button onClick={async () => { await logout(); qc.clear(); navigate({ to: "/", replace: true }); }} className="zk-label rounded-full border border-border px-5 py-2 text-xs">
           Sign out
         </button>
       </div>
 
       <section className="mt-10">
-        <h2 className="zk-label text-sm">My orders</h2>
-        {data.orders.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">No orders yet. <Link to="/shop" search={{ q: undefined, category: undefined }} className="underline">Start shopping</Link></p>
-        ) : (
-          <div className="mt-3 divide-y divide-border rounded-xl border border-border">
-            {data.orders.map((o) => (
-              <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
-                <div>
-                  <p className="font-semibold">Order #{o.order_number}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(o.created_at).toLocaleDateString("en-IN")} · {o.order_items.map((l) => `${l.title} (${l.variant_title}) ×${l.quantity}`).join(", ")}
-                  </p>
-                  {o.awb_code && <p className="text-xs text-muted-foreground">{o.courier_name ?? "Courier"} · AWB {o.awb_code} · {o.tracking_status}</p>}
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">{formatMoney(o.total)}</p>
-                  <p className="text-xs text-muted-foreground">{STATUS_LABEL[o.status] ?? o.status}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <h2 className="zk-label text-sm">Current orders</h2>
+        <OrderList list={current} empty={<>No orders in progress. <Link to="/shop" search={{ q: undefined, category: undefined }} className="underline">Start shopping</Link></>} />
+      </section>
+
+      <section className="mt-10">
+        <h2 className="zk-label text-sm">Order history</h2>
+        <OrderList list={past} empty="No past orders yet." />
       </section>
 
       <section className="mt-10">
@@ -113,24 +169,24 @@ function Account() {
           <button onClick={() => setEditing({ id: null, data: EMPTY_ADDRESS })} className="text-sm underline">Add address</button>
         </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {data.addresses.map((a) => (
-            <div key={a.id} className="rounded-xl border border-border p-4 text-sm">
-              {a.is_default && <p className="zk-label mb-1 text-[10px] text-accent">Default</p>}
-              <p className="font-medium">{a.full_name}</p>
-              <p className="text-muted-foreground">{formatAddress({ ...a, address2: a.address2 ?? "" })}</p>
-              <p className="text-muted-foreground">{a.phone}</p>
-              <div className="mt-3 flex gap-4 text-xs">
-                <button onClick={() => setEditing({ id: a.id, data: { full_name: a.full_name, phone: a.phone, address1: a.address1, address2: a.address2 ?? "", city: a.city, state: a.state, pincode: a.pincode, country: a.country } })} className="underline">Edit</button>
-                <button
-                  onClick={async () => { await supabase.from("addresses").delete().eq("id", a.id); toast.success("Address removed"); refresh(); }}
-                  className="text-destructive underline"
-                >
-                  Delete
-                </button>
+          {data.addresses.edges.map(({ node: a }) => {
+            const isDefault = data.defaultAddress?.id === a.id;
+            const input = toInput(a);
+            return (
+              <div key={a.id} className="rounded-xl border border-border p-4 text-sm">
+                {isDefault && <p className="zk-label mb-1 text-[10px] text-accent">Default</p>}
+                <p className="font-medium">{input.full_name}</p>
+                <p className="text-muted-foreground">{formatAddress(input)}</p>
+                <p className="text-muted-foreground">{a.phone}</p>
+                <div className="mt-3 flex gap-4 text-xs">
+                  <button onClick={() => setEditing({ id: a.id, data: { ...input, phone: input.phone.replace(/^\+91/, "") } })} className="underline">Edit</button>
+                  {!isDefault && <button onClick={() => run(ADDRESS_DEFAULT, { id: a.id }, "customerDefaultAddressUpdate", "Default address updated")} className="underline">Make default</button>}
+                  <button onClick={() => run(ADDRESS_DELETE, { id: a.id }, "customerAddressDelete", "Address removed")} className="text-destructive underline">Delete</button>
+                </div>
               </div>
-            </div>
-          ))}
-          {data.addresses.length === 0 && !editing && <p className="text-sm text-muted-foreground">No saved addresses. You can also add one during checkout.</p>}
+            );
+          })}
+          {data.addresses.edges.length === 0 && !editing && <p className="text-sm text-muted-foreground">No saved addresses. You can also add one at checkout.</p>}
         </div>
 
         {editing && (

@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShoppingBag, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
@@ -7,16 +6,16 @@ import { formatMoney } from "@/lib/catalog";
 
 export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
-  const { items, updateQuantity, removeItem } = useCartStore();
+  const { items, updateQuantity, removeItem, isLoading, isSyncing, syncCart, getCheckoutUrl } = useCartStore();
+  useEffect(() => { if (isOpen) syncCart(); }, [isOpen, syncCart]);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + parseFloat(i.price.amount) * i.quantity, 0);
   const currency = items[0]?.price.currencyCode ?? "INR";
 
   const handleCheckout = () => {
-    setIsOpen(false);
-    navigate({ to: "/checkout" });
+    const url = getCheckoutUrl();
+    if (url) { window.open(url, "_blank"); setIsOpen(false); }
   };
 
   return (
@@ -114,10 +113,10 @@ export function CartDrawer() {
                 <p className="text-xs text-muted-foreground">Shipping and discount codes are applied at checkout.</p>
                 <button
                   onClick={handleCheckout}
-                  disabled={items.length === 0}
+                  disabled={items.length === 0 || isLoading || isSyncing}
                   className="zk-label flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background disabled:opacity-60"
                 >
-                  Checkout <ArrowRight className="h-4 w-4" />
+                  {isLoading || isSyncing ? "Updating…" : "Checkout"} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </>

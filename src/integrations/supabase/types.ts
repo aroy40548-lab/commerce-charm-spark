@@ -394,6 +394,24 @@ export type Database = {
         }
         Relationships: []
       }
+      shopify_wishlists: {
+        Row: {
+          created_at: string
+          customer_id: string
+          handle: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          handle: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          handle?: string
+        }
+        Relationships: []
+      }
       store_settings: {
         Row: {
           free_shipping_over: number

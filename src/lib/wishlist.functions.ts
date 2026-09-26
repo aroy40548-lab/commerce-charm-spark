@@ -1,44 +1,38 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { CUSTOMER_ID_QUERY, storefrontApiRequest } from "@/lib/shopify";
 
-// Returns the handles of all products the signed-in customer has saved.
-export const getMyWishlist = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("wishlists")
-      .select("products(handle)")
-      .eq("user_id", context.userId);
+// Verifies the Shopify customer access token and returns the customer's Shopify ID.
+async function shopifyCustomerId(token: string) {
+  const data = await storefrontApiRequest(CUSTOMER_ID_QUERY, { token });
+  const id = data?.data?.customer?.id as string | undefined;
+  if (!id) throw new Error("Please sign in again");
+  return id;
+}
+
+export const getMyWishlist = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ token: z.string().min(10).max(200) }).parse(d))
+  .handler(async ({ data }) => {
+    const customerId = await shopifyCustomerId(data.token);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin.from("shopify_wishlists").select("handle").eq("customer_id", customerId);
     if (error) throw new Error(error.message);
-    return (data ?? [])
-      .map((row) => (row.products as { handle: string } | null)?.handle)
-      .filter((h): h is string => !!h);
+    return (rows ?? []).map((r) => r.handle);
   });
 
-// Replaces the customer's saved products with the given set of handles.
 export const setMyWishlist = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({ handles: z.array(z.string()).max(200) }).parse(data))
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context, data }) => {
+  .inputValidator((d) =>
+    z.object({ token: z.string().min(10).max(200), handles: z.array(z.string().min(1).max(255)).max(200) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const customerId = await shopifyCustomerId(data.token);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const handles = [...new Set(data.handles)];
-    const { data: products, error: pErr } = await context.supabase
-      .from("products")
-      .select("id, handle")
-      .in("handle", handles.length ? handles : ["__none__"]);
-    if (pErr) throw new Error(pErr.message);
-
-    const { error: dErr } = await context.supabase
-      .from("wishlists")
-      .delete()
-      .eq("user_id", context.userId);
+    const { error: dErr } = await supabaseAdmin.from("shopify_wishlists").delete().eq("customer_id", customerId);
     if (dErr) throw new Error(dErr.message);
-
-    if (products && products.length) {
-      const { error: iErr } = await context.supabase
-        .from("wishlists")
-        .insert(products.map((p) => ({ user_id: context.userId, product_id: p.id })));
-      if (iErr) throw new Error(iErr.message);
+    if (handles.length) {
+      const { error } = await supabaseAdmin.from("shopify_wishlists").insert(handles.map((handle) => ({ customer_id: customerId, handle })));
+      if (error) throw new Error(error.message);
     }
     return { ok: true };
   });

@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { PRODUCTS_QUERY, PRODUCT_BY_HANDLE_QUERY, storefrontApiRequest } from "@/lib/shopify";
 
 export interface Money { amount: string; currencyCode: string }
 
@@ -8,7 +8,6 @@ export interface Variant {
   price: Money;
   compareAtPrice: Money | null;
   availableForSale: boolean;
-  stock: number;
   selectedOptions: Array<{ name: string; value: string }>;
 }
 
@@ -29,74 +28,35 @@ export interface Product {
 
 export interface Category { id: string; name: string; image_url: string | null; position: number }
 
-const SELECT = `id, handle, title, description, price, compare_at_price, option_name, tags, created_at,
-  categories(name), product_images(url, alt, position), product_variants(id, title, stock, price, position)`;
+// Category order shown in the store; any new product type in Shopify is appended.
+const CATEGORY_ORDER = [
+  "Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear",
+  "Jorts", "Sweatpants Wide Leg", "Japanese Trousers", "Boxy Shirts",
+];
 
-type Row = {
-  id: string; handle: string; title: string; description: string; price: number; compare_at_price: number | null;
-  option_name: string; tags: string[]; categories: { name: string } | null;
-  product_images: Array<{ url: string; alt: string | null; position: number }>;
-  product_variants: Array<{ id: string; title: string; stock: number; price: number | null; position: number }>;
-};
-
-const m = (n: number | string): Money => ({ amount: String(n), currencyCode: "INR" });
-
-export function imageUrl(url: string) {
-  if (url.startsWith("storage:")) return `/api/public/img/${url.slice(8)}`;
-  return url;
-}
-
-function toProduct(r: Row): Product {
-  const variants = [...r.product_variants].sort((a, b) => a.position - b.position);
-  const compare = r.compare_at_price && Number(r.compare_at_price) > 0 ? m(r.compare_at_price) : null;
-  return {
-    node: {
-      id: r.id,
-      title: r.title,
-      description: r.description,
-      handle: r.handle,
-      productType: r.categories?.name ?? "",
-      tags: r.tags,
-      priceRange: { minVariantPrice: m(r.price) },
-      images: {
-        edges: [...r.product_images].sort((a, b) => a.position - b.position)
-          .map((i) => ({ node: { url: imageUrl(i.url), altText: i.alt } })),
-      },
-      variants: {
-        edges: variants.map((v) => ({
-          node: {
-            id: v.id,
-            title: v.title,
-            price: m(v.price ?? r.price),
-            compareAtPrice: compare,
-            availableForSale: v.stock > 0,
-            stock: v.stock,
-            selectedOptions: [{ name: r.option_name, value: v.title }],
-          },
-        })),
-      },
-      options: [{ name: r.option_name, values: variants.map((v) => v.title) }],
-    },
-  };
-}
-
-export async function fetchProducts(first = 50): Promise<Product[]> {
-  const { data, error } = await supabase.from("products").select(SELECT).eq("active", true)
-    .order("created_at", { ascending: true }).limit(first);
-  if (error) throw error;
-  return (data as unknown as Row[]).map(toProduct);
+export async function fetchProducts(first = 100): Promise<Product[]> {
+  const data = await storefrontApiRequest(PRODUCTS_QUERY, { first });
+  return (data?.data?.products?.edges ?? []) as Product[];
 }
 
 export async function fetchProductByHandle(handle: string): Promise<Product | null> {
-  const { data, error } = await supabase.from("products").select(SELECT).eq("handle", handle).eq("active", true).maybeSingle();
-  if (error) throw error;
-  return data ? toProduct(data as unknown as Row) : null;
+  const data = await storefrontApiRequest(PRODUCT_BY_HANDLE_QUERY, { handle });
+  const node = data?.data?.product;
+  return node ? ({ node } as Product) : null;
 }
 
+// Categories = Shopify product types.
 export async function fetchCategories(): Promise<Category[]> {
-  const { data, error } = await supabase.from("categories").select("id, name, image_url, position").order("position");
-  if (error) throw error;
-  return (data ?? []).map((c) => ({ ...c, image_url: c.image_url ? imageUrl(c.image_url) : null }));
+  const products = await fetchProducts(250);
+  const map = new Map<string, string | null>();
+  for (const p of products) {
+    const t = p.node.productType;
+    if (t && !map.has(t)) map.set(t, p.node.images.edges[0]?.node.url ?? null);
+  }
+  const rank = (n: string) => { const i = CATEGORY_ORDER.indexOf(n); return i === -1 ? 999 : i; };
+  return [...map.entries()]
+    .sort((a, b) => rank(a[0]) - rank(b[0]))
+    .map(([name, image_url], position) => ({ id: name, name, image_url, position }));
 }
 
 export function formatMoney(amount: string | number, currencyCode = "INR") {

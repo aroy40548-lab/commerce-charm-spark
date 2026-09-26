@@ -78,15 +78,19 @@ function ProductDetail() {
 
   const handleAdd = async () => {
     if (!selected) return;
-    await addItem({
-      product,
-      variantId: selected.id,
-      variantTitle: selected.title,
-      price: selected.price,
-      quantity: 1,
-      selectedOptions: selected.selectedOptions || [],
-    });
-    toast.success(`${node.title} added to bag`, { position: "top-center" });
+    try {
+      await addItem({
+        product,
+        variantId: selected.id,
+        variantTitle: selected.title,
+        price: selected.price,
+        quantity: 1,
+        selectedOptions: selected.selectedOptions || [],
+      });
+      toast.success(`${node.title} added to bag`, { position: "top-center" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't add to bag", { position: "top-center" });
+    }
   };
 
   const handleTryOn = () => {
