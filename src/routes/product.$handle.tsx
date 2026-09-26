@@ -122,7 +122,7 @@ function ProductDetail() {
 
         <div className="rounded-lg bg-card p-3 sm:p-6">
           {image && (
-            <img src={image.url} alt={node.title} width={image.width ?? undefined} height={image.height ?? undefined} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" />
+            <img src={image.url} alt={node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" />
           )}
         </div>
 
