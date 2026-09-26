@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { observeDecartLauncher } from "@/lib/decart";
+import { useWishlistSync } from "@/hooks/useWishlistSync";
 
 function NotFoundComponent() {
   return (
@@ -121,6 +122,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function AppShell() {
   useEffect(() => observeDecartLauncher(), []);
+  useWishlistSync();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
 
