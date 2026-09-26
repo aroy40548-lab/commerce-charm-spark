@@ -15,6 +15,13 @@
       "when": 1790382539110,
       "tag": "0001_grant_admin_help_zankyo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790384091761,
+      "tag": "0002_usernames_and_google_admin",
+      "breakpoints": true
     }
   ]
 }

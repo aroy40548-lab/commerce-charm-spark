@@ -3,7 +3,7 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { LayoutDashboard, Package, Tags, ShoppingCart, Users, Percent, Settings, LogOut, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { UsernameAuth } from "@/components/UsernameAuth";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import { Button } from "@/components/ui/button";
@@ -89,21 +89,12 @@ function AdminLayout() {
 }
 
 function AdminLogin() {
-  const [busy, setBusy] = useState(false);
-  const google = async () => {
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/admin` });
-    if (result.error) { toast.error(result.error.message ?? "Google sign-in failed"); setBusy(false); }
-  };
-
   return (
     <div className="grid min-h-screen place-items-center bg-muted/30 px-4">
       <div className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-background p-8">
         <div className="flex items-center gap-2"><ZankyoStar className="h-5 w-5" /><span className="zk-display text-xl">ZANKYO Admin</span></div>
         <p className="text-sm text-muted-foreground">Sign in with your admin Google account to manage your store.</p>
-        <Button onClick={google} disabled={busy} className="zk-label h-11 w-full text-xs">
-          {busy ? "Please wait…" : "Continue with Google"}
-        </Button>
+        <UsernameAuth redirectPath="/admin" googleOnly />
       </div>
     </div>
   );
