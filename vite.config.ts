@@ -8,28 +8,28 @@ import path from "path";
 import { loadEnv } from "vite";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig(({ mode }: { mode: string }) => {
-  // Load all env vars into process.env for server routes (email webhook needs
-  // SUPABASE_SERVICE_ROLE_KEY, which has no VITE_ prefix). Never expose these
-  // to the client bundle.
-  const serverEnv = loadEnv(mode, process.cwd(), "");
-  Object.assign(process.env, serverEnv);
+// Load all env vars into process.env for server routes (the email webhook needs
+// SUPABASE_SERVICE_ROLE_KEY, which has no VITE_ prefix). Never expose these
+// to the client bundle.
+Object.assign(
+  process.env,
+  loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), ""),
+);
 
-  return {
-    tanstackStart: {
-      // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-      // nitro/vite builds from this
-      server: { entry: "server" },
-    },
-    vite: {
-      resolve: {
-        alias: {
-          // Force the hoisted entities v4.5.0 copy; nested v7 breaks react-email SSR.
-          "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
-          "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities/lib/encode.js"),
-          entities: path.resolve(__dirname, "node_modules/entities"),
-        },
+export default defineConfig({
+  tanstackStart: {
+    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+    // nitro/vite builds from this
+    server: { entry: "server" },
+  },
+  vite: {
+    resolve: {
+      alias: {
+        // Force the hoisted entities v4.5.0 copy; nested v7 breaks react-email SSR.
+        "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
+        "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities/lib/encode.js"),
+        entities: path.resolve(__dirname, "node_modules/entities"),
       },
     },
-  };
+  },
 });
