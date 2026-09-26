@@ -8,6 +8,13 @@
       "when": 1790378951442,
       "tag": "0000_store_core",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790382539110,
+      "tag": "0001_grant_admin_help_zankyo",
+      "breakpoints": true
     }
   ]
 }
