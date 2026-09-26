@@ -45,7 +45,7 @@ export async function startCustomerLogin(returnTo = "/account") {
 export interface CustomerTokens {
   accessToken: string;
   refreshToken: string;
-  idToken?: string;
+  idToken?: string | undefined;
   expiresAt: number;
 }
 
