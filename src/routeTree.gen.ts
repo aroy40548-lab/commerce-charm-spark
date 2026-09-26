@@ -14,9 +14,11 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CollectionsRouteImport } from './routes/collections'
+import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AccountCallbackRouteImport } from './routes/account.callback'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -46,6 +48,11 @@ const CollectionsRoute = CollectionsRouteImport.update({
   path: '/collections',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrderSuccessRoute = OrderSuccessRouteImport.update({
+  id: '/order-success',
+  path: '/order-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReturnsRoute = ReturnsRouteImport.update({
   id: '/returns',
   path: '/returns',
@@ -60,6 +67,11 @@ const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AccountCallbackRoute = AccountCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AccountRoute,
 } as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
@@ -80,12 +92,14 @@ const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/auth': typeof AuthRoute
   '/collections': typeof CollectionsRoute
+  '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
+  '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -93,12 +107,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/auth': typeof AuthRoute
   '/collections': typeof CollectionsRoute
+  '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
+  '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -107,12 +123,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/auth': typeof AuthRoute
   '/collections': typeof CollectionsRoute
+  '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
+  '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -125,9 +143,11 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/collections'
+    | '/order-success'
     | '/returns'
     | '/shop'
     | '/terms'
+    | '/account/callback'
     | '/product/$handle'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -138,9 +158,11 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/collections'
+    | '/order-success'
     | '/returns'
     | '/shop'
     | '/terms'
+    | '/account/callback'
     | '/product/$handle'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -151,9 +173,11 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/collections'
+    | '/order-success'
     | '/returns'
     | '/shop'
     | '/terms'
+    | '/account/callback'
     | '/product/$handle'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -162,9 +186,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AccountRoute: typeof AccountRoute
+  AccountRoute: typeof AccountRouteWithChildren
   AuthRoute: typeof AuthRoute
   CollectionsRoute: typeof CollectionsRoute
+  OrderSuccessRoute: typeof OrderSuccessRoute
   ReturnsRoute: typeof ReturnsRoute
   ShopRoute: typeof ShopRoute
   TermsRoute: typeof TermsRoute
@@ -210,6 +235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/order-success': {
+      id: '/order-success'
+      path: '/order-success'
+      fullPath: '/order-success'
+      preLoaderRoute: typeof OrderSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/returns': {
       id: '/returns'
       path: '/returns'
@@ -230,6 +262,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/account/callback': {
+      id: '/account/callback'
+      path: '/callback'
+      fullPath: '/account/callback'
+      preLoaderRoute: typeof AccountCallbackRouteImport
+      parentRoute: typeof AccountRoute
     }
     '/product/$handle': {
       id: '/product/$handle'
@@ -255,12 +294,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AccountRouteChildren {
+  AccountCallbackRoute: typeof AccountCallbackRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountCallbackRoute: AccountCallbackRoute,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AccountRoute: AccountRoute,
+  AccountRoute: AccountRouteWithChildren,
   AuthRoute: AuthRoute,
   CollectionsRoute: CollectionsRoute,
+  OrderSuccessRoute: OrderSuccessRoute,
   ReturnsRoute: ReturnsRoute,
   ShopRoute: ShopRoute,
   TermsRoute: TermsRoute,
