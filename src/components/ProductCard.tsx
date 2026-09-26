@@ -21,15 +21,19 @@ export function ProductCard({ product }: { product: Product }) {
   const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!variant) return;
-    await addItem({
-      product,
-      variantId: variant.id,
-      variantTitle: variant.title,
-      price: variant.price,
-      quantity: 1,
-      selectedOptions: variant.selectedOptions || [],
-    });
-    toast.success(`${node.title} added to bag`, { position: "top-center" });
+    try {
+      await addItem({
+        product,
+        variantId: variant.id,
+        variantTitle: variant.title,
+        price: variant.price,
+        quantity: 1,
+        selectedOptions: variant.selectedOptions || [],
+      });
+      toast.success(`${node.title} added to bag`, { position: "top-center" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't add to bag", { position: "top-center" });
+    }
   };
 
   return (
