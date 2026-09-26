@@ -1,9 +1,9 @@
 import { toast } from "sonner";
 
 export const SHOPIFY_API_VERSION = "2025-07";
-export const SHOPIFY_STORE_PERMANENT_DOMAIN = "commerce-charm-spark-g2mly-7n9ixxhx.myshopify.com";
+export const SHOPIFY_STORE_PERMANENT_DOMAIN = "shopflow-suite-r7tnw-wrwxaq1e.myshopify.com";
 export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-export const SHOPIFY_STOREFRONT_TOKEN = "e7f344eb587459ee4ab81e24ad910c72";
+export const SHOPIFY_STOREFRONT_TOKEN = "2dd7dd113104bf070b4272c31c6655e4";
 
 type UserError = { field?: string[] | null; message: string; code?: string | null };
 
@@ -69,6 +69,10 @@ export const CART_BUYER_IDENTITY_MUTATION = `mutation cartBuyerIdentityUpdate($c
 export function formatCheckoutUrl(checkoutUrl: string): string {
   try {
     const url = new URL(checkoutUrl);
+    // Checkout must run on the store's own domain, not the custom storefront
+    // domain (zankyo.in serves this Lovable app and would 404 the cart path).
+    url.host = SHOPIFY_STORE_PERMANENT_DOMAIN;
+    url.protocol = "https:";
     url.searchParams.set("channel", "online_store");
     return url.toString();
   } catch {
