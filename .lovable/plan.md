@@ -1,18 +1,23 @@
-# Re-test checkout after the Razorpay website fix
+# Fix "Customer sign-in is being set up"
 
-## Goal
-Confirm a customer can complete a real purchase end to end now that Razorpay accepts payments from the Shopify checkout address, and confirm the order appears in Shopify.
+## Why it happens
+On-site sign-in needs a **Client ID** from Shopify's **Headless** channel. Your Sales channels list shows only Online Store, Lovable and Point of Sale. Headless is not installed yet, so there is no Client ID, and the button shows this message.
 
-## Steps
-1. Open the storefront at mobile width (393px) and desktop (1280px).
-2. Pick a product with stock (avoid known sold-out sizes, e.g. Chaos Skull Tee M/L/XL), select a size, add to bag.
-3. Open the bag and go to checkout; confirm the checkout opens on the Shopify (myshopify.com) address.
-4. Fill a test delivery address (Siliguri, West Bengal 734007) and check the shipping options — expect Standard ₹100 (7–14 days) and Diamond ₹500 (2–4 days).
-   - If shipping rates are missing or "not available" appears again, stop and report: the India shipping zone was never confirmed as fixed, and it must be completed in Shopify admin first.
-5. Complete the Razorpay payment with a small amount.
-6. Verify the customer lands on a success/thank-you page (ideally the /order-success page on zankyo.in) and the order appears in the store's Orders.
-7. Report results, including any step that still needs a change in Shopify or Razorpay admin.
+## Step 1 — Your part in Shopify admin (about 5 minutes)
+1. Open the **Shopify App Store** (the button at the top right of Sales channels). Search for **Headless** (made by Shopify) and install it.
+2. Open **Sales channels → Headless → Create storefront**.
+3. Open **Customer Account API → Manage** and set:
+   - Client type: **Public**
+   - Callback URI: `https://zankyo.in/account/callback` (also add `https://www.zankyo.in/account/callback`)
+   - JavaScript origin: `https://zankyo.in` and `https://www.zankyo.in`
+   - Logout URI: `https://zankyo.in`
+4. Save. Copy the **Client ID** (a long code) and send it to me here.
 
-## Notes
-- Sign-in testing is still blocked until the Customer Account API Client ID is pasted from Shopify admin (Settings → Customer accounts → Customer Account API → View configuration) — separate from this test.
-- If the payment is again blocked by Razorpay with a website-mismatch error, report the exact error so the registered-website change can be re-checked.
+## Step 2 — My part, right now (so sign-in works today)
+- Until the Client ID arrives, the "Continue with email code" button opens Shopify's own account page (`https://shopify.com/84384776449/account`) instead of the message. Customers can sign in there and see their orders and profile.
+- Once you send the Client ID, I add it. Sign-in then happens on zankyo.in and you stay signed in until you sign out or close the browser. The header shows your name, and My account lists your orders and tracking.
+- I test sign-in, staying signed in across pages, sign-out and the order list on phone and desktop.
+
+## Technical details
+- `src/stores/customerStore.ts` `signIn()`: when `customerLoginConfigured()` is false, `window.location.assign("https://shopify.com/84384776449/account")` instead of `alert`.
+- After the Client ID is received: set `SHOPIFY_CUSTOMER_CLIENT_ID` in `src/lib/customerAccount.ts` (a public client ID, so it is safe to keep in the code).
