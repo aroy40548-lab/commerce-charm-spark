@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Replace the browser-tab icon with the ZANKYO star logo
 - [x] Add complete About, Terms & Conditions, and Return & Refund Policy pages with footer links
 - [x] Move storefront to Shopify (catalog, cart, checkout, customer accounts, account page, wishlist)
 - [x] Remove custom admin panel
