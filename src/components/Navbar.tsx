@@ -18,6 +18,7 @@ const NAV = [
 function WishlistSheet() {
   const items = useWishlistStore((s) => s.items);
   const remove = useWishlistStore((s) => s.remove);
+  const signedIn = !!useCustomerToken();
 
   return (
     <Sheet>
@@ -34,16 +35,37 @@ function WishlistSheet() {
           )}
         </button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="zk-label text-sm">Wishlist</SheetTitle>
-          <SheetDescription>Sign in to keep saved pieces on your account.</SheetDescription>
+          <SheetTitle className="zk-label text-sm">Saved items</SheetTitle>
+          <SheetDescription>
+            {signedIn ? "Saved to your account." : "Saved on this phone only."}
+          </SheetDescription>
         </SheetHeader>
-        <div className="mt-4 space-y-3 overflow-y-auto">
+
+        {signedIn ? (
+          <p className="zk-label mt-3 inline-flex w-fit items-center rounded-full bg-muted px-3 py-1 text-[10px] text-muted-foreground">
+            Synced with your account
+          </p>
+        ) : (
+          <div className="mt-3 rounded-2xl bg-muted/70 p-3">
+            <p className="text-xs leading-5 text-muted-foreground">
+              Sign in with your email code to keep these on every device.
+            </p>
+            <Link
+              to="/auth"
+              className="zk-label mt-2.5 flex min-h-10 items-center justify-center rounded-full bg-foreground text-[11px] text-background active:opacity-80"
+            >
+              Sign in
+            </Link>
+          </div>
+        )}
+
+        <div className="mt-4 flex-1 space-y-3 overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
           {items.length === 0 && <p className="text-sm text-muted-foreground">No saved pieces yet.</p>}
           {items.map((item) => (
             <div key={item.handle} className="flex items-center gap-3">
-              <div className="h-16 w-16 overflow-hidden rounded-lg bg-card">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-card">
                 {item.image && <img src={item.image} alt={item.title} loading="lazy" className="h-full w-full object-cover" />}
               </div>
               <div className="min-w-0 flex-1">
@@ -52,7 +74,11 @@ function WishlistSheet() {
                 </Link>
                 <p className="text-xs text-muted-foreground">{formatMoney(item.price, item.currencyCode)}</p>
               </div>
-              <button onClick={() => remove(item.handle)} aria-label="Remove" className="text-muted-foreground">
+              <button
+                onClick={() => remove(item.handle)}
+                aria-label={`Remove ${item.title}`}
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground active:bg-muted"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
