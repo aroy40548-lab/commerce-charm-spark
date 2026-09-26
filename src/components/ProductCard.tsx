@@ -38,7 +38,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link to="/product/$handle" params={{ handle: node.handle }} className="group block">
-      <div className="relative overflow-hidden rounded-xl bg-card p-4">
+      <div className="relative overflow-hidden rounded-lg bg-card p-2 sm:p-4">
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -51,7 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
             });
           }}
           aria-label="Toggle wishlist"
-          className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/70 backdrop-blur transition-colors hover:bg-background"
+          className="absolute right-1 top-1 z-10 grid h-11 w-11 place-items-center rounded-full bg-background/80 backdrop-blur transition-colors hover:bg-background active:bg-background sm:right-2 sm:top-2"
         >
           <Heart className={`h-4 w-4 ${wished ? "fill-accent text-accent" : "text-foreground"}`} strokeWidth={1.5} />
         </button>
@@ -84,7 +84,7 @@ export function ProductCard({ product }: { product: Product }) {
             onClick={handleAdd}
             disabled={isLoading || !variant}
             aria-label={`Add ${node.title} to bag`}
-            className="grid h-7 w-7 place-items-center rounded-full border border-muted-foreground/50 transition-colors hover:border-foreground hover:bg-foreground hover:text-background disabled:opacity-50"
+            className="grid h-11 w-11 place-items-center rounded-full border border-muted-foreground/50 transition-colors hover:border-foreground hover:bg-foreground hover:text-background active:bg-foreground active:text-background disabled:opacity-50"
           >
             {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
           </button>

@@ -133,7 +133,7 @@ function AppShell() {
         <Outlet />
       </main>
       <Footer />
-      <Toaster position="top-center" />
+      <Toaster position="bottom-center" mobileOffset={16} />
     </div>
   );
 }

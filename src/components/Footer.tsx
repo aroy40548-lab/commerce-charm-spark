@@ -4,7 +4,7 @@ import { ZankyoStar } from "@/components/ZankyoStar";
 export function Footer() {
   return (
     <footer className="mt-20 border-t border-border bg-ink text-background">
-      <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
+      <div className="mx-auto grid max-w-[1600px] gap-9 px-4 py-12 sm:px-6 sm:py-14 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2">
             <ZankyoStar className="h-6 w-6" />
@@ -16,17 +16,17 @@ export function Footer() {
         </div>
         <div>
           <h3 className="zk-label text-[11px] text-background/50">Shop</h3>
-          <ul className="mt-3 space-y-2 text-sm text-background/80">
-            <li><Link to="/shop">All products</Link></li>
-            <li><Link to="/collections">Collections</Link></li>
-            <li><Link to="/about">About</Link></li>
+          <ul className="mt-2 text-sm text-background/80">
+            <li><Link to="/shop" className="flex min-h-10 items-center">All products</Link></li>
+            <li><Link to="/collections" className="flex min-h-10 items-center">Collections</Link></li>
+            <li><Link to="/about" className="flex min-h-10 items-center">About</Link></li>
           </ul>
         </div>
         <div>
           <h3 className="zk-label text-[11px] text-background/50">Support</h3>
-          <ul className="mt-3 space-y-2 text-sm text-background/80">
-            <li><Link to="/returns">Return &amp; Refund Policy</Link></li>
-            <li><Link to="/terms">Terms &amp; Conditions</Link></li>
+          <ul className="mt-2 text-sm text-background/80">
+            <li><Link to="/returns" className="flex min-h-10 items-center">Return &amp; Refund Policy</Link></li>
+            <li><Link to="/terms" className="flex min-h-10 items-center">Terms &amp; Conditions</Link></li>
           </ul>
           <p className="mt-4 text-sm text-background/70">Customer Support &amp; Questions? Reach us at <a href="mailto:help@zankyo.in" className="underline underline-offset-4">help@zankyo.in</a></p>
         </div>
