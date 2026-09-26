@@ -1,4 +1,6 @@
 const LAUNCHER_TEXT = "ai fitting room";
+const WIDGET_IFRAME = "#__decart-tryon-widget iframe";
+let imageHandoffId = 0;
 
 function collectRoots(root: Document | ShadowRoot, acc: Array<Document | ShadowRoot>) {
   acc.push(root);
@@ -39,12 +41,55 @@ export function observeDecartLauncher() {
   return () => observer.disconnect();
 }
 
-/** Programmatically open the Decart Anywear fitting room. */
-export function openDecartTryOn(): boolean {
+function handOffProductImage(productImageUrl: string) {
+  const handoffId = ++imageHandoffId;
+  const tryonId = `zankyo_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+  let delivered = false;
+  let loadTimer: number | undefined;
+
+  const deliver = (iframe: HTMLIFrameElement) => {
+    if (delivered || handoffId !== imageHandoffId || !iframe.contentWindow) return;
+    delivered = true;
+    iframe.contentWindow.postMessage(
+      {
+        type: "DECART_AUTO_START",
+        productImageUrl,
+        tryonId,
+        imageSource: "zankyo_product_button",
+        pageUrl: window.location.href,
+      },
+      "*",
+    );
+  };
+
+  const connect = () => {
+    const iframe = document.querySelector<HTMLIFrameElement>(WIDGET_IFRAME);
+    if (!iframe) return false;
+    iframe.addEventListener("load", () => {
+      window.clearTimeout(loadTimer);
+      loadTimer = window.setTimeout(() => deliver(iframe), 150);
+    }, { once: true });
+    loadTimer = window.setTimeout(() => deliver(iframe), 700);
+    return true;
+  };
+
+  if (connect()) return;
+
+  const observer = new MutationObserver(() => {
+    if (!connect()) return;
+    observer.disconnect();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  window.setTimeout(() => observer.disconnect(), 5000);
+}
+
+/** Open Decart Anywear and preload the current product photo when available. */
+export function openDecartTryOn(productImageUrl?: string): boolean {
   const el = findLauncher();
   if (!el) return false;
   el.style.setProperty("pointer-events", "auto", "important");
   el.click();
   window.setTimeout(() => el.style.setProperty("pointer-events", "none", "important"), 300);
+  if (productImageUrl) handOffProductImage(productImageUrl);
   return true;
 }
