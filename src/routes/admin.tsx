@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useIsAdmin } from "@/hooks/useAuth";
 import { ZankyoStar } from "@/components/ZankyoStar";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -87,7 +88,7 @@ function AdminLayout() {
 }
 
 function AdminLogin() {
-  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot" | "resend">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -104,10 +105,19 @@ function AdminLogin() {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/admin` } });
         if (error) throw error;
         if (!data.session) { toast.success("Check your inbox to confirm your email, then sign in."); setMode("signin"); }
-      } else {
+      } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth` });
         if (error) throw error;
         toast.success("Reset link sent if the account exists.");
+        setMode("signin");
+      } else {
+        const { error } = await supabase.auth.resend({
+          type: "signup",
+          email,
+          options: { emailRedirectTo: `${window.location.origin}/admin` },
+        });
+        if (error) throw error;
+        toast.success("A new confirmation link has been sent. Check your inbox and spam folder.");
         setMode("signin");
       }
     } catch (err) {
@@ -119,20 +129,21 @@ function AdminLogin() {
     <div className="grid min-h-screen place-items-center bg-muted/30 px-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-2xl border border-border bg-background p-8">
         <div className="flex items-center gap-2"><ZankyoStar className="h-5 w-5" /><span className="zk-display text-xl">ZANKYO Admin</span></div>
-        <p className="pb-2 text-sm text-muted-foreground">{mode === "signup" ? "Create your admin login" : mode === "forgot" ? "Reset your password" : "Sign in to manage your store"}</p>
+        <p className="pb-2 text-sm text-muted-foreground">{mode === "signup" ? "Create your admin login" : mode === "forgot" ? "Reset your password" : mode === "resend" ? "Resend your confirmation email" : "Sign in to manage your store"}</p>
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className={cls} />
-        {mode !== "forgot" && <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className={cls} />}
-        <button disabled={busy} className="zk-label w-full rounded-lg bg-foreground py-3 text-xs text-background disabled:opacity-50">
-          {busy ? "Please wait…" : mode === "signup" ? "Create login" : mode === "forgot" ? "Send reset link" : "Sign in"}
-        </button>
+        {mode !== "forgot" && mode !== "resend" && <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className={cls} />}
+        <Button disabled={busy} className="zk-label h-11 w-full text-xs">
+          {busy ? "Please wait…" : mode === "signup" ? "Create login" : mode === "forgot" ? "Send reset link" : mode === "resend" ? "Resend confirmation" : "Sign in"}
+        </Button>
         <div className="flex justify-between pt-2 text-xs text-muted-foreground">
           {mode === "signin" ? (
             <>
-              <button type="button" onClick={() => setMode("signup")} className="underline">First time? Create login</button>
-              <button type="button" onClick={() => setMode("forgot")} className="underline">Forgot password</button>
+              <Button type="button" variant="link" onClick={() => setMode("signup")} className="h-auto p-0 text-xs text-muted-foreground">Create login</Button>
+              <Button type="button" variant="link" onClick={() => setMode("resend")} className="h-auto p-0 text-xs text-muted-foreground">Resend confirmation</Button>
+              <Button type="button" variant="link" onClick={() => setMode("forgot")} className="h-auto p-0 text-xs text-muted-foreground">Forgot password</Button>
             </>
           ) : (
-            <button type="button" onClick={() => setMode("signin")} className="underline">Back to sign in</button>
+            <Button type="button" variant="link" onClick={() => setMode("signin")} className="h-auto p-0 text-xs text-muted-foreground">Back to sign in</Button>
           )}
         </div>
       </form>
