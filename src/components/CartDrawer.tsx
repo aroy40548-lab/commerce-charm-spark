@@ -110,7 +110,7 @@ export function CartDrawer() {
                   <span className="zk-label text-xs">Subtotal</span>
                   <span className="text-xl font-bold">{formatMoney(subtotal, currency)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Shipping and discount codes are applied at checkout.</p>
+                <p className="text-xs text-muted-foreground">Shipping at checkout: Standard ₹100 (7–14 days) or Diamond ₹500 (2–4 days). Discount codes apply at checkout.</p>
                 <button
                   onClick={handleCheckout}
                   disabled={items.length === 0 || isLoading || isSyncing}
