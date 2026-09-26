@@ -1,17 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { CUSTOMER_ID_QUERY, storefrontApiRequest } from "@/lib/shopify";
+import { CUSTOMER_GRAPHQL_URL } from "@/lib/customerAccount";
 
-// Verifies the Shopify customer access token and returns the customer's Shopify ID.
+// Verifies the Customer Account API access token with Shopify and returns the customer ID.
 async function shopifyCustomerId(token: string) {
-  const data = await storefrontApiRequest(CUSTOMER_ID_QUERY, { token });
-  const id = data?.data?.customer?.id as string | undefined;
+  const res = await fetch(CUSTOMER_GRAPHQL_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ query: "query { customer { id } }" }),
+  });
+  const json = res.ok ? await res.json() : null;
+  const id = json?.data?.customer?.id as string | undefined;
   if (!id) throw new Error("Please sign in again");
   return id;
 }
 
+const tokenSchema = z.string().min(10).max(4000);
+
 export const getMyWishlist = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ token: z.string().min(10).max(200) }).parse(d))
+  .inputValidator((d) => z.object({ token: tokenSchema }).parse(d))
   .handler(async ({ data }) => {
     const customerId = await shopifyCustomerId(data.token);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -22,7 +29,7 @@ export const getMyWishlist = createServerFn({ method: "POST" })
 
 export const setMyWishlist = createServerFn({ method: "POST" })
   .inputValidator((d) =>
-    z.object({ token: z.string().min(10).max(200), handles: z.array(z.string().min(1).max(255)).max(200) }).parse(d),
+    z.object({ token: tokenSchema, handles: z.array(z.string().min(1).max(255)).max(200) }).parse(d),
   )
   .handler(async ({ data }) => {
     const customerId = await shopifyCustomerId(data.token);

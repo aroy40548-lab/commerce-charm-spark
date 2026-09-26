@@ -65,7 +65,7 @@ function WishlistSheet() {
 
 function AccountSheet() {
   const signedIn = !!useCustomerToken();
-  const email = useCustomerStore((s) => s.email);
+  const email = useCustomerStore((s) => s.profile?.firstName || s.email);
 
   return (
     <Link

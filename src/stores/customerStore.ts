@@ -1,35 +1,71 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { SHOPIFY_STORE_PERMANENT_DOMAIN } from "@/lib/shopify";
+import {
+  CUSTOMER_PROFILE_QUERY,
+  customerLoginConfigured,
+  customerLogoutUrl,
+  customerQuery,
+  refreshCustomerTokens,
+  startCustomerLogin,
+  type CustomerTokens,
+} from "@/lib/customerAccount";
 
-// The store uses Shopify's new customer accounts (one-time email code).
-// Sign-in happens on Shopify's own hosted account page; this app never
-// sees a password or customer access token.
-export const SHOPIFY_ACCOUNT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/account`;
-
-export function openShopifyAccount() {
-  window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener");
-}
+interface Profile { id: string; firstName: string | null; lastName: string | null; email: string | null }
 
 interface CustomerStore {
-  // Remembered locally only, to prefill nothing sensitive — just a hint
-  // that the visitor has signed in on Shopify before.
+  tokens: CustomerTokens | null;
+  profile: Profile | null;
   email: string | null;
-  setEmail: (email: string | null) => void;
+  setSession: (tokens: CustomerTokens) => Promise<void>;
+  getAccessToken: () => Promise<string | null>;
+  signOut: () => void;
 }
 
+// sessionStorage: stays signed in across pages/refreshes, ends when the browser closes.
 export const useCustomerStore = create<CustomerStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
+      tokens: null,
+      profile: null,
       email: null,
-      setEmail: (email) => set({ email }),
+      setSession: async (tokens) => {
+        set({ tokens });
+        const d = await customerQuery(tokens.accessToken, CUSTOMER_PROFILE_QUERY);
+        const c = d.customer;
+        const email = c?.emailAddress?.emailAddress ?? null;
+        set({ profile: { id: c.id, firstName: c.firstName, lastName: c.lastName, email }, email });
+      },
+      getAccessToken: async () => {
+        const t = get().tokens;
+        if (!t) return null;
+        if (t.expiresAt - Date.now() > 60_000) return t.accessToken;
+        try {
+          const next = await refreshCustomerTokens(t.refreshToken);
+          set({ tokens: { ...next, idToken: next.idToken ?? t.idToken } });
+          return next.accessToken;
+        } catch {
+          set({ tokens: null, profile: null, email: null });
+          return null;
+        }
+      },
+      signOut: () => {
+        const idToken = get().tokens?.idToken;
+        set({ tokens: null, profile: null, email: null });
+        window.location.assign(customerLogoutUrl(idToken));
+      },
     }),
-    { name: "zankyo-customer", storage: createJSONStorage(() => localStorage) },
+    { name: "zankyo-customer-session", storage: createJSONStorage(() => sessionStorage) },
   ),
 );
 
-// Kept for compatibility with existing imports. With Shopify's hosted
-// one-time-code accounts there is no token available to the storefront.
+export function signIn(returnTo?: string) {
+  if (!customerLoginConfigured()) {
+    alert("Customer sign-in is being set up. Please try again soon.");
+    return;
+  }
+  void startCustomerLogin(returnTo);
+}
+
 export function useCustomerToken(): string | null {
-  return null;
+  return useCustomerStore((s) => s.tokens?.accessToken ?? null);
 }
