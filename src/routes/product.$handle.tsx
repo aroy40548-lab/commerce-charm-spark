@@ -94,7 +94,7 @@ function ProductDetail() {
   };
 
   const handleTryOn = () => {
-    const opened = openDecartTryOn();
+    const opened = openDecartTryOn(image?.url);
     if (!opened) {
       toast.error("The AI fitting room is still loading — try again in a moment.", { position: "top-center" });
     }
