@@ -1,32 +1,32 @@
-# Fix checkout shipping + customer sign-up
+# Fix checkout shipping + customer sign-in
 
-Both problems come from settings inside your Shopify admin. None of my Shopify tools can change shipping rates or account settings, so you'll need to follow the steps below. After that, I'll test everything again.
+## 1. Fix sign-in: "Customer accounts aren't switched on" (code change)
+Your store uses Shopify's new customer accounts (one-time email code). The /auth page uses the old email-and-password method, which your store doesn't support — that's the real cause of the error.
 
-## 1. Fix "Shipping not available" and add the two shipping options (Shopify admin)
-Checkout says India isn't in any delivery zone for your products, so no shipping options appear.
+- Rewrite `src/routes/auth.tsx`: remove the create-account / password form. "Sign in" and "Create account" both open your store's own Shopify account page (the one-time email code sign-in) in a new tab.
+- `src/routes/account.tsx`: if the visitor isn't signed in, show the same "Sign in with Shopify" button. After they sign in on Shopify's page and come back, orders and addresses come from their Shopify account.
+- `src/stores/customerStore.ts`: replace email+password login/register with Shopify's customer account session (opens Shopify's sign-in, reads the session when they're back). Saved items keep working as they do now, matched by customer email.
+- Navbar account icon links to the same flow.
 
-1. Go to **Settings → Shipping and delivery → General shipping rates → Manage**.
-2. Under **Shipping zones**, click **Create zone**, name it **India**, choose **India** (every state) and save.
-3. In the India zone, click **Add rate** twice:
-   - **Standard**: price ₹100, description "7–14 days". Use a custom rate and write "Standard (7–14 days)" as the name.
-   - **Diamond**: price ₹500, name "Diamond (2–4 days)".
-4. Delete the old ₹379 "मानक" rate and turn off **Local delivery**, if they're still there.
-5. Check that your shipping location (under **Settings → Locations**) is in India and that it stocks the products.
-6. Click **Save**.
+## 2. Fix "Shipping not available" + add the two shipping options (Shopify admin — only you can do this)
+Checkout shows no shipping options because India isn't in any delivery zone. My Shopify tools can't create shipping zones or rates.
 
-After you enter an address at checkout, customers will see both options with the prices and delivery times.
+1. **Settings → Shipping and delivery → General shipping rates → Manage**.
+2. **Create zone** named **India**, select India (all states), save.
+3. In the India zone, **Add rate** twice:
+   - **Standard (7–14 days)** — ₹100
+   - **Diamond (2–4 days)** — ₹500
+4. Delete the old ₹379 "मानक" rate and turn off **Local delivery** if still present.
+5. Check **Settings → Locations**: your location must be in India and stock the products.
+6. Save.
 
-## 2. Fix "Customer accounts aren't switched on" (Shopify admin)
-1. Go to **Settings → Customer accounts** and choose **Legacy / Classic customer accounts**. The site's own sign-up form needs these. Save.
-2. Go to **Settings → Apps and sales channels → Headless → Storefront API → Edit permissions**. Turn on `unauthenticated_read_customers` and `unauthenticated_write_customers`, then save.
-
-## 3. What I'll do next
-- Test in the browser: add a product to the bag, go to checkout, enter an Indian address, and confirm both Standard ₹100 and Diamond ₹500 show up.
-- Test creating an account, signing in, and opening "My account".
-- Delete the test customer accounts that are left over.
-- Update the note in the bag to say "Standard ₹100 (7–14 days) or Diamond ₹500 (2–4 days), chosen at checkout".
+## 3. Verify after your changes
+- Browser test: add to bag → checkout → Indian address → confirm Standard ₹100 and Diamond ₹500 both appear.
+- Browser test: sign-in flow end to end, "My account" shows orders.
+- Clean up leftover test customer accounts.
+- Update the bag note to mention the two shipping options.
 
 ## Technical details
-- Shipping rates and zones can't be reached through the Storefront API or the Shopify tools I have. The checkout's shipping options come only from the zones set up in the admin.
-- The sign-up error comes from `customerCreate` being denied. The token needs Classic accounts plus the unauthenticated customer permissions.
-- The only code change is the text in CartDrawer.tsx.
+- Shipping zones/rates are not exposed by the Storefront API or my Shopify tools — admin-only.
+- New customer accounts (passwordless) can't be logged into via the Storefront API's customerAccessTokenCreate; the supported path is Shopify's hosted account page.
+- Code changes: auth.tsx, account.tsx, customerStore.ts, Navbar.tsx, CartDrawer note text.
