@@ -69,6 +69,10 @@ export const CART_BUYER_IDENTITY_MUTATION = `mutation cartBuyerIdentityUpdate($c
 export function formatCheckoutUrl(checkoutUrl: string): string {
   try {
     const url = new URL(checkoutUrl);
+    // Checkout must run on the store's own domain, not the custom storefront
+    // domain (zankyo.in serves this Lovable app and would 404 the cart path).
+    url.host = SHOPIFY_STORE_PERMANENT_DOMAIN;
+    url.protocol = "https:";
     url.searchParams.set("channel", "online_store");
     return url.toString();
   } catch {
