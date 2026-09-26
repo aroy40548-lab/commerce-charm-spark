@@ -1,7 +1,7 @@
 // Shopify Customer Account API (headless, public client with PKCE).
 // The Client ID comes from Shopify admin → Headless → Customer Account API.
 export const SHOPIFY_SHOP_ID = "84384776449";
-export const SHOPIFY_CUSTOMER_CLIENT_ID = ""; // TODO: paste Client ID from Shopify admin
+export const SHOPIFY_CUSTOMER_CLIENT_ID = "32b0fc4e-0ce1-4a9e-b680-3af2cc77ad17";
 export const CUSTOMER_API_VERSION = "2025-07";
 
 const AUTH_BASE = `https://shopify.com/authentication/${SHOPIFY_SHOP_ID}`;
