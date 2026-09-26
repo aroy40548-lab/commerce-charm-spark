@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Add complete About, Terms & Conditions, and Return & Refund Policy pages with footer links
 - [x] Move storefront to Shopify (catalog, cart, checkout, customer accounts, account page, wishlist)
 - [x] Remove custom admin panel
 - [x] Connected existing Shopify store; code points at shopflow-suite store; shop/product/cart verified

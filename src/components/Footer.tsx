@@ -24,9 +24,11 @@ export function Footer() {
         </div>
         <div>
           <h3 className="zk-label text-[11px] text-background/50">Support</h3>
-          <p className="mt-3 text-sm text-background/70">
-            Customer Support & Questions? Reach us at help@zankyo.in
-          </p>
+          <ul className="mt-3 space-y-2 text-sm text-background/80">
+            <li><Link to="/returns">Return &amp; Refund Policy</Link></li>
+            <li><Link to="/terms">Terms &amp; Conditions</Link></li>
+          </ul>
+          <p className="mt-4 text-sm text-background/70">Customer Support &amp; Questions? Reach us at <a href="mailto:help@zankyo.in" className="underline underline-offset-4">help@zankyo.in</a></p>
         </div>
       </div>
       <div className="border-t border-background/10 px-4 py-5 text-center text-xs text-background/40 sm:px-6">
