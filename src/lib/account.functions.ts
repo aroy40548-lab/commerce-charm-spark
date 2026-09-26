@@ -54,10 +54,17 @@ export const signUpWithUsername = createServerFn({ method: "POST" })
   });
 
 export const signInWithUsername = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ username: z.string().trim().toLowerCase().min(1).max(40), password: z.string().min(1).max(72) }).parse(d))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin.from("profiles").select("email").ilike("username", data.username).maybeSingle();
-    if (!row?.email) throw new Error("Wrong username or password");
-    return passwordSignIn(row.email, data.password);
+  .inputValidator((d: unknown) => z.object({ username: z.string().trim().toLowerCase().min(1).max(255), password: z.string().min(1).max(72) }).parse(d))
+  .handler(async ({ data }): Promise<{ access_token: string; refresh_token: string } | { error: string }> => {
+    const fail = { error: "Wrong username or password" };
+    let email = data.username;
+    if (!email.includes("@")) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: row } = await supabaseAdmin.from("profiles").select("email").eq("username", data.username).maybeSingle();
+      if (!row?.email) return fail;
+      email = row.email;
+    }
+    const { data: s, error } = await publicClient().auth.signInWithPassword({ email, password: data.password });
+    if (error || !s.session) return fail;
+    return { access_token: s.session.access_token, refresh_token: s.session.refresh_token };
   });

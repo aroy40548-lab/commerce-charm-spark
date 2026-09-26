@@ -26,10 +26,11 @@ export function UsernameAuth({ redirectPath, googleOnly = false }: { redirectPat
     e.preventDefault();
     setBusy(true);
     try {
-      const tokens = mode === "signup"
+      const result = mode === "signup"
         ? await signUp({ data: { username, email, password } })
         : await signIn({ data: { username, password } });
-      const { error } = await supabase.auth.setSession(tokens);
+      if ("error" in result) { toast.error(result.error); return; }
+      const { error } = await supabase.auth.setSession(result);
       if (error) throw error;
       toast.success(mode === "signup" ? "Welcome to ZANKYO!" : "Welcome back!");
     } catch (err) {
