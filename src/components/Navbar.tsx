@@ -6,7 +6,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { formatMoney } from "@/lib/catalog";
-import { useAuth } from "@/hooks/useAuth";
+import { useCustomerStore, useCustomerToken } from "@/stores/customerStore";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -37,7 +37,7 @@ function WishlistSheet() {
       <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="zk-label text-sm">Wishlist</SheetTitle>
-          <SheetDescription>Saved pieces stay here on this device.</SheetDescription>
+          <SheetDescription>Sign in to keep saved pieces on your account.</SheetDescription>
         </SheetHeader>
         <div className="mt-4 space-y-3 overflow-y-auto">
           {items.length === 0 && <p className="text-sm text-muted-foreground">No saved pieces yet.</p>}
@@ -64,9 +64,8 @@ function WishlistSheet() {
 }
 
 function AccountSheet() {
-  const { user } = useAuth();
-  const email = user?.email;
-  const signedIn = !!user;
+  const signedIn = !!useCustomerToken();
+  const email = useCustomerStore((s) => s.email);
 
   return (
     <Link
