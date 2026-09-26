@@ -9,7 +9,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
-const SITE_NAME = "ShopFlow Suite"
+const SITE_NAME = "ZANKYO"
 const SENDER_DOMAIN = "notify.zankyo.in"
 const ROOT_DOMAIN = "zankyo.in"
 const FROM_DOMAIN = "notify.zankyo.in"
