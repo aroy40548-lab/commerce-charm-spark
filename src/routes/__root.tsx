@@ -17,7 +17,6 @@ import { Footer } from "@/components/Footer";
 import { observeDecartLauncher } from "@/lib/decart";
 import { useWishlistSync } from "@/hooks/useWishlistSync";
 import { useCartSync } from "@/hooks/useCartSync";
-import { useCartSync } from "@/hooks/useCartSync";
 
 function NotFoundComponent() {
   return (
