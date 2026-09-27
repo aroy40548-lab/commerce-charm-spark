@@ -17,7 +17,11 @@ export const Route = createFileRoute("/collections")({
       { name: "description", content: "Explore ZANKYO collections: tees, baggy jeans, hoodies, headwear, accessories and footwear." },
       { property: "og:title", content: "Collections — ZANKYO" },
       { property: "og:description", content: "Explore every ZANKYO streetwear collection." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://zankyo.in/collections" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://zankyo.in/collections" }],
   }),
   component: Collections,
 });
