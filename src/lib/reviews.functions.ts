@@ -12,9 +12,20 @@ async function admin() {
 }
 
 async function productNumericId(handle: string) {
-  const d = await storefrontApiRequest(`query($h: String!) { product(handle: $h) { id } }`, { h: handle });
-  const gid = d?.data?.product?.id as string | undefined;
-  return gid ? gid.split("/").pop()! : null;
+  const d = await storefrontApiRequest(
+    `query($h: String!) { product(handle: $h) { id variants(first: 100) { nodes { id } } } }`,
+    { h: handle },
+  );
+  const prod = d?.data?.product;
+  if (!prod?.id) return null;
+  return {
+    id: String(prod.id).split("/").pop()!,
+    variantIds: (prod.variants?.nodes ?? []).map((v: any) => String(v.id).split("/").pop()!) as string[],
+  };
+}
+
+function bought(owned: Set<string>, p: { id: string; variantIds: string[] }) {
+  return owned.has(p.id) || p.variantIds.some((v) => owned.has(v));
 }
 
 async function customerWithOrders(token: string) {
@@ -23,7 +34,7 @@ async function customerWithOrders(token: string) {
     headers: { "Content-Type": "application/json", Authorization: token },
     body: JSON.stringify({
       query: `query { customer { id firstName lastName emailAddress { emailAddress }
-        orders(first: 100) { nodes { lineItems(first: 50) { nodes { productId } } } } } }`,
+        orders(first: 100) { nodes { lineItems(first: 50) { nodes { productId variantId } } } } } }`,
     }),
   });
   const json = res.ok ? await res.json() : null;
@@ -31,7 +42,10 @@ async function customerWithOrders(token: string) {
   if (!c?.id) throw new Error("Please sign in again");
   const productIds = new Set<string>();
   for (const o of c.orders?.nodes ?? [])
-    for (const li of o.lineItems?.nodes ?? []) if (li.productId) productIds.add(String(li.productId).split("/").pop()!);
+    for (const li of o.lineItems?.nodes ?? []) {
+      if (li.productId) productIds.add(String(li.productId).split("/").pop()!);
+      if (li.variantId) productIds.add(String(li.variantId).split("/").pop()!);
+    }
   const email = (c.emailAddress?.emailAddress as string | undefined) ?? "";
   const first = (c.firstName as string | null) || email.split("@")[0] || "Customer";
   const name = c.lastName ? `${first} ${String(c.lastName).charAt(0)}.` : first;
@@ -91,7 +105,10 @@ export const getReviewEligibility = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const [c, pid] = await Promise.all([customerWithOrders(data.token), productNumericId(data.handle)]);
     if (!pid) return { status: "unavailable" as const };
-    if (!c.productIds.has(pid)) return { status: "not_purchased" as const };
+    if (!bought(c.productIds, pid)) {
+      console.warn("review not_purchased", { target: pid.id, owned: [...c.productIds] });
+      return { status: "not_purchased" as const };
+    }
     const sb = await admin();
     const { data: mine } = await sb
       .from("product_reviews")
@@ -123,7 +140,7 @@ export const submitReview = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const [c, pid] = await Promise.all([customerWithOrders(data.token), productNumericId(data.handle)]);
     if (!pid) throw new Error("This product can't be reviewed right now");
-    if (!c.productIds.has(pid)) throw new Error("Only customers who bought this can review it");
+    if (!bought(c.productIds, pid)) throw new Error("Only customers who bought this can review it");
     const sb = await admin();
 
     const { data: prev } = await sb
@@ -151,7 +168,7 @@ export const submitReview = createServerFn({ method: "POST" })
     const { error } = await sb.from("product_reviews").upsert(
       {
         product_handle: data.handle,
-        shopify_product_id: pid,
+        shopify_product_id: pid.id,
         customer_id: c.id,
         customer_name: c.name,
         rating: data.rating,

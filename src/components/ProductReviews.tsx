@@ -161,6 +161,17 @@ function ReviewForm({ handle, token, onClose }: { handle: string; token: string;
 
   const box = "mt-6 rounded-lg border border-border p-4 sm:p-6";
   if (elig.isLoading) return <div className={box}><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (elig.isError) {
+    return (
+      <div className={`${box} flex flex-wrap items-center justify-between gap-3`}>
+        <p className="text-sm text-muted-foreground">{elig.error instanceof Error ? elig.error.message : "Couldn't check your orders, try again."}</p>
+        <div className="flex items-center gap-1">
+          <button onClick={() => elig.refetch()} className="zk-label min-h-11 rounded-full border border-foreground px-4 text-xs">Retry</button>
+          <button onClick={onClose} aria-label="Close" className="grid h-11 w-11 place-items-center"><X className="h-4 w-4" /></button>
+        </div>
+      </div>
+    );
+  }
   const status = elig.data?.status;
   const existing = elig.data?.status === "eligible" ? elig.data.existing : null;
   if (status !== "eligible") {
