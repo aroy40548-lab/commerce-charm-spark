@@ -7,6 +7,7 @@ import { formatMoney } from "@/lib/catalog";
 import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
+import { ProductReviews } from "@/components/ProductReviews";
 
 export const Route = createFileRoute("/product/$handle")({
   head: ({ params }) => {
@@ -201,6 +202,8 @@ function ProductDetail() {
           </button>
         </div>
       </div>
+
+      <ProductReviews handle={node.handle} />
 
       {related.length > 0 && (
         <section className="mt-14 sm:mt-20">
