@@ -84,6 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "ZANKYO — Gen Z Streetwear" },
       { name: "description", content: "ZANKYO streetwear: Y2K graphic tees, baggy denim and hoodies." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "ZANKYO" },
       { name: "google-site-verification", content: "vpNNwJQwqkJxgu2OF7QcfxJSgWxamHaHcCMN2Cw0AMo" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

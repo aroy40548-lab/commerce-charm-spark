@@ -20,7 +20,11 @@ export const Route = createFileRoute("/product/$handle")({
         { name: "description", content: `${name} from ZANKYO. Y2K streetwear built for a different generation.` },
         { property: "og:title", content: `${name} — ZANKYO` },
         { property: "og:description", content: `${name} from the ZANKYO streetwear collection.` },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: `https://zankyo.in/product/${params.handle}` },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
+      links: [{ rel: "canonical", href: `https://zankyo.in/product/${params.handle}` }],
     };
   },
   component: ProductDetail,

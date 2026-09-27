@@ -9,6 +9,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — ZANKYO" },
+      { name: "robots", content: "noindex" },
       { name: "description", content: "Sign in to your ZANKYO account with a one-time email code to track orders and keep saved items." },
       { property: "og:title", content: "Sign in — ZANKYO" },
       { property: "og:description", content: "Sign in to your ZANKYO account." },

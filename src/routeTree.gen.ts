@@ -17,6 +17,7 @@ import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AccountCallbackRouteImport } from './routes/account.callback'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
@@ -63,6 +64,11 @@ const ShopRoute = ShopRouteImport.update({
   path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/shop': typeof ShopRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/shop': typeof ShopRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/shop': typeof ShopRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/order-success'
     | '/returns'
     | '/shop'
+    | '/sitemap.xml'
     | '/terms'
     | '/account/callback'
     | '/product/$handle'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/order-success'
     | '/returns'
     | '/shop'
+    | '/sitemap.xml'
     | '/terms'
     | '/account/callback'
     | '/product/$handle'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/order-success'
     | '/returns'
     | '/shop'
+    | '/sitemap.xml'
     | '/terms'
     | '/account/callback'
     | '/product/$handle'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   OrderSuccessRoute: typeof OrderSuccessRoute
   ReturnsRoute: typeof ReturnsRoute
   ShopRoute: typeof ShopRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ProductHandleRoute: typeof ProductHandleRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -256,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -314,6 +334,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderSuccessRoute: OrderSuccessRoute,
   ReturnsRoute: ReturnsRoute,
   ShopRoute: ShopRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ProductHandleRoute: ProductHandleRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

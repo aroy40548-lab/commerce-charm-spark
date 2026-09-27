@@ -20,16 +20,48 @@ import boxyImg from "@/assets/flame-boxy-shirt.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ZANKYO — More Than Just Clothes" },
+      { title: "ZANKYO | Official Streetwear Store India — Jorts, Wide Leg Sweatpants, Boxy Shirts" },
       {
         name: "description",
         content:
-          "ZANKYO streetwear: Y2K cyber-sigilism graphic tees, baggy denim, hoodies, headwear and footwear built for a different generation.",
+          "Zankyo official store (zankyo.in): Indian Gen Z streetwear — graphic tees, baggy jeans, jorts, wide leg sweatpants, Japanese trousers and boxy shirts. Shop ZANKYO online.",
       },
-      { property: "og:title", content: "ZANKYO — More Than Just Clothes" },
+      { property: "og:title", content: "ZANKYO | Official Streetwear Store India" },
       {
         property: "og:description",
-        content: "Y2K graphic tees, baggy denim and hoodies. Wear your story.",
+        content: "Zankyo official store: graphic tees, baggy denim, jorts and boxy shirts. Wear your story.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://zankyo.in/" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "https://zankyo.in/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify([
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "ZANKYO",
+            alternateName: ["Zankyo", "ZANKYO ONLINE SHOPPING"],
+            url: "https://zankyo.in/",
+            logo: "https://zankyo.in/favicon.svg",
+            email: "help@zankyo.in",
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "ZANKYO",
+            alternateName: "Zankyo",
+            url: "https://zankyo.in/",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://zankyo.in/shop?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          },
+        ]),
       },
     ],
   }),
