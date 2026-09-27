@@ -203,10 +203,16 @@ function ReviewForm({ handle, token, onClose }: { handle: string; token: string;
       </div>
       <div className="flex gap-2">
         <button disabled={busy} className="zk-label flex min-h-12 flex-1 items-center justify-center rounded-full bg-foreground text-xs text-background disabled:opacity-60">
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Post review"}
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : existing ? "Update review" : "Post review"}
         </button>
         <button type="button" onClick={onClose} className="zk-label min-h-12 rounded-full border border-border px-5 text-xs">Cancel</button>
       </div>
+      {existing && (
+        <button type="button" onClick={remove} disabled={busy} className="min-h-11 text-sm text-destructive underline underline-offset-2">
+          Delete my review
+        </button>
+      )}
+      {existing && files.length === 0 && <p className="text-xs text-muted-foreground">Adding new photos replaces your old ones.</p>}
     </form>
   );
 }
