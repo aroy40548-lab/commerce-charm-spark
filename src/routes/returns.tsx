@@ -29,7 +29,7 @@ function ReturnsPage() {
         { label: "Brand", value: "ZANKYO" },
         { label: "Return Window", value: "7 days" },
         { label: "Initial Market", value: "India" },
-        { label: "Effective Date", value: "26/09/2026" },
+        { label: "Effective Date", value: "Receipt date" },
       ]}
       sections={[
         { title: "Our Return Commitment", content: <><p>If you receive a defective, damaged, incorrect, or otherwise eligible product, please contact us so we can review your request and help with an appropriate resolution.</p><p>This policy describes our standard return, exchange, and refund process. It does not limit any consumer rights or remedies that apply under Indian law.</p></> },
