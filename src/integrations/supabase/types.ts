@@ -273,6 +273,48 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          body: string
+          created_at: string
+          customer_id: string
+          customer_name: string
+          id: string
+          photo_paths: string[]
+          product_handle: string
+          rating: number
+          shopify_product_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          customer_id: string
+          customer_name?: string
+          id?: string
+          photo_paths?: string[]
+          product_handle: string
+          rating: number
+          shopify_product_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          customer_id?: string
+          customer_name?: string
+          id?: string
+          photo_paths?: string[]
+          product_handle?: string
+          rating?: number
+          shopify_product_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_variants: {
         Row: {
           id: string

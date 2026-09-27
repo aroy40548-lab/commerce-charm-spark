@@ -1,37 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CUSTOMER_GRAPHQL_URL } from "@/lib/customerAccount";
-import { SHOPIFY_STORE_PERMANENT_DOMAIN } from "@/lib/shopify";
+import { storefrontApiRequest } from "@/lib/shopify";
 
-const JM = "https://judge.me/api/v1";
+const BUCKET = "review-photos";
+const handleSchema = z.string().min(1).max(255).regex(/^[a-z0-9-]+$/);
+const tokenSchema = z.string().min(10).max(4000);
 
-function jmToken() {
-  const t = process.env["JUDGEME_API_TOKEN"];
-  if (!t) throw new Error("Reviews are not configured yet");
-  return t;
+async function admin() {
+  return (await import("@/integrations/supabase/client.server")).supabaseAdmin;
 }
 
-async function jmProduct(handle: string) {
-  const u = new URL(`${JM}/products/-1`);
-  u.search = new URLSearchParams({ api_token: jmToken(), shop_domain: SHOPIFY_STORE_PERMANENT_DOMAIN, handle }).toString();
-  const res = await fetch(u);
-  if (!res.ok) return null;
-  const j = await res.json();
-  return j?.product ? { id: j.product.id as number, externalId: String(j.product.external_id) } : null;
-}
-
-async function jmReviews(productId: number) {
-  const u = new URL(`${JM}/reviews`);
-  u.search = new URLSearchParams({
-    api_token: jmToken(),
-    shop_domain: SHOPIFY_STORE_PERMANENT_DOMAIN,
-    product_id: String(productId),
-    per_page: "100",
-  }).toString();
-  const res = await fetch(u);
-  if (!res.ok) return [];
-  const j = await res.json();
-  return (j?.reviews ?? []) as any[];
+async function productNumericId(handle: string) {
+  const d = await storefrontApiRequest(`query($h: String!) { product(handle: $h) { id } }`, { h: handle });
+  const gid = d?.data?.product?.id as string | undefined;
+  return gid ? gid.split("/").pop()! : null;
 }
 
 async function customerWithOrders(token: string) {
@@ -50,15 +33,23 @@ async function customerWithOrders(token: string) {
   for (const o of c.orders?.nodes ?? [])
     for (const li of o.lineItems?.nodes ?? []) if (li.productId) productIds.add(String(li.productId).split("/").pop()!);
   const email = (c.emailAddress?.emailAddress as string | undefined) ?? "";
-  const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || email.split("@")[0] || "Customer";
-  return { email, name, productIds };
+  const first = (c.firstName as string | null) || email.split("@")[0] || "Customer";
+  const name = c.lastName ? `${first} ${String(c.lastName).charAt(0)}.` : first;
+  return { id: c.id as string, name, productIds };
+}
+
+async function signPhotos(paths: string[]) {
+  if (!paths.length) return [];
+  const sb = await admin();
+  const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, 60 * 60 * 24);
+  return (data ?? []).map((d) => d.signedUrl).filter(Boolean) as string[];
 }
 
 export interface PublicReview {
-  id: number;
+  id: string;
   rating: number;
   title: string | null;
-  body: string | null;
+  body: string;
   name: string;
   verified: boolean;
   createdAt: string;
@@ -66,37 +57,49 @@ export interface PublicReview {
 }
 
 export const getProductReviews = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ handle: z.string().min(1).max(255) }).parse(d))
+  .inputValidator((d) => z.object({ handle: handleSchema }).parse(d))
   .handler(async ({ data }) => {
-    const p = await jmProduct(data.handle);
-    if (!p) return { average: 0, count: 0, reviews: [] as PublicReview[] };
-    const raw = (await jmReviews(p.id)).filter((r) => !r.hidden && r.published !== false);
-    const reviews: PublicReview[] = raw.map((r) => ({
-      id: r.id,
-      rating: Number(r.rating) || 0,
-      title: r.title ?? null,
-      body: r.body ?? null,
-      name: r.reviewer?.name ?? "Customer",
-      verified: r.verified === "buyer" || r.verified === "verified-purchase" || !!r.verified_buyer,
-      createdAt: r.created_at,
-      pictures: (r.pictures ?? []).filter((x: any) => !x.hidden).map((x: any) => x.urls?.compact ?? x.urls?.original).filter(Boolean),
-    }));
+    const sb = await admin();
+    const { data: rows, error } = await sb
+      .from("product_reviews")
+      .select("id, rating, title, body, customer_name, created_at, photo_paths")
+      .eq("product_handle", data.handle)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) {
+      console.error(error);
+      return { average: 0, count: 0, reviews: [] as PublicReview[] };
+    }
+    const reviews: PublicReview[] = await Promise.all(
+      (rows ?? []).map(async (r) => ({
+        id: r.id,
+        rating: r.rating,
+        title: r.title,
+        body: r.body,
+        name: r.customer_name,
+        verified: true,
+        createdAt: r.created_at,
+        pictures: await signPhotos(r.photo_paths ?? []),
+      })),
+    );
     const average = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
     return { average, count: reviews.length, reviews };
   });
 
-const tokenSchema = z.string().min(10).max(4000);
-
 export const getReviewEligibility = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ token: tokenSchema, handle: z.string().min(1).max(255) }).parse(d))
+  .inputValidator((d) => z.object({ token: tokenSchema, handle: handleSchema }).parse(d))
   .handler(async ({ data }) => {
-    const [c, p] = await Promise.all([customerWithOrders(data.token), jmProduct(data.handle)]);
-    if (!p) return { status: "unavailable" as const };
-    if (!c.productIds.has(p.externalId)) return { status: "not_purchased" as const };
-    const existing = await jmReviews(p.id);
-    const email = c.email.toLowerCase();
-    if (email && existing.some((r) => r.reviewer?.email?.toLowerCase() === email)) return { status: "already_reviewed" as const };
-    return { status: "eligible" as const, name: c.name };
+    const [c, pid] = await Promise.all([customerWithOrders(data.token), productNumericId(data.handle)]);
+    if (!pid) return { status: "unavailable" as const };
+    if (!c.productIds.has(pid)) return { status: "not_purchased" as const };
+    const sb = await admin();
+    const { data: mine } = await sb
+      .from("product_reviews")
+      .select("rating, title, body")
+      .eq("customer_id", c.id)
+      .eq("product_handle", data.handle)
+      .maybeSingle();
+    return { status: "eligible" as const, name: c.name, existing: mine ?? null };
   });
 
 const imageSchema = z.object({
@@ -109,7 +112,7 @@ export const submitReview = createServerFn({ method: "POST" })
     z
       .object({
         token: tokenSchema,
-        handle: z.string().min(1).max(255),
+        handle: handleSchema,
         rating: z.number().int().min(1).max(5),
         title: z.string().trim().max(100).optional(),
         body: z.string().trim().min(3).max(2000),
@@ -118,48 +121,65 @@ export const submitReview = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const [c, p] = await Promise.all([customerWithOrders(data.token), jmProduct(data.handle)]);
-    if (!p) throw new Error("This product can't be reviewed right now");
-    if (!c.productIds.has(p.externalId)) throw new Error("Only customers who bought this can review it");
-    if (!c.email) throw new Error("Your account has no email address");
-    const existing = await jmReviews(p.id);
-    if (existing.some((r) => r.reviewer?.email?.toLowerCase() === c.email.toLowerCase()))
-      throw new Error("You've already reviewed this product");
+    const [c, pid] = await Promise.all([customerWithOrders(data.token), productNumericId(data.handle)]);
+    if (!pid) throw new Error("This product can't be reviewed right now");
+    if (!c.productIds.has(pid)) throw new Error("Only customers who bought this can review it");
+    const sb = await admin();
 
-    const pictureUrls: string[] = [];
+    const { data: prev } = await sb
+      .from("product_reviews")
+      .select("photo_paths")
+      .eq("customer_id", c.id)
+      .eq("product_handle", data.handle)
+      .maybeSingle();
+
+    let photoPaths = prev?.photo_paths ?? [];
     if (data.images.length) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const uploaded: string[] = [];
       for (const img of data.images) {
         const bytes = Buffer.from(img.base64, "base64");
         if (bytes.length > 5 * 1024 * 1024) throw new Error("Each photo must be under 5MB");
-        const ext = img.type.split("/")[1];
-        const path = `${p.externalId}/${crypto.randomUUID()}.${ext}`;
-        const up = await supabaseAdmin.storage.from("review-photos").upload(path, bytes, { contentType: img.type });
+        const path = `${data.handle}/${crypto.randomUUID()}.${img.type.split("/")[1]}`;
+        const up = await sb.storage.from(BUCKET).upload(path, bytes, { contentType: img.type });
         if (up.error) throw new Error("Photo upload failed");
-        const signed = await supabaseAdmin.storage.from("review-photos").createSignedUrl(path, 60 * 60 * 24 * 30);
-        if (signed.data?.signedUrl) pictureUrls.push(signed.data.signedUrl);
+        uploaded.push(path);
       }
+      if (photoPaths.length) await sb.storage.from(BUCKET).remove(photoPaths);
+      photoPaths = uploaded;
     }
 
-    const res = await fetch(`${JM}/reviews`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_token: jmToken(),
-        shop_domain: SHOPIFY_STORE_PERMANENT_DOMAIN,
-        platform: "shopify",
-        id: Number(p.externalId),
-        email: c.email,
-        name: c.name,
+    const { error } = await sb.from("product_reviews").upsert(
+      {
+        product_handle: data.handle,
+        shopify_product_id: pid,
+        customer_id: c.id,
+        customer_name: c.name,
         rating: data.rating,
-        title: data.title || undefined,
+        title: data.title || null,
         body: data.body,
-        picture_urls: pictureUrls,
-      }),
-    });
-    if (!res.ok) {
-      console.error("Judge.me review create failed", res.status, await res.text());
-      throw new Error("Couldn't post your review, please try again");
+        photo_paths: photoPaths,
+      },
+      { onConflict: "customer_id,product_handle" },
+    );
+    if (error) {
+      console.error(error);
+      throw new Error("Couldn't save your review, please try again");
     }
+    return { ok: true };
+  });
+
+export const deleteMyReview = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ token: tokenSchema, handle: handleSchema }).parse(d))
+  .handler(async ({ data }) => {
+    const c = await customerWithOrders(data.token);
+    const sb = await admin();
+    const { data: row } = await sb
+      .from("product_reviews")
+      .delete()
+      .eq("customer_id", c.id)
+      .eq("product_handle", data.handle)
+      .select("photo_paths")
+      .maybeSingle();
+    if (row?.photo_paths?.length) await sb.storage.from(BUCKET).remove(row.photo_paths);
     return { ok: true };
   });
