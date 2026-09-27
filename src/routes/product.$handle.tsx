@@ -175,7 +175,7 @@ function ProductDetail() {
 
           <button
             onClick={handleTryOn}
-            className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted"
+            className="zk-label mt-3 hidden min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted sm:flex"
           >
             <Camera className="h-4 w-4" /> Virtual try-on (AI)
           </button>
