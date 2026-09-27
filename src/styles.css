@@ -210,3 +210,8 @@
   position: fixed !important;
   z-index: -9999 !important;
 }
+
+/* Decart injects Try-On pills over photos; hide them on the homepage banners. */
+.zk-hide-vton .vton-btn {
+  display: none !important;
+}

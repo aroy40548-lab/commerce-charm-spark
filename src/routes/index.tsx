@@ -163,7 +163,7 @@ function Home() {
       </section>
 
       {/* Editorial banners */}
-      <section className="mx-auto grid max-w-[1600px] gap-4 px-4 pb-4 sm:px-6 md:grid-cols-2">
+      <section className="zk-hide-vton mx-auto grid max-w-[1600px] gap-4 px-4 pb-4 sm:px-6 md:grid-cols-2">
         <div className="relative h-72 overflow-hidden rounded-2xl bg-ink md:h-80">
           <img src={shadowsImg} alt="Shadows collection" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-80" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
