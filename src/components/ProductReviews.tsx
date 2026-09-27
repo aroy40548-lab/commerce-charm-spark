@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Star, BadgeCheck, Loader2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
-import { getProductReviews, getReviewEligibility, submitReview } from "@/lib/reviews.functions";
+import { deleteMyReview, getProductReviews, getReviewEligibility, submitReview } from "@/lib/reviews.functions";
 import { signIn, useCustomerStore, useCustomerToken } from "@/stores/customerStore";
 
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
@@ -97,6 +97,7 @@ function ReviewForm({ handle, token, onClose }: { handle: string; token: string;
   const getAccessToken = useCustomerStore((s) => s.getAccessToken);
   const checkFn = useServerFn(getReviewEligibility);
   const submitFn = useServerFn(submitReview);
+  const deleteFn = useServerFn(deleteMyReview);
   const elig = useQuery({
     queryKey: ["review-eligibility", handle, token],
     queryFn: async () => checkFn({ data: { token: (await getAccessToken()) ?? token, handle } }),
@@ -106,6 +107,15 @@ function ReviewForm({ handle, token, onClose }: { handle: string; token: string;
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const ex = elig.data?.status === "eligible" ? elig.data.existing : null;
+    if (ex) {
+      setRating(ex.rating);
+      setTitle(ex.title ?? "");
+      setBody(ex.body);
+    }
+  }, [elig.data]);
 
   const addFiles = (list: FileList | null) => {
     const next = [...files];
@@ -133,13 +143,29 @@ function ReviewForm({ handle, token, onClose }: { handle: string; token: string;
     }
   };
 
+  const remove = async () => {
+    if (!confirm("Delete your review?")) return;
+    setBusy(true);
+    try {
+      await deleteFn({ data: { token: (await getAccessToken()) ?? token, handle } });
+      toast.success("Review deleted", { position: "top-center" });
+      qc.invalidateQueries({ queryKey: ["reviews", handle] });
+      qc.invalidateQueries({ queryKey: ["review-eligibility", handle] });
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't delete", { position: "top-center" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const box = "mt-6 rounded-lg border border-border p-4 sm:p-6";
   if (elig.isLoading) return <div className={box}><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   const status = elig.data?.status;
+  const existing = elig.data?.status === "eligible" ? elig.data.existing : null;
   if (status !== "eligible") {
     const msg =
       status === "not_purchased" ? "Only customers who bought this can review it." :
-      status === "already_reviewed" ? "You've already reviewed this product. Thank you!" :
       "Reviews aren't available for this product right now.";
     return (
       <div className={`${box} flex items-center justify-between gap-3`}>
