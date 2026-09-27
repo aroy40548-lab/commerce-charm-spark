@@ -182,6 +182,16 @@ function OrderCard({ order: o }: { order: any }) {
               {li.variantTitle && <span className="block text-xs text-muted-foreground">{li.variantTitle}</span>}
             </span>
             <span className="shrink-0 text-muted-foreground">×{li.quantity}</span>
+            {delivered && (
+              <Link
+                to="/product/$handle"
+                params={{ handle: String(li.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") }}
+                hash="reviews"
+                className="shrink-0 text-xs underline underline-offset-2"
+              >
+                Review
+              </Link>
+            )}
           </li>
         ))}
       </ul>
