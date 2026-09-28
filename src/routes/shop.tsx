@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCategories, useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
+import { productInCategory } from "@/lib/catalog";
 
 type ShopSearch = { q?: string | undefined; category?: string | undefined };
 
@@ -31,8 +32,9 @@ function Shop() {
   const { data: cats } = useCategories();
   const CATEGORIES = ["All", ...(cats ?? []).map((c) => c.name)];
 
+  const activeCat = (cats ?? []).find((c) => c.name === category);
   const filtered = (products ?? []).filter((p) => {
-    const matchesCategory = !category || category === "All" || p.node.productType === category;
+    const matchesCategory = !category || category === "All" || productInCategory(p, activeCat, category);
     const needle = q?.toLowerCase();
     const matchesQuery =
       !needle ||
