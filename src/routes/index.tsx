@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ArrowLeft, Crosshair } from "lucide-react";
-import { useProducts } from "@/hooks/useProducts";
+import { useCategories, useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import heroImg from "@/assets/hero-zankyo.jpg";
