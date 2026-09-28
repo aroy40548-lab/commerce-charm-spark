@@ -126,16 +126,16 @@ export function Navbar() {
           <img
             src={compactLightLogo.url}
             alt="ZANKYO 残響"
-            width={726}
-            height={190}
+            width={700}
+            height={176}
             className="h-auto w-[132px] object-contain sm:w-40 dark:hidden"
           />
           <img
             src={compactDarkLogo.url}
             alt=""
             aria-hidden="true"
-            width={726}
-            height={190}
+            width={700}
+            height={176}
             className="hidden h-auto w-[132px] object-contain sm:w-40 dark:block"
           />
         </Link>
