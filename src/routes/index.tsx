@@ -1,21 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ArrowLeft, Crosshair } from "lucide-react";
-import { useProducts } from "@/hooks/useProducts";
+import { useCategories, useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { ZankyoStar } from "@/components/ZankyoStar";
 import heroImg from "@/assets/hero-zankyo.jpg";
 import shadowsImg from "@/assets/banner-shadows.jpg";
 import genzImg from "@/assets/banner-genz.jpg";
-import teeImg from "@/assets/chaos-skull-tee.jpg";
-import denimImg from "@/assets/tribal-washed-denim.jpg";
-import hoodieImg from "@/assets/doom-zip-hoodie.jpg";
-import capImg from "@/assets/z-star-cap.jpg";
-import beltImg from "@/assets/spiked-belt.jpg";
-import sneakerImg from "@/assets/rift-skate-sneakers.jpg";
-import jortsImg from "@/assets/cross-stitch-jorts.jpg";
-import sweatImg from "@/assets/void-wide-sweatpants.jpg";
-import japImg from "@/assets/kyoto-pleated-trousers.jpg";
-import boxyImg from "@/assets/flame-boxy-shirt.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -68,21 +58,10 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const CATEGORIES = [
-  { label: "Tees", image: teeImg },
-  { label: "Baggy Jeans", image: denimImg },
-  { label: "Hoodies", image: hoodieImg },
-  { label: "Headwear", image: capImg },
-  { label: "Accessories", image: beltImg },
-  { label: "Footwear", image: sneakerImg },
-  { label: "Jorts", image: jortsImg },
-  { label: "Sweatpants Wide Leg", image: sweatImg },
-  { label: "Japanese Trousers", image: japImg },
-  { label: "Boxy Shirts", image: boxyImg },
-];
 
 function Home() {
   const { data: products, isLoading } = useProducts();
+  const { data: cats, isLoading: catsLoading } = useCategories();
 
   return (
     <div>
@@ -149,19 +128,22 @@ function Home() {
       {/* Categories */}
       <section className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
         <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
-          {CATEGORIES.map((cat) => (
+          {catsLoading && Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="h-32 animate-pulse rounded-lg bg-card sm:h-36" />
+          ))}
+          {(cats ?? []).map((c) => ({ label: c.name, image: c.image_url })).map((cat) => (
             <Link
               key={cat.label}
               to="/shop"
               search={{ q: undefined, category: cat.label }}
               className="group relative h-32 overflow-hidden rounded-lg bg-ink sm:h-36"
             >
-              <img
+              {cat.image && <img
                 src={cat.image}
                 alt={cat.label}
                 loading="lazy"
                 className="absolute inset-0 h-full w-full scale-150 object-cover opacity-70 transition-transform duration-500 group-hover:scale-[1.7]"
-              />
+              />}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/10" />
                <span className="zk-label absolute bottom-3 left-3 max-w-[calc(100%-3.5rem)] break-words text-[10px] leading-4 text-white sm:bottom-4 sm:left-4 sm:text-xs">{cat.label}</span>
               <span className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full border border-white/70 text-white">

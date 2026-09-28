@@ -14,3 +14,4 @@
 - Saved items stay account-linked through the existing wishlist sync layer, while the cart uses real Shopify product and variant IDs. Why: preserve cross-device wishlist behavior alongside Shopify commerce.
 - Virtual try-on uses Decart Anywear; the custom button opens the widget and isolates its internal image handoff in `src/lib/decart.ts`. Why: preload the current product photo while failing safely if the third-party widget changes.
 - Brand surfaces use the supplied ZANKYO kanji artwork through CDN asset pointers, with separate light/dark variants and a local optimized favicon. Why: preserve exact brand artwork while keeping theme contrast and tab clarity.
+- Categories = Shopify collections (collection image) plus uncovered product types; product pages show all Shopify images. Why: store is fully managed from Shopify admin.

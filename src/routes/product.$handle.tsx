@@ -43,6 +43,7 @@ function ProductDetail() {
   const wishlist = useWishlistStore((s) => s.items);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const [variantId, setVariantId] = useState<string | null>(null);
+  const [imgIdx, setImgIdx] = useState(0);
 
   const variants = product?.node.variants.edges.map((e) => e.node) ?? [];
   const selected = useMemo(
@@ -77,7 +78,8 @@ function ProductDetail() {
   }
 
   const node = product.node;
-  const image = node.images.edges[0]?.node;
+  const images = node.images.edges.map((e) => e.node);
+  const image = images[Math.min(imgIdx, images.length - 1)] ?? images[0];
   const wished = wishlist.some((i) => i.handle === node.handle);
   const related = (allProducts ?? []).filter((p) => p.node.handle !== node.handle).slice(0, 4);
 
@@ -126,9 +128,40 @@ function ProductDetail() {
         </aside>
 
         <div className="rounded-lg bg-card p-3 sm:p-6">
-          {image && (
-            <img src={image.url} alt={node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" />
+          {/* Mobile: swipe gallery */}
+          <div
+            className="flex snap-x snap-mandatory overflow-x-auto sm:hidden"
+            onScroll={(e) => { const el = e.currentTarget; setImgIdx(Math.round(el.scrollLeft / el.clientWidth)); }}
+          >
+            {images.map((img, i) => (
+              <img key={img.url} src={img.url} alt={img.altText ?? node.title} loading={i ? "lazy" : "eager"} className="aspect-square w-full shrink-0 snap-center rounded-lg object-contain" />
+            ))}
+          </div>
+          {images.length > 1 && (
+            <div className="mt-3 flex justify-center gap-1.5 sm:hidden">
+              {images.map((img, i) => <span key={img.url} className={`h-1.5 w-1.5 rounded-full ${i === imgIdx ? "bg-foreground" : "bg-muted-foreground/40"}`} />)}
+            </div>
           )}
+          {/* Tablet/laptop: main image + thumbnails */}
+          <div className="hidden sm:block">
+            {image && (
+              <img src={image.url} alt={image.altText ?? node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" />
+            )}
+            {images.length > 1 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {images.map((img, i) => (
+                  <button
+                    key={img.url}
+                    onClick={() => setImgIdx(i)}
+                    aria-label={`View photo ${i + 1}`}
+                    className={`h-16 w-16 overflow-hidden rounded-md border-2 ${i === imgIdx ? "border-foreground" : "border-transparent opacity-70 hover:opacity-100"}`}
+                  >
+                    <img src={img.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div>

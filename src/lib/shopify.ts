@@ -34,7 +34,7 @@ export function firstUserError(errors: UserError[] | undefined) {
 export const PRODUCT_FIELDS = `
   id title description handle productType tags
   priceRange { minVariantPrice { amount currencyCode } }
-  images(first: 5) { edges { node { url altText } } }
+  images(first: 20) { edges { node { url altText } } }
   variants(first: 20) { edges { node { id title availableForSale price { amount currencyCode } compareAtPrice { amount currencyCode } selectedOptions { name value } } } }
   options { name values }
 `;
@@ -45,6 +45,13 @@ export const PRODUCTS_QUERY = `query GetProducts($first: Int!, $query: String) {
 
 export const PRODUCT_BY_HANDLE_QUERY = `query GetProduct($handle: String!) {
   product(handle: $handle) { ${PRODUCT_FIELDS} }
+}`;
+
+export const COLLECTIONS_QUERY = `query GetCollections {
+  collections(first: 50, sortKey: UPDATED_AT) { edges { node {
+    id handle title image { url }
+    products(first: 250) { edges { node { id images(first: 1) { edges { node { url } } } } } }
+  } } }
 }`;
 
 // ---------- Cart ----------
