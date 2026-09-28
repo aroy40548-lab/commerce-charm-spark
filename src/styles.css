@@ -152,10 +152,13 @@
 }
 
 @layer base {
+  html,
+  body {
+    overflow-x: clip;
+  }
   body {
     font-family: var(--font-sans);
     letter-spacing: 0;
-    overflow-x: hidden;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
