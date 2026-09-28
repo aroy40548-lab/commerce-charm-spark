@@ -47,8 +47,8 @@ function Shop() {
       <h1 className="zk-display text-4xl">Shop</h1>
       {q && <p className="mt-2 text-sm text-muted-foreground">Results for “{q}”</p>}
 
-      <div className="mt-6 grid gap-7 lg:mt-8 lg:grid-cols-[200px_1fr] lg:gap-8">
-        <aside>
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-7 lg:mt-8 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-8">
+        <aside className="min-w-0">
           <h2 className="zk-label text-[11px] text-muted-foreground">Categories</h2>
           <ul className="mobile-scroll-hint -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0">
             {CATEGORIES.map((c) => {
@@ -70,7 +70,7 @@ function Shop() {
           </ul>
         </aside>
 
-        <div>
+        <div className="min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-4 sm:gap-y-8 md:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
