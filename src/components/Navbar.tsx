@@ -3,10 +3,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Search, User, Heart, X } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CartDrawer } from "@/components/CartDrawer";
-import { ZankyoStar } from "@/components/ZankyoStar";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { formatMoney } from "@/lib/catalog";
 import { useCustomerStore, useCustomerToken } from "@/stores/customerStore";
+import compactLightLogo from "@/assets/zankyo-compact-light.png.asset.json";
+import compactDarkLogo from "@/assets/zankyo-compact-dark.png.asset.json";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -121,9 +122,22 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background">
       <div className="mx-auto grid h-16 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 sm:px-6 lg:flex lg:gap-6">
-        <Link to="/" className="flex min-w-0 items-center gap-2">
-          <ZankyoStar className="h-6 w-6 text-foreground" />
-          <span className="zk-display truncate text-2xl leading-none">ZANKYO</span>
+        <Link to="/" className="flex min-w-0 items-center" aria-label="ZANKYO home">
+          <img
+            src={compactLightLogo.url}
+            alt="ZANKYO 残響"
+            width={700}
+            height={176}
+            className="h-auto w-[132px] object-contain sm:w-40 dark:hidden"
+          />
+          <img
+            src={compactDarkLogo.url}
+            alt=""
+            aria-hidden="true"
+            width={700}
+            height={176}
+            className="hidden h-auto w-[132px] object-contain sm:w-40 dark:block"
+          />
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-7 lg:flex">

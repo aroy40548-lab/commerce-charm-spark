@@ -1,18 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { ZankyoStar } from "@/components/ZankyoStar";
+import fullDarkLogo from "@/assets/zankyo-full-dark.png.asset.json";
 
 export function Footer() {
   return (
     <footer className="mt-20 border-t border-border bg-ink text-background">
       <div className="mx-auto grid max-w-[1600px] gap-9 px-4 py-12 sm:px-6 sm:py-14 md:grid-cols-3">
         <div>
-          <div className="flex items-center gap-2">
-            <ZankyoStar className="h-6 w-6" />
-            <span className="zk-display text-2xl leading-none">ZANKYO</span>
-          </div>
-          <p className="mt-3 max-w-xs text-sm text-background/60">
-            More than just clothes. Built for a different generation.
-          </p>
+          <Link to="/" className="block w-fit" aria-label="ZANKYO home">
+            <img
+              src={fullDarkLogo.url}
+              alt="ZANKYO 残響 — More than just clothes"
+              width={1835}
+              height={1373}
+              className="h-auto w-52 object-contain sm:w-60"
+            />
+          </Link>
         </div>
         <div>
           <h3 className="zk-label text-[11px] text-background/50">Shop</h3>

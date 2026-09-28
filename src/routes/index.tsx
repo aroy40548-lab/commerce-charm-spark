@@ -46,7 +46,7 @@ export const Route = createFileRoute("/")({
             name: "ZANKYO",
             alternateName: ["Zankyo", "ZANKYO ONLINE SHOPPING"],
             url: "https://zankyo.in/",
-            logo: "https://zankyo.in/favicon.svg",
+            logo: "https://zankyo.in/favicon.png",
             email: "help@zankyo.in",
           },
           {

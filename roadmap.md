@@ -2,6 +2,7 @@
 - [x] Optimize the storefront for mobile browsers first, with touch, overflow, bag, search, and desktop regression checks
 - [x] Automatically load the current product photo when Virtual try-on (AI) opens
 - [x] Replace the browser-tab icon with the ZANKYO star logo
+- [x] Replace the old star branding with the supplied ZANKYO symbol, kanji, text logo, and light/dark variants
 - [x] Add complete About, Terms & Conditions, and Return & Refund Policy pages with footer links
 - [x] Move storefront to Shopify (catalog, cart, checkout, customer accounts, account page, wishlist)
 - [x] Remove custom admin panel
