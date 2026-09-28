@@ -98,9 +98,15 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
         <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[720px]">
           <p className="zk-label text-[11px] text-white/70">Streetwear</p>
-          <h1 className="zk-display mt-2 flex min-w-0 items-center text-5xl text-white sm:text-7xl md:text-8xl">
-            ZANKYO
-            <ZankyoStar className="h-12 w-12 shrink-0 text-accent sm:-ml-4 sm:h-14 sm:w-14 md:h-20 md:w-20" />
+          <h1 className="zk-display mt-2 flex min-w-0 items-center gap-3 text-5xl text-white sm:gap-4 sm:text-7xl md:text-8xl">
+            <img
+              src="/favicon.png"
+              alt=""
+              width={64}
+              height={64}
+              className="h-10 w-10 shrink-0 invert mix-blend-screen sm:h-14 sm:w-14 md:h-16 md:w-16"
+            />
+            <span>ZANKYO</span>
           </h1>
           <p className="zk-label mt-3 text-[11px] leading-6 text-white/80">
             More than just clothes
