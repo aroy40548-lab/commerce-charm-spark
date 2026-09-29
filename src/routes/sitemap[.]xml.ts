@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { storefrontApiRequest } from "@/lib/shopify";
 
 const BASE = "https://zankyo.in";
-const STATIC = ["/", "/shop", "/collections", "/about", "/terms", "/returns"];
+const STATIC = ["/", "/shop", "/collections", "/unboxing", "/about", "/terms", "/returns"];
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
