@@ -19,6 +19,7 @@ import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as UnboxingRouteImport } from './routes/unboxing'
 import { Route as AccountCallbackRouteImport } from './routes/account.callback'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -74,6 +75,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnboxingRoute = UnboxingRouteImport.update({
+  id: '/unboxing',
+  path: '/unboxing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountCallbackRoute = AccountCallbackRouteImport.update({
   id: '/callback',
   path: '/callback',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/unboxing': typeof UnboxingRoute
   '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/unboxing': typeof UnboxingRoute
   '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/unboxing': typeof UnboxingRoute
   '/account/callback': typeof AccountCallbackRoute
   '/product/$handle': typeof ProductHandleRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
+    | '/unboxing'
     | '/account/callback'
     | '/product/$handle'
     | '/lovable/email/auth/preview'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
+    | '/unboxing'
     | '/account/callback'
     | '/product/$handle'
     | '/lovable/email/auth/preview'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
+    | '/unboxing'
     | '/account/callback'
     | '/product/$handle'
     | '/lovable/email/auth/preview'
@@ -206,6 +218,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  UnboxingRoute: typeof UnboxingRoute
   ProductHandleRoute: typeof ProductHandleRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unboxing': {
+      id: '/unboxing'
+      path: '/unboxing'
+      fullPath: '/unboxing'
+      preLoaderRoute: typeof UnboxingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/callback': {
       id: '/account/callback'
       path: '/callback'
@@ -336,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  UnboxingRoute: UnboxingRoute,
   ProductHandleRoute: ProductHandleRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
