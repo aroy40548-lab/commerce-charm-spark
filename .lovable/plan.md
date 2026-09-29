@@ -23,6 +23,7 @@
 
 - Create `src/routes/unboxing.tsx` with its own `head()`: unique title, description, og:title, og:description, og:type, twitter:card, canonical `https://zankyo.in/unboxing`.
 - Store the 5 uploaded photos as CDN asset pointers (Lovable Assets) in `src/assets/` and import them in the page.
+- Video handling: the Drive clip is an iPhone recording (HEVC in a .MOV container), which most browsers cannot play as-is. Convert it once to a web-standard MP4 (H.264, sound kept if present, ~7 MB) plus a preview frame, upload both as CDN asset pointers, and embed the MP4 in a native HTML5 `<video>` element (works on every phone and laptop browser; no YouTube/Drive embed, no external player).
 - Update the shared `NAV` array in `src/components/Navbar.tsx` to insert `{ to: "/unboxing", label: "UNBOXING // 001" }`.
 - Add `/unboxing` to the static pages in the sitemap route so Google indexes it.
 - No changes to checkout, catalog, Shopify data, cart, wishlist, or accounts.
