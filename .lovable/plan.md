@@ -14,9 +14,10 @@
   - **02 // FROSTED GRAPHITE GARMENT POUCH** — pouch photo
   - **03 // 400 GSM BLACK COLLECTOR'S DOCUMENT** — document card photo
   - **04 // 3-SLASH STEALTH METAL KEYCHAIN (HOLDER'S PRIVILEGE)** — keychain photo
+- Full-width **unboxing video section**: the 17-second clip plays on the page itself — muted autoplay, looping, with a play/pause control and a preview frame (poster) shown until it loads, matching the dark theme. On phones it fills the screen width; on laptops it sits centered at a comfortable width.
 - Full-width **unboxing sequence** strip below (the 4-stage photo: Stage 1 The Arrival → Stage 4 The Full Archive), with a short caption.
 - A "Shop the drop" button linking to /shop, and keep the wording of the 4 descriptions exactly as supplied.
-- Dark theme by default on the page (photos are dark), comfortable mobile spacing, no horizontal scroll.
+- Dark theme by default on the page (photos and video are dark), comfortable mobile spacing, no horizontal scroll.
 
 ## Technical details
 
