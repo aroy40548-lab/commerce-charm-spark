@@ -4,6 +4,7 @@
 
 - Add a new top navigation button **UNBOXING // 001** between **Collections** and **About** (desktop menu and the swipeable mobile menu — both use the same nav list, so both update).
 - Clicking it opens a new **/unboxing** page presenting the 4 archive items in a grid, using the packaging photos the user uploaded.
+- The unboxing video the user shared (Google Drive clip of the archive box reveal, "ZANKYO — More than just clothes") plays **directly on the website**, as a full-width section on the /unboxing page — no link out, no external player page.
 
 ## Page design
 
