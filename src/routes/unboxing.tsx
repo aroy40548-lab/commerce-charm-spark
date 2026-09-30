@@ -73,7 +73,7 @@ const ITEMS = [
 
 function UnboxingPage() {
   return (
-    <div>
+    <div className="zk-hide-vton">
       {/* Hero */}
       <section className="bg-ink text-white">
         <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 sm:py-20">
