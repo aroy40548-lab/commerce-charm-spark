@@ -3,7 +3,8 @@ import { ArrowRight, ArrowLeft, Crosshair } from "lucide-react";
 import { useCategories, useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { ZankyoStar } from "@/components/ZankyoStar";
-import heroImg from "@/assets/hero-zankyo.jpg";
+import heroVideo from "@/assets/hero-bg.mp4.asset.json";
+import heroPoster from "@/assets/hero-bg-poster.jpg.asset.json";
 import shadowsImg from "@/assets/banner-shadows.jpg";
 import genzImg from "@/assets/banner-genz.jpg";
 
@@ -67,12 +68,19 @@ function Home() {
     <div>
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-ink">
-        <img
-          src={heroImg}
-          alt="Two models in ZANKYO streetwear on brutalist concrete steps"
-          width={1920}
-          height={1088}
-          className="absolute inset-0 h-full w-full object-cover object-top opacity-90"
+        <video
+          src={heroVideo.url}
+          poster={heroPoster.url}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          disablePictureInPicture
+          controlsList="nodownload noplaybackrate"
+          tabIndex={-1}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-top opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
         <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[720px]">
