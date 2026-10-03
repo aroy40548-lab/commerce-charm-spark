@@ -80,7 +80,7 @@ function Home() {
           controlsList="nodownload noplaybackrate"
           tabIndex={-1}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-top opacity-90"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center opacity-90 sm:object-top"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
         <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[720px]">
