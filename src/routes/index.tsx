@@ -80,10 +80,10 @@ function Home() {
           controlsList="nodownload noplaybackrate"
           tabIndex={-1}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[72%_center] opacity-90 sm:object-top"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[72%_center] opacity-90 sm:object-[50%_62%]"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
-        <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[720px]">
+        <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[800px]">
           <p className="zk-label text-[11px] text-white/70">Streetwear</p>
           <h1 className="zk-display mt-2 flex min-w-0 items-center gap-3 text-5xl text-white sm:gap-4 sm:text-7xl md:text-8xl">
             <img
