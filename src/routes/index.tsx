@@ -82,9 +82,13 @@ function Home() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[72%_center] opacity-90 sm:object-[50%_62%]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-black/10" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" />
         <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[800px]">
-          <p className="zk-label text-[11px] text-white/70">Streetwear</p>
+          <p className="zk-label flex items-center gap-2 text-[11px] text-white/70">
+            <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-white" /></span>
+            Archive drop live // 残響
+          </p>
           <h1 className="zk-display mt-2 flex min-w-0 items-center gap-3 text-5xl text-white sm:gap-4 sm:text-7xl md:text-8xl">
             <img
               src="/favicon.png"
@@ -103,9 +107,9 @@ function Home() {
           <Link
             to="/shop"
             search={{ q: undefined, category: undefined }}
-            className="zk-label mt-7 inline-flex w-fit items-center gap-3 rounded-full border border-white/70 bg-black/30 px-7 py-3.5 text-xs text-white backdrop-blur transition-colors hover:bg-white hover:text-ink"
+            className="group zk-label mt-7 inline-flex min-h-12 w-fit items-center gap-3 rounded-full border border-white/70 bg-white/10 px-7 py-3.5 text-xs text-white shadow-[0_0_30px_-8px_rgba(255,255,255,0.5)] backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-ink active:scale-95"
           >
-            Shop now <ArrowRight className="h-4 w-4" />
+            Shop now <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
 
           <div className="mt-12 flex items-center gap-3 text-white/80">
@@ -133,6 +137,19 @@ function Home() {
         </div>
       </section>
 
+      {/* Ticker */}
+      <div className="overflow-hidden border-y border-white/10 bg-ink py-3 text-white" aria-hidden="true">
+        <div className="zk-marquee flex w-max gap-10 whitespace-nowrap">
+          {Array.from({ length: 2 }).flatMap((_, k) =>
+            ["New season", "残響", "All India shipping", "Heavyweight cotton", "Archive // 001", "Wear your story"].map((t) => (
+              <span key={k + t} className="zk-label flex items-center gap-10 text-[11px] text-white/80">
+                {t} <span className="text-white/30">✦</span>
+              </span>
+            )),
+          )}
+        </div>
+      </div>
+
       {/* Categories */}
       <section className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
         <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
@@ -144,17 +161,17 @@ function Home() {
               key={cat.label}
               to="/shop"
               search={{ q: undefined, category: cat.label }}
-              className="group relative h-32 overflow-hidden rounded-lg bg-ink sm:h-36"
+              className="group relative h-32 overflow-hidden rounded-xl border border-white/10 bg-ink transition-transform duration-300 active:scale-[0.98] sm:h-36"
             >
               {cat.image && <img
                 src={cat.image}
                 alt={cat.label}
                 loading="lazy"
-                className="absolute inset-0 h-full w-full scale-150 object-cover opacity-70 transition-transform duration-500 group-hover:scale-[1.7]"
+                className="absolute inset-0 h-full w-full object-cover opacity-70 transition-all duration-700 group-hover:scale-110 group-hover:opacity-90"
               />}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/10" />
                <span className="zk-label absolute bottom-3 left-3 max-w-[calc(100%-3.5rem)] break-words text-[10px] leading-4 text-white sm:bottom-4 sm:left-4 sm:text-xs">{cat.label}</span>
-              <span className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full border border-white/70 text-white">
+              <span className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full border border-white/70 text-white transition-colors group-hover:bg-white group-hover:text-ink">
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Link>
@@ -192,8 +209,8 @@ function Home() {
 
       {/* Editorial banners */}
       <section className="zk-hide-vton mx-auto grid max-w-[1600px] gap-4 px-4 pb-4 sm:px-6 md:grid-cols-2">
-        <div className="relative h-72 overflow-hidden rounded-2xl bg-ink md:h-80">
-          <img src={shadowsImg} alt="Shadows collection" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-80" />
+        <div className="group relative h-72 overflow-hidden rounded-2xl bg-ink md:h-80">
+          <div role="img" aria-label="Shadows collection" className="absolute inset-0 bg-cover bg-center opacity-80 transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${shadowsImg})` }} />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
           <div className="relative flex h-full flex-col justify-end p-8">
             <p className="zk-label text-[10px] text-white/60">Collection</p>
@@ -212,8 +229,8 @@ function Home() {
           </div>
         </div>
 
-        <div className="relative h-72 overflow-hidden rounded-2xl bg-ink md:h-80">
-          <img src={genzImg} alt="Gen Z lookbook" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-85" />
+        <div className="group relative h-72 overflow-hidden rounded-2xl bg-ink md:h-80">
+          <div role="img" aria-label="Gen Z lookbook" className="absolute inset-0 bg-cover bg-center opacity-85 transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${genzImg})` }} />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
           <div className="relative flex h-full flex-col justify-end p-8">
             <p className="zk-label text-[10px] text-white/60">New drop</p>

@@ -218,3 +218,7 @@
 .zk-hide-vton .vton-btn {
   display: none !important;
 }
+
+@keyframes zk-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.zk-marquee { animation: zk-marquee 28s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .zk-marquee { animation: none; } }
