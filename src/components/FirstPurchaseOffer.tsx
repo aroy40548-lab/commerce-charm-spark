@@ -40,6 +40,7 @@ export function FirstPurchaseOffer() {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const countdown = useMemo(() => getCountdown(now), [now]);
+  const offerActive = countdown !== null;
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1_000);
@@ -47,7 +48,7 @@ export function FirstPurchaseOffer() {
   }, []);
 
   useEffect(() => {
-    if (!countdown || window.localStorage.getItem(OFFER_SEEN_KEY)) return;
+    if (!offerActive || window.localStorage.getItem(OFFER_SEEN_KEY)) return;
     let cancelled = false;
     let timer: number | undefined;
 
@@ -74,7 +75,7 @@ export function FirstPurchaseOffer() {
       cancelled = true;
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [countdown, token]);
+  }, [offerActive, token]);
 
   if (!countdown) return null;
 
