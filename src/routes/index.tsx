@@ -151,7 +151,7 @@ function Home() {
       </div>
 
       {/* Categories */}
-      <section className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
+      <section className="zk-hide-vton mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
         <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
           {catsLoading && Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="h-32 animate-pulse rounded-lg bg-card sm:h-36" />

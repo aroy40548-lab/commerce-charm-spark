@@ -22,7 +22,7 @@ function Collections() {
   const { data: cats, isLoading } = useCategories();
   const ITEMS = (cats ?? []).map((c) => ({ name: c.name, img: c.image_url }));
   return (
-    <div className="mx-auto max-w-[1600px] overflow-hidden px-4 py-8 sm:px-6 sm:py-10">
+    <div className="zk-hide-vton mx-auto max-w-[1600px] overflow-hidden px-4 py-8 sm:px-6 sm:py-10">
       <h1 className="zk-display text-4xl">Collections</h1>
       <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-4 md:grid-cols-3">
         {isLoading && Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-lg bg-card" />)}
