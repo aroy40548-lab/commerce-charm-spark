@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/catalog";
 import { useCustomerStore, useCustomerToken } from "@/stores/customerStore";
 import compactLightLogo from "@/assets/zankyo-compact-light.png.asset.json";
 import compactDarkLogo from "@/assets/zankyo-compact-dark.png.asset.json";
+import { FirstPurchaseOffer } from "@/components/FirstPurchaseOffer";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -122,6 +123,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background">
+      <FirstPurchaseOffer />
       <div className="mx-auto grid h-16 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 sm:px-6 lg:flex lg:gap-6">
         <Link to="/" className="flex min-w-0 items-center" aria-label="ZANKYO home">
           <img

@@ -9,6 +9,7 @@
 - [x] Connected existing Shopify store; code points at shopflow-suite store; shop/product/cart verified
 - [x] Verify add to bag and checkout against the existing store (checkout page loads, HTTP 200)
 - [x] Publish requested for zankyo.in
+- [x] Add the FIRST20 first-order offer strip and one-time buyer-aware countdown popup
 - [x] Sign-in fixed: store uses Shopify new customer accounts (one-time email code) — /auth and /account now send customers to Shopify's hosted account page; old password form removed
 - [ ] Shipping: user must add India zone + Standard ₹100 (7–14 days) and Diamond ₹500 (2–4 days) rates in Shopify admin → Settings → Shipping and delivery; remove old ₹379 "मानक" rate and Local delivery
 - [ ] Stock: several sizes show "Sold out" (e.g. Chaos Skull Tee M/L/XL) — user sets inventory per size in Shopify admin
