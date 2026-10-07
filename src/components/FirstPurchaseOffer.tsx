@@ -50,7 +50,6 @@ export function FirstPurchaseOffer() {
   useEffect(() => {
     if (!offerActive || window.localStorage.getItem(OFFER_SEEN_KEY)) return;
     let cancelled = false;
-    let timer: number | undefined;
 
     const decide = async () => {
       let hasPreviousOrder = false;
@@ -66,14 +65,13 @@ export function FirstPurchaseOffer() {
       }
 
       if (!cancelled && !hasPreviousOrder) {
-        timer = window.setTimeout(() => setOpen(true), 900);
+        setOpen(true);
       }
     };
 
     void decide();
     return () => {
       cancelled = true;
-      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [offerActive, token]);
 
