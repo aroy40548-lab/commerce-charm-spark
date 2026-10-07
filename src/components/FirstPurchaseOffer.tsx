@@ -86,7 +86,20 @@ export function FirstPurchaseOffer() {
 
   const copyCode = async () => {
     try {
-      await navigator.clipboard.writeText(OFFER_CODE);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(OFFER_CODE);
+      } else {
+        const field = document.createElement("textarea");
+        field.value = OFFER_CODE;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        const copiedSuccessfully = document.execCommand("copy");
+        field.remove();
+        if (!copiedSuccessfully) throw new Error("Copy failed");
+      }
       setCopied(true);
       rememberOffer();
       toast.success("FIRST20 copied");
@@ -123,7 +136,7 @@ export function FirstPurchaseOffer() {
       </div>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-lg border-border bg-background p-0 shadow-2xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-lg border-border bg-background p-0 shadow-2xl [&>button]:text-background">
           <div className="border-b border-border bg-foreground px-6 py-3 text-background">
             <p className="zk-label text-[10px]">新規 // First drop</p>
           </div>
