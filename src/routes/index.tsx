@@ -68,6 +68,20 @@ function Home() {
     <div>
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-ink">
+        {/* Ambient blurred backdrop — fills the wide desktop frame so the square video isn't zoomed in */}
+        <video
+          src={heroVideo.url}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          disablePictureInPicture
+          controlsList="nodownload noplaybackrate"
+          tabIndex={-1}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 hidden h-full w-full scale-125 select-none object-cover blur-2xl sm:block"
+        />
         <video
           src={heroVideo.url}
           poster={heroPoster.url}
@@ -80,7 +94,7 @@ function Home() {
           controlsList="nodownload noplaybackrate"
           tabIndex={-1}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center opacity-90"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center opacity-90 sm:object-contain sm:opacity-100"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-black/10" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-ink via-ink/60 to-transparent sm:h-44" />
