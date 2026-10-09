@@ -83,6 +83,7 @@ function Home() {
           className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-black/10" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-ink via-ink/60 to-transparent sm:h-44" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" />
         <div className="relative mx-auto flex min-h-[min(36rem,75svh)] max-w-[1600px] flex-col justify-center px-4 py-12 sm:min-h-[600px] sm:px-6 sm:py-16 md:min-h-[640px] lg:min-h-[800px]">
           <p className="zk-label flex items-center gap-2 text-[11px] text-white/70">
