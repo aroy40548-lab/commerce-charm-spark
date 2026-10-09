@@ -3,8 +3,8 @@ import { ArrowRight, ArrowLeft, Crosshair } from "lucide-react";
 import { useCategories, useProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { ZankyoStar } from "@/components/ZankyoStar";
-import heroVideo from "@/assets/hero-bg.mp4.asset.json";
-import heroPoster from "@/assets/hero-bg-poster.jpg.asset.json";
+import heroVideo from "@/assets/hero-square.mp4.asset.json";
+import heroPoster from "@/assets/hero-square-poster.jpg.asset.json";
 import shadowsImg from "@/assets/banner-shadows.jpg";
 import genzImg from "@/assets/banner-genz.jpg";
 
@@ -80,7 +80,7 @@ function Home() {
           controlsList="nodownload noplaybackrate"
           tabIndex={-1}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[72%_center] opacity-90 sm:object-[50%_62%]"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-black/10" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" />
