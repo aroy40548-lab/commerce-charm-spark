@@ -99,6 +99,7 @@ function Home() {
               className="h-10 w-10 shrink-0 invert mix-blend-screen sm:h-14 sm:w-14 md:h-16 md:w-16"
             />
             <span>ZANKYO</span>
+            <span className="sr-only"> — Streetwear for a different generation</span>
           </h1>
           <p className="zk-label mt-3 text-[11px] leading-6 text-white/80">
             More than just clothes

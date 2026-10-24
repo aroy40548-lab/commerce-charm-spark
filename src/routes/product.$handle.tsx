@@ -107,8 +107,26 @@ function ProductDetail() {
     }
   };
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: node.title,
+    description: node.description,
+    image: images.map((i) => i.url),
+    brand: { "@type": "Brand", name: "ZANKYO" },
+    url: `https://zankyo.in/product/${node.handle}`,
+    offers: variants.map((v) => ({
+      "@type": "Offer",
+      price: v.price.amount,
+      priceCurrency: v.price.currencyCode,
+      availability: v.availableForSale ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url: `https://zankyo.in/product/${node.handle}`,
+    })),
+  };
+
   return (
     <div className="mx-auto max-w-[1600px] overflow-hidden px-4 py-6 sm:px-6 sm:py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, "\\u003c") }} />
       <div className="grid gap-7 sm:gap-10 lg:grid-cols-[180px_1fr_380px]">
         <aside className="hidden lg:block">
           <h2 className="zk-label text-[11px] text-muted-foreground">Categories</h2>

@@ -22,6 +22,7 @@ export function AddressFields({ value, onChange }: { value: AddressInput; onChan
           key={k}
           required={k !== "address2"}
           placeholder={label}
+          aria-label={label}
           inputMode={k === "phone" || k === "pincode" ? "numeric" : undefined}
           pattern={k === "pincode" ? "\\d{6}" : k === "phone" ? "\\d{10,13}" : undefined}
           value={value[k] ?? ""}
