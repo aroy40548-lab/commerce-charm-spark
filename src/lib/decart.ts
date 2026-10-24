@@ -83,6 +83,52 @@ function handOffProductImage(productImageUrl: string) {
   window.setTimeout(() => observer.disconnect(), 5000);
 }
 
+const WAIT_MESSAGE = "Please wait a moment while AI processes your request";
+const WAIT_MS = 7000;
+const HEADER_PX = 48;
+
+/** Cover Decart's queue screen with our own waiting message for a short time. */
+function showWaitingCover() {
+  document.getElementById("zk-tryon-wait")?.remove();
+  const cover = document.createElement("div");
+  cover.id = "zk-tryon-wait";
+  cover.setAttribute("role", "status");
+  cover.innerHTML = `<div class="zk-tryon-spin"></div><p>${WAIT_MESSAGE}</p>`;
+  Object.assign(cover.style, {
+    position: "fixed", zIndex: "2147483647", display: "none", flexDirection: "column",
+    alignItems: "center", justifyContent: "center", gap: "16px", padding: "24px",
+    textAlign: "center", background: "#080808", color: "#F4F4F0",
+    font: "500 15px/1.4 Barlow, system-ui, sans-serif", letterSpacing: "0.02em",
+  } as Partial<CSSStyleDeclaration>);
+  if (!document.getElementById("zk-tryon-wait-style")) {
+    const style = document.createElement("style");
+    style.id = "zk-tryon-wait-style";
+    style.textContent = `.zk-tryon-spin{width:36px;height:36px;border:3px solid rgba(244,244,240,.2);border-top-color:#8E1B2B;border-radius:50%;animation:zkspin .8s linear infinite}@keyframes zkspin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.zk-tryon-spin{animation-duration:3s}}`;
+    document.head.appendChild(style);
+  }
+  document.body.appendChild(cover);
+
+  const started = Date.now();
+  let raf = 0;
+  const sync = () => {
+    const iframe = document.querySelector<HTMLIFrameElement>(WIDGET_IFRAME);
+    const r = iframe?.getBoundingClientRect();
+    if (Date.now() - started > WAIT_MS || (Date.now() - started > 4000 && (!r || r.width < 50))) {
+      cover.remove();
+      return;
+    }
+    if (r && r.width > 50 && r.height > HEADER_PX + 50) {
+      Object.assign(cover.style, {
+        display: "flex", left: `${r.left}px`, top: `${r.top + HEADER_PX}px`,
+        width: `${r.width}px`, height: `${r.height - HEADER_PX}px`,
+      });
+    } else cover.style.display = "none";
+    raf = requestAnimationFrame(sync);
+  };
+  raf = requestAnimationFrame(sync);
+  window.setTimeout(() => { cancelAnimationFrame(raf); cover.remove(); }, WAIT_MS + 500);
+}
+
 /** Open Decart Anywear and preload the current product photo when available. */
 export function openDecartTryOn(productImageUrl?: string): boolean {
   const el = findLauncher();
@@ -90,6 +136,7 @@ export function openDecartTryOn(productImageUrl?: string): boolean {
   el.style.setProperty("pointer-events", "auto", "important");
   el.click();
   window.setTimeout(() => el.style.setProperty("pointer-events", "none", "important"), 300);
+  try { showWaitingCover(); } catch { /* never block the fitting room */ }
   if (productImageUrl) handOffProductImage(productImageUrl);
   return true;
 }
