@@ -1,7 +1,7 @@
 # Replace the try-on queue screen with "Wait for few sec"
 
 ## Goal
-When a shopper opens Virtual try-on, they should not see the "QUEUE / You're #1 in line / VIP $9.99/mo" box. They should see a simple ZANKYO message: **"Wait for few sec"**.
+When a shopper opens Virtual try-on, they should not see the "QUEUE / You're #1 in line / VIP $9.99/mo" box. They should see a simple ZANKYO message: **"Please wait a moment while AI processes your request"**.
 
 ## Important limitation
 That queue box is drawn inside Decart's own fitting-room window, which comes from their website. We cannot edit or delete text inside it. What we can do is place our own cover on top of their window while it is waiting.
