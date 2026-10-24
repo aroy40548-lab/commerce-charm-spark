@@ -169,6 +169,7 @@ export function Navbar() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search for products..."
+              aria-label="Search products"
               className="w-44 bg-transparent text-sm outline-none placeholder:text-muted-foreground lg:w-56"
             />
           </form>
