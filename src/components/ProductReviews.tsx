@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Star, BadgeCheck, Loader2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { deleteMyReview, getProductReviews, getReviewEligibility, submitReview } from "@/lib/reviews.functions";
-import { signIn, useCustomerStore, useCustomerToken } from "@/stores/customerStore";
+import { Link } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
   return (
@@ -19,7 +20,7 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
 export function ProductReviews({ handle }: { handle: string }) {
   const fetchReviews = useServerFn(getProductReviews);
   const q = useQuery({ queryKey: ["reviews", handle], queryFn: () => fetchReviews({ data: { handle } }) });
-  const token = useCustomerToken();
+  const signedIn = !!useAuth().user;
   const [open, setOpen] = useState(false);
 
   const d = q.data;
@@ -37,18 +38,18 @@ export function ProductReviews({ handle }: { handle: string }) {
           )}
         </div>
         {!open &&
-          (token ? (
+          (signedIn ? (
             <button onClick={() => setOpen(true)} className="zk-label min-h-11 rounded-full border border-foreground px-5 text-xs">
               Write a review
             </button>
           ) : (
-            <button onClick={() => signIn(`/product/${handle}`)} className="zk-label min-h-11 rounded-full border border-foreground px-5 text-xs">
+            <Link to="/auth" search={{ next: `/product/${handle}#reviews` }} className="zk-label inline-flex min-h-11 items-center rounded-full border border-foreground px-5 text-xs">
               Sign in to review
-            </button>
+            </Link>
           ))}
       </div>
 
-      {open && token && <ReviewForm handle={handle} token={token} onClose={() => setOpen(false)} />}
+      {open && signedIn && <ReviewForm handle={handle} onClose={() => setOpen(false)} />}
 
       <div className="mt-6 space-y-4">
         {q.isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
@@ -76,6 +77,12 @@ export function ProductReviews({ handle }: { handle: string }) {
                 ))}
               </div>
             )}
+            {r.reply && (
+              <div className="mt-3 rounded-md bg-muted/70 px-3 py-2 text-sm">
+                <span className="zk-label text-[10px]">ZANKYO replied</span>
+                <p className="mt-1 whitespace-pre-line text-muted-foreground">{r.reply}</p>
+              </div>
+            )}
           </article>
         ))}
       </div>
@@ -92,15 +99,14 @@ function toBase64(file: File) {
   });
 }
 
-function ReviewForm({ handle, token, onClose }: { handle: string; token: string; onClose: () => void }) {
+function ReviewForm({ handle, onClose }: { handle: string; onClose: () => void }) {
   const qc = useQueryClient();
-  const getAccessToken = useCustomerStore((s) => s.getAccessToken);
   const checkFn = useServerFn(getReviewEligibility);
   const submitFn = useServerFn(submitReview);
   const deleteFn = useServerFn(deleteMyReview);
   const elig = useQuery({
-    queryKey: ["review-eligibility", handle, token],
-    queryFn: async () => checkFn({ data: { token: (await getAccessToken()) ?? token, handle } }),
+    queryKey: ["review-eligibility", handle],
+    queryFn: () => checkFn({ data: { handle } }),
   });
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState("");
@@ -132,7 +138,7 @@ function ReviewForm({ handle, token, onClose }: { handle: string; token: string;
     setBusy(true);
     try {
       const images = await Promise.all(files.map(async (f) => ({ type: f.type as "image/jpeg", base64: await toBase64(f) })));
-      await submitFn({ data: { token: (await getAccessToken()) ?? token, handle, rating, title, body, images } });
+      await submitFn({ data: { handle, rating, title, body, images } });
       toast.success("Thanks! Your review was posted.", { position: "top-center" });
       qc.invalidateQueries({ queryKey: ["reviews", handle] });
       onClose();
@@ -147,7 +153,7 @@ function ReviewForm({ handle, token, onClose }: { handle: string; token: string;
     if (!confirm("Delete your review?")) return;
     setBusy(true);
     try {
-      await deleteFn({ data: { token: (await getAccessToken()) ?? token, handle } });
+      await deleteFn({ data: { handle } });
       toast.success("Review deleted", { position: "top-center" });
       qc.invalidateQueries({ queryKey: ["reviews", handle] });
       qc.invalidateQueries({ queryKey: ["review-eligibility", handle] });

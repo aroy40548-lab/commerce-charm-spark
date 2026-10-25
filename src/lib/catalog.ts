@@ -1,4 +1,4 @@
-import { COLLECTIONS_QUERY, PRODUCTS_QUERY, PRODUCT_BY_HANDLE_QUERY, storefrontApiRequest } from "@/lib/shopify";
+import { getProduct, listCategories, listProducts } from "@/lib/catalog.functions";
 
 export interface Money { amount: string; currencyCode: string }
 
@@ -8,6 +8,7 @@ export interface Variant {
   price: Money;
   compareAtPrice: Money | null;
   availableForSale: boolean;
+  quantityAvailable: number;
   selectedOptions: Array<{ name: string; value: string }>;
 }
 
@@ -28,53 +29,17 @@ export interface Product {
 
 export interface Category { id: string; name: string; image_url: string | null; position: number; productIds: string[] | null }
 
-// Category order shown in the store; any new product type in Shopify is appended.
-const CATEGORY_ORDER = [
-  "Tees", "Baggy Jeans", "Hoodies", "Headwear", "Accessories", "Footwear",
-  "Jorts", "Sweatpants Wide Leg", "Japanese Trousers", "Boxy Shirts",
-];
-
-export async function fetchProducts(first = 100): Promise<Product[]> {
-  const data = await storefrontApiRequest(PRODUCTS_QUERY, { first });
-  return (data?.data?.products?.edges ?? []) as Product[];
+// Catalog lives in ZANKYO's own database and is managed from the admin panel.
+export async function fetchProducts(): Promise<Product[]> {
+  return listProducts();
 }
 
 export async function fetchProductByHandle(handle: string): Promise<Product | null> {
-  const data = await storefrontApiRequest(PRODUCT_BY_HANDLE_QUERY, { handle });
-  const node = data?.data?.product;
-  return node ? ({ node } as Product) : null;
+  return getProduct({ data: { handle } });
 }
 
-// Categories = Shopify collections (with their collection image) plus any product types
-// not already covered by a collection. Everything is managed in Shopify admin.
 export async function fetchCategories(): Promise<Category[]> {
-  const [products, colData] = await Promise.all([fetchProducts(250), storefrontApiRequest(COLLECTIONS_QUERY)]);
-  const out: Omit<Category, "position">[] = [];
-  const seen = new Set<string>();
-  type ColNode = { handle: string; title: string; image: { url: string } | null; products: { edges: Array<{ node: { id: string; images: { edges: Array<{ node: { url: string } }> } } }> } };
-  for (const e of (colData?.data?.collections?.edges ?? []) as Array<{ node: ColNode }>) {
-    const c = e.node;
-    if (c.handle === "frontpage" || c.products.edges.length === 0) continue;
-    const key = c.title.trim().toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({
-      id: c.handle,
-      name: c.title,
-      image_url: c.image?.url ?? c.products.edges[0]?.node.images.edges[0]?.node.url ?? null,
-      productIds: c.products.edges.map((p) => p.node.id),
-    });
-  }
-  const types: Omit<Category, "position">[] = [];
-  for (const p of products) {
-    const t = p.node.productType;
-    if (!t || seen.has(t.trim().toLowerCase())) continue;
-    seen.add(t.trim().toLowerCase());
-    types.push({ id: t, name: t, image_url: p.node.images.edges[0]?.node.url ?? null, productIds: null });
-  }
-  const rank = (n: string) => { const i = CATEGORY_ORDER.indexOf(n); return i === -1 ? 999 : i; };
-  types.sort((a, b) => rank(a.name) - rank(b.name));
-  return [...out, ...types].map((c, position) => ({ ...c, position }));
+  return listCategories();
 }
 
 export function productInCategory(p: Product, category: Category | undefined, name: string) {

@@ -26,6 +26,8 @@ export function Footer() {
             <li><Link to="/shop" className="flex min-h-10 items-center">All products</Link></li>
             <li><Link to="/collections" className="flex min-h-10 items-center">Collections</Link></li>
             <li><Link to="/about" className="flex min-h-10 items-center">About</Link></li>
+            <li><Link to="/blog" className="flex min-h-10 items-center">Journal</Link></li>
+            <li><Link to="/affiliate" className="flex min-h-10 items-center">Earn with ZANKYO</Link></li>
           </ul>
         </div>
         <div>

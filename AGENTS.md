@@ -9,9 +9,12 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Commerce runs on the connected Shopify store: Shopify supplies catalog, stock, cart, checkout, and hosted customer accounts. Why: Shopify is the live system of record and management backend.
-- Customer sign-in and account links open Shopify's hosted one-time email-code account page. Why: the store uses Shopify's new customer accounts rather than storefront passwords.
-- Saved items stay account-linked through the existing wishlist sync layer, while the cart uses real Shopify product and variant IDs. Why: preserve cross-device wishlist behavior alongside Shopify commerce.
+- Commerce runs on ZANKYO's own backend in Lovable Cloud (Shopify removed Oct 2026): catalog, stock, orders, discounts, gift cards, reviews, affiliates and staff all live in Postgres; schema changes go in `drizzle/migrations`. Why: Shopify was too costly; the owner manages everything from `/admin`.
+- All database reads/writes go through server functions using the service-role client after an auth check; new tables have RLS on with no client policies. Why: one place enforces permissions.
+- Admin lives at `/admin` (and `admin.zankyo.in`, which only serves the admin). Every staff member can view every admin page; editing a section needs that section in their role (`src/lib/admin/permissions.ts`), checked on the server by `requireStaff`. Store owners = `user_roles.role = admin`. Why: owner asked for view-all, change-only-assigned roles.
+- Checkout is on-site: prices, discounts, gift cards and stock are re-checked on the server; Razorpay (online) or COD; `commit_order`/`release_order` SQL functions take/return stock, gift card balance and affiliate commissions. Why: one atomic place for money and stock.
+- Customers sign in with Lovable Cloud auth (Google or a 6-digit email code). Reviews require a real paid/COD order for that product. Affiliates share `?ref=CODE` links; commissions (default 5%) wait for owner approval.
+- Product photos and uploaded files live in the private `product-images` bucket and are served via `/api/public/img/*` (non-images download, never render). Why: bucket stays private.
 - Virtual try-on uses Decart Anywear; the custom button opens the widget and isolates its internal image handoff in `src/lib/decart.ts`. Why: preload the current product photo while failing safely if the third-party widget changes.
 - Brand surfaces use the supplied ZANKYO kanji artwork through CDN asset pointers, with separate light/dark variants and a local optimized favicon. Why: preserve exact brand artwork while keeping theme contrast and tab clarity.
-- Categories = Shopify collections (collection image) plus uncovered product types; product pages show all Shopify images. Why: store is fully managed from Shopify admin.
+- Categories = the `categories` table (admin → Collections); product pages show all product photos in order.

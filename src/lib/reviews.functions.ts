@@ -1,55 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { CUSTOMER_GRAPHQL_URL } from "@/lib/customerAccount";
-import { storefrontApiRequest } from "@/lib/shopify";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const BUCKET = "review-photos";
 const handleSchema = z.string().min(1).max(255).regex(/^[a-z0-9-]+$/);
-const tokenSchema = z.string().min(10).max(4000);
+// Orders that went through; reviews unlock once the money/COD order is confirmed.
+const BOUGHT = ["paid", "confirmed", "shipped", "delivered"];
 
 async function admin() {
   return (await import("@/integrations/supabase/client.server")).supabaseAdmin;
-}
-
-async function productNumericId(handle: string) {
-  const d = await storefrontApiRequest(
-    `query($h: String!) { product(handle: $h) { id variants(first: 100) { nodes { id } } } }`,
-    { h: handle },
-  );
-  const prod = d?.data?.product;
-  if (!prod?.id) return null;
-  return {
-    id: String(prod.id).split("/").pop()!,
-    variantIds: (prod.variants?.nodes ?? []).map((v: any) => String(v.id).split("/").pop()!) as string[],
-  };
-}
-
-function bought(owned: Set<string>, p: { id: string; variantIds: string[] }) {
-  return owned.has(p.id) || p.variantIds.some((v) => owned.has(v));
-}
-
-async function customerWithOrders(token: string) {
-  const res = await fetch(CUSTOMER_GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({
-      query: `query { customer { id firstName lastName emailAddress { emailAddress }
-        orders(first: 100) { nodes { lineItems(first: 50) { nodes { productId variantId } } } } } }`,
-    }),
-  });
-  const json = res.ok ? await res.json() : null;
-  const c = json?.data?.customer;
-  if (!c?.id) throw new Error("Please sign in again");
-  const productIds = new Set<string>();
-  for (const o of c.orders?.nodes ?? [])
-    for (const li of o.lineItems?.nodes ?? []) {
-      if (li.productId) productIds.add(String(li.productId).split("/").pop()!);
-      if (li.variantId) productIds.add(String(li.variantId).split("/").pop()!);
-    }
-  const email = (c.emailAddress?.emailAddress as string | undefined) ?? "";
-  const first = (c.firstName as string | null) || email.split("@")[0] || "Customer";
-  const name = c.lastName ? `${first} ${String(c.lastName).charAt(0)}.` : first;
-  return { id: c.id as string, name, productIds };
 }
 
 async function signPhotos(paths: string[]) {
@@ -57,6 +16,23 @@ async function signPhotos(paths: string[]) {
   const sb = await admin();
   const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, 60 * 60 * 24);
   return (data ?? []).map((d) => d.signedUrl).filter(Boolean) as string[];
+}
+
+/** Product the signed-in customer has a real order for, plus their display name. */
+async function purchase(userId: string, email: string, handle: string) {
+  const sb = await admin();
+  const { data: product } = await sb.from("products").select("id").eq("handle", handle).maybeSingle();
+  if (!product) return null;
+  const { data: rows } = await sb
+    .from("order_items")
+    .select("orders!inner(user_id, status)")
+    .eq("product_id", product.id)
+    .eq("orders.user_id", userId)
+    .in("orders.status", BOUGHT)
+    .limit(1);
+  const { data: p } = await sb.from("profiles").select("first_name, last_name").eq("id", userId).maybeSingle();
+  const first = p?.first_name || email.split("@")[0] || "Customer";
+  return { productId: product.id, bought: (rows?.length ?? 0) > 0, name: p?.last_name ? `${first} ${p.last_name.charAt(0)}.` : first };
 }
 
 export interface PublicReview {
@@ -68,6 +44,7 @@ export interface PublicReview {
   verified: boolean;
   createdAt: string;
   pictures: string[];
+  reply: string | null;
 }
 
 export const getProductReviews = createServerFn({ method: "GET" })
@@ -76,8 +53,9 @@ export const getProductReviews = createServerFn({ method: "GET" })
     const sb = await admin();
     const { data: rows, error } = await sb
       .from("product_reviews")
-      .select("id, rating, title, body, customer_name, created_at, photo_paths")
+      .select("id, rating, title, body, customer_name, created_at, photo_paths, admin_reply")
       .eq("product_handle", data.handle)
+      .eq("hidden", false)
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) {
@@ -86,14 +64,8 @@ export const getProductReviews = createServerFn({ method: "GET" })
     }
     const reviews: PublicReview[] = await Promise.all(
       (rows ?? []).map(async (r) => ({
-        id: r.id,
-        rating: r.rating,
-        title: r.title,
-        body: r.body,
-        name: r.customer_name,
-        verified: true,
-        createdAt: r.created_at,
-        pictures: await signPhotos(r.photo_paths ?? []),
+        id: r.id, rating: r.rating, title: r.title, body: r.body, name: r.customer_name,
+        verified: true, createdAt: r.created_at, pictures: await signPhotos(r.photo_paths ?? []), reply: r.admin_reply,
       })),
     );
     const average = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -101,22 +73,17 @@ export const getProductReviews = createServerFn({ method: "GET" })
   });
 
 export const getReviewEligibility = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ token: tokenSchema, handle: handleSchema }).parse(d))
-  .handler(async ({ data }) => {
-    const [c, pid] = await Promise.all([customerWithOrders(data.token), productNumericId(data.handle)]);
-    if (!pid) return { status: "unavailable" as const };
-    if (!bought(c.productIds, pid)) {
-      console.warn("review not_purchased", { target: pid.id, owned: [...c.productIds] });
-      return { status: "not_purchased" as const };
-    }
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ handle: handleSchema }).parse(d))
+  .handler(async ({ data, context }) => {
+    const email = String((context.claims as { email?: string }).email ?? "");
+    const p = await purchase(context.userId, email, data.handle);
+    if (!p) return { status: "unavailable" as const };
+    if (!p.bought) return { status: "not_purchased" as const };
     const sb = await admin();
-    const { data: mine } = await sb
-      .from("product_reviews")
-      .select("rating, title, body")
-      .eq("customer_id", c.id)
-      .eq("product_handle", data.handle)
-      .maybeSingle();
-    return { status: "eligible" as const, name: c.name, existing: mine ?? null };
+    const { data: mine } = await sb.from("product_reviews").select("rating, title, body")
+      .eq("customer_id", context.userId).eq("product_handle", data.handle).maybeSingle();
+    return { status: "eligible" as const, name: p.name, existing: mine ?? null };
   });
 
 const imageSchema = z.object({
@@ -125,30 +92,25 @@ const imageSchema = z.object({
 });
 
 export const submitReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z
-      .object({
-        token: tokenSchema,
-        handle: handleSchema,
-        rating: z.number().int().min(1).max(5),
-        title: z.string().trim().max(100).optional(),
-        body: z.string().trim().min(3).max(2000),
-        images: z.array(imageSchema).max(5),
-      })
-      .parse(d),
+    z.object({
+      handle: handleSchema,
+      rating: z.number().int().min(1).max(5),
+      title: z.string().trim().max(100).optional(),
+      body: z.string().trim().min(3).max(2000),
+      images: z.array(imageSchema).max(5),
+    }).parse(d),
   )
-  .handler(async ({ data }) => {
-    const [c, pid] = await Promise.all([customerWithOrders(data.token), productNumericId(data.handle)]);
-    if (!pid) throw new Error("This product can't be reviewed right now");
-    if (!bought(c.productIds, pid)) throw new Error("Only customers who bought this can review it");
+  .handler(async ({ data, context }) => {
+    const email = String((context.claims as { email?: string }).email ?? "");
+    const p = await purchase(context.userId, email, data.handle);
+    if (!p) throw new Error("This product can't be reviewed right now");
+    if (!p.bought) throw new Error("Only customers who bought this can review it");
     const sb = await admin();
 
-    const { data: prev } = await sb
-      .from("product_reviews")
-      .select("photo_paths")
-      .eq("customer_id", c.id)
-      .eq("product_handle", data.handle)
-      .maybeSingle();
+    const { data: prev } = await sb.from("product_reviews").select("photo_paths")
+      .eq("customer_id", context.userId).eq("product_handle", data.handle).maybeSingle();
 
     let photoPaths = prev?.photo_paths ?? [];
     if (data.images.length) {
@@ -168,9 +130,10 @@ export const submitReview = createServerFn({ method: "POST" })
     const { error } = await sb.from("product_reviews").upsert(
       {
         product_handle: data.handle,
-        shopify_product_id: pid.id,
-        customer_id: c.id,
-        customer_name: c.name,
+        shopify_product_id: p.productId,
+        customer_id: context.userId,
+        user_id: context.userId,
+        customer_name: p.name,
         rating: data.rating,
         title: data.title || null,
         body: data.body,
@@ -186,17 +149,13 @@ export const submitReview = createServerFn({ method: "POST" })
   });
 
 export const deleteMyReview = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ token: tokenSchema, handle: handleSchema }).parse(d))
-  .handler(async ({ data }) => {
-    const c = await customerWithOrders(data.token);
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ handle: handleSchema }).parse(d))
+  .handler(async ({ data, context }) => {
     const sb = await admin();
-    const { data: row } = await sb
-      .from("product_reviews")
-      .delete()
-      .eq("customer_id", c.id)
-      .eq("product_handle", data.handle)
-      .select("photo_paths")
-      .maybeSingle();
+    const { data: row } = await sb.from("product_reviews").delete()
+      .eq("customer_id", context.userId).eq("product_handle", data.handle)
+      .select("photo_paths").maybeSingle();
     if (row?.photo_paths?.length) await sb.storage.from(BUCKET).remove(row.photo_paths);
     return { ok: true };
   });

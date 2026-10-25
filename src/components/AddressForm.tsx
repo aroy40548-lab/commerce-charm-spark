@@ -7,7 +7,7 @@ export const EMPTY_ADDRESS: AddressInput = {
   full_name: "", phone: "", address1: "", address2: "", city: "", state: "", pincode: "", country: "India",
 };
 
-const inputCls = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground";
+const inputCls = "min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-base outline-none focus:border-foreground sm:text-sm";
 
 const FIELDS = [
   ["full_name", "Full name"], ["phone", "Phone (10 digits)"], ["address1", "House no., street, area"],

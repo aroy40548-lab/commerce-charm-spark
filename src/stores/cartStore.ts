@@ -1,13 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Product } from "@/lib/catalog";
-import {
-  CART_BUYER_IDENTITY_MUTATION, CART_CREATE_MUTATION, CART_LINES_ADD_MUTATION, CART_LINES_REMOVE_MUTATION,
-  CART_LINES_UPDATE_MUTATION, CART_QUERY, formatCheckoutUrl, isCartNotFoundError, storefrontApiRequest,
-} from "@/lib/shopify";
 
 export interface CartItem {
-  lineId: string | null;
   product: Product;
   variantId: string;
   variantTitle: string;
@@ -18,142 +13,56 @@ export interface CartItem {
 
 interface CartStore {
   items: CartItem[];
-  cartId: string | null;
-  checkoutUrl: string | null;
   isLoading: boolean;
-  isSyncing: boolean;
-  addItem: (item: Omit<CartItem, "lineId">) => Promise<void>;
+  addItem: (item: CartItem) => Promise<void>;
   updateQuantity: (variantId: string, quantity: number) => Promise<void>;
   removeItem: (variantId: string) => Promise<void>;
   clearCart: () => void;
-  syncCart: () => Promise<void>;
-  linkCustomer: (accessToken: string, email?: string) => Promise<void>;
-  getCheckoutUrl: () => string | null;
 }
 
-type LineEdge = { node: { id: string; merchandise: { id: string } } };
+const MAX_PER_LINE = 20;
 
+function stockOf(item: CartItem) {
+  const v = item.product.node.variants.edges.find((e) => e.node.id === item.variantId)?.node;
+  return v?.quantityAvailable ?? MAX_PER_LINE;
+}
+
+// The bag lives in the browser; prices and stock are re-checked on the server at checkout.
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
-      cartId: null,
-      checkoutUrl: null,
       isLoading: false,
-      isSyncing: false,
 
       addItem: async (item) => {
-        const { items, cartId, clearCart } = get();
-        const existing = items.find((i) => i.variantId === item.variantId);
-        set({ isLoading: true });
-        try {
-          if (!cartId) {
-            const input = { lines: [{ quantity: item.quantity, merchandiseId: item.variantId }] };
-            const data = await storefrontApiRequest(CART_CREATE_MUTATION, { input });
-            const cart = data?.data?.cartCreate?.cart;
-            if (data?.data?.cartCreate?.userErrors?.length) throw new Error(data.data.cartCreate.userErrors[0].message);
-            const lineId = cart?.lines?.edges?.[0]?.node?.id;
-            if (cart?.checkoutUrl && lineId) {
-              set({ cartId: cart.id, checkoutUrl: formatCheckoutUrl(cart.checkoutUrl), items: [{ ...item, lineId }] });
-            }
-          } else if (existing?.lineId) {
-            const qty = existing.quantity + item.quantity;
-            const data = await storefrontApiRequest(CART_LINES_UPDATE_MUTATION, { cartId, lines: [{ id: existing.lineId, quantity: qty }] });
-            const errs = data?.data?.cartLinesUpdate?.userErrors ?? [];
-            if (isCartNotFoundError(errs)) { clearCart(); return get().addItem(item); }
-            if (errs.length) throw new Error(errs[0].message);
-            set({ items: get().items.map((i) => (i.variantId === item.variantId ? { ...i, quantity: qty } : i)) });
-          } else {
-            const data = await storefrontApiRequest(CART_LINES_ADD_MUTATION, { cartId, lines: [{ quantity: item.quantity, merchandiseId: item.variantId }] });
-            const errs = data?.data?.cartLinesAdd?.userErrors ?? [];
-            if (isCartNotFoundError(errs)) { clearCart(); return get().addItem(item); }
-            if (errs.length) throw new Error(errs[0].message);
-            const line = (data?.data?.cartLinesAdd?.cart?.lines?.edges ?? []).find((l: LineEdge) => l.node.merchandise.id === item.variantId);
-            set({ items: [...get().items, { ...item, lineId: line?.node?.id ?? null }] });
-          }
-        } finally {
-          set({ isLoading: false });
-        }
+        const existing = get().items.find((i) => i.variantId === item.variantId);
+        const qty = (existing?.quantity ?? 0) + item.quantity;
+        const max = Math.min(stockOf(item), MAX_PER_LINE);
+        if (max <= 0) throw new Error("This size just sold out");
+        if (qty > max) throw new Error(`Only ${max} available in this size`);
+        set({
+          items: existing
+            ? get().items.map((i) => (i.variantId === item.variantId ? { ...i, product: item.product, price: item.price, quantity: qty } : i))
+            : [...get().items, item],
+        });
       },
 
       updateQuantity: async (variantId, quantity) => {
         if (quantity <= 0) return get().removeItem(variantId);
-        const { items, cartId, clearCart } = get();
-        const item = items.find((i) => i.variantId === variantId);
-        if (!item?.lineId || !cartId) return;
-        set({ isLoading: true });
-        try {
-          const data = await storefrontApiRequest(CART_LINES_UPDATE_MUTATION, { cartId, lines: [{ id: item.lineId, quantity }] });
-          const errs = data?.data?.cartLinesUpdate?.userErrors ?? [];
-          if (isCartNotFoundError(errs)) clearCart();
-          else if (!errs.length) set({ items: get().items.map((i) => (i.variantId === variantId ? { ...i, quantity } : i)) });
-        } catch (e) {
-          console.error("Failed to update quantity:", e);
-        } finally {
-          set({ isLoading: false });
-        }
+        set({
+          items: get().items.map((i) =>
+            i.variantId === variantId ? { ...i, quantity: Math.min(quantity, Math.max(stockOf(i), 1), MAX_PER_LINE) } : i,
+          ),
+        });
       },
 
-      removeItem: async (variantId) => {
-        const { items, cartId, clearCart } = get();
-        const item = items.find((i) => i.variantId === variantId);
-        if (!item?.lineId || !cartId) { set({ items: items.filter((i) => i.variantId !== variantId) }); return; }
-        set({ isLoading: true });
-        try {
-          const data = await storefrontApiRequest(CART_LINES_REMOVE_MUTATION, { cartId, lineIds: [item.lineId] });
-          const errs = data?.data?.cartLinesRemove?.userErrors ?? [];
-          if (isCartNotFoundError(errs)) clearCart();
-          else if (!errs.length) {
-            const next = get().items.filter((i) => i.variantId !== variantId);
-            if (next.length === 0) clearCart(); else set({ items: next });
-          }
-        } catch (e) {
-          console.error("Failed to remove item:", e);
-        } finally {
-          set({ isLoading: false });
-        }
-      },
-
-      clearCart: () => set({ items: [], cartId: null, checkoutUrl: null }),
-      getCheckoutUrl: () => get().checkoutUrl,
-
-      syncCart: async () => {
-        const { cartId, isSyncing, clearCart } = get();
-        if (!cartId || isSyncing) return;
-        set({ isSyncing: true });
-        try {
-          const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
-          if (!data) return;
-          const cart = data?.data?.cart;
-          if (!cart || cart.totalQuantity === 0) clearCart();
-        } catch (e) {
-          console.error("Failed to sync cart:", e);
-        } finally {
-          set({ isSyncing: false });
-        }
-      },
-
-      // Links the cart to the signed-in Shopify customer so checkout is prefilled
-      // and the order shows up in their account.
-      linkCustomer: async (accessToken, email) => {
-        const { cartId } = get();
-        if (!cartId) return;
-        try {
-          const data = await storefrontApiRequest(CART_BUYER_IDENTITY_MUTATION, {
-            cartId, buyerIdentity: { customerAccessToken: accessToken, ...(email ? { email } : {}) },
-          });
-          const url = data?.data?.cartBuyerIdentityUpdate?.cart?.checkoutUrl;
-          if (url) set({ checkoutUrl: formatCheckoutUrl(url) });
-        } catch (e) {
-          console.error("Failed to link cart to customer:", e);
-        }
-      },
+      removeItem: async (variantId) => { set({ items: get().items.filter((i) => i.variantId !== variantId) }); },
+      clearCart: () => set({ items: [] }),
     }),
     {
-      name: "zankyo-shopify-cart",
+      name: "zankyo-cart",
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ items: s.items, cartId: s.cartId, checkoutUrl: s.checkoutUrl }),
+      partialize: (s) => ({ items: s.items }),
     },
   ),
 );
-

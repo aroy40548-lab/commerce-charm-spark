@@ -4,7 +4,7 @@ import { fetchCategories, fetchProductByHandle, fetchProducts } from "@/lib/cata
 export function useProducts() {
   return useQuery({
     queryKey: ["products"],
-    queryFn: () => fetchProducts(100),
+    queryFn: fetchProducts,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
   });

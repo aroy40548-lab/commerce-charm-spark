@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as ReturnsRouteImport } from './routes/returns'
@@ -20,8 +23,30 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UnboxingRouteImport } from './routes/unboxing'
-import { Route as AccountCallbackRouteImport } from './routes/account.callback'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAbandonedRouteImport } from './routes/admin.abandoned'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminBlogRouteImport } from './routes/admin.blog'
+import { Route as AdminCollectionsRouteImport } from './routes/admin.collections'
+import { Route as AdminContentRouteImport } from './routes/admin.content'
+import { Route as AdminDiscountsRouteImport } from './routes/admin.discounts'
+import { Route as AdminGiftCardsRouteImport } from './routes/admin.gift-cards'
+import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
+import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
+import { Route as AdminCustomersIndexRouteImport } from './routes/admin.customers.index'
+import { Route as AdminCustomersIdRouteImport } from './routes/admin.customers.$id'
+import { Route as AdminOrdersIndexRouteImport } from './routes/admin.orders.index'
+import { Route as AdminOrdersIdRouteImport } from './routes/admin.orders.$id'
+import { Route as AdminOrdersNewRouteImport } from './routes/admin.orders.new'
+import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
+import { Route as AdminProductsIdRouteImport } from './routes/admin.products.$id'
+import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay-webhook'
+import { Route as ApiPublicImgSplatRouteImport } from './routes/api/public/img.$'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 
@@ -40,9 +65,24 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AffiliateRoute = AffiliateRouteImport.update({
+  id: '/affiliate',
+  path: '/affiliate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CollectionsRoute = CollectionsRouteImport.update({
@@ -80,14 +120,125 @@ const UnboxingRoute = UnboxingRouteImport.update({
   path: '/unboxing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccountCallbackRoute = AccountCallbackRouteImport.update({
-  id: '/callback',
-  path: '/callback',
-  getParentRoute: () => AccountRoute,
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAbandonedRoute = AdminAbandonedRouteImport.update({
+  id: '/abandoned',
+  path: '/abandoned',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBlogRoute = AdminBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCollectionsRoute = AdminCollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminContentRoute = AdminContentRouteImport.update({
+  id: '/content',
+  path: '/content',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDiscountsRoute = AdminDiscountsRouteImport.update({
+  id: '/discounts',
+  path: '/discounts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminGiftCardsRoute = AdminGiftCardsRouteImport.update({
+  id: '/gift-cards',
+  path: '/gift-cards',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInventoryRoute = AdminInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMarketingRoute = AdminMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
   path: '/product/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
+  id: '/customers/',
+  path: '/customers/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCustomersIdRoute = AdminCustomersIdRouteImport.update({
+  id: '/customers/$id',
+  path: '/customers/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrdersIdRoute = AdminOrdersIdRouteImport.update({
+  id: '/orders/$id',
+  path: '/orders/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrdersNewRoute = AdminOrdersNewRouteImport.update({
+  id: '/orders/new',
+  path: '/orders/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProductsIdRoute = AdminProductsIdRouteImport.update({
+  id: '/products/$id',
+  path: '/products/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const ApiPublicRazorpayWebhookRoute =
+  ApiPublicRazorpayWebhookRouteImport.update({
+    id: '/api/public/razorpay-webhook',
+    path: '/api/public/razorpay-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicImgSplatRoute = ApiPublicImgSplatRouteImport.update({
+  id: '/api/public/img/$',
+  path: '/api/public/img/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
@@ -104,8 +255,11 @@ const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRouteWithChildren
+  '/account': typeof AccountRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/affiliate': typeof AffiliateRoute
   '/auth': typeof AuthRoute
+  '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
@@ -113,16 +267,40 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unboxing': typeof UnboxingRoute
-  '/account/callback': typeof AccountCallbackRoute
+  '/admin/abandoned': typeof AdminAbandonedRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/admin/collections': typeof AdminCollectionsRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/gift-cards': typeof AdminGiftCardsRoute
+  '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/admin/customers/$id': typeof AdminCustomersIdRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
+  '/admin/orders/new': typeof AdminOrdersNewRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
+  '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
+  '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRouteWithChildren
+  '/account': typeof AccountRoute
+  '/affiliate': typeof AffiliateRoute
   '/auth': typeof AuthRoute
+  '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
@@ -130,8 +308,30 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unboxing': typeof UnboxingRoute
-  '/account/callback': typeof AccountCallbackRoute
+  '/admin/abandoned': typeof AdminAbandonedRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/admin/collections': typeof AdminCollectionsRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/gift-cards': typeof AdminGiftCardsRoute
+  '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/admin': typeof AdminIndexRoute
+  '/blog': typeof BlogIndexRoute
+  '/admin/customers/$id': typeof AdminCustomersIdRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
+  '/admin/orders/new': typeof AdminOrdersNewRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
+  '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/admin/customers': typeof AdminCustomersIndexRoute
+  '/admin/orders': typeof AdminOrdersIndexRoute
+  '/admin/products': typeof AdminProductsIndexRoute
+  '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -139,8 +339,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRouteWithChildren
+  '/account': typeof AccountRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/affiliate': typeof AffiliateRoute
   '/auth': typeof AuthRoute
+  '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
@@ -148,8 +351,30 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unboxing': typeof UnboxingRoute
-  '/account/callback': typeof AccountCallbackRoute
+  '/admin/abandoned': typeof AdminAbandonedRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/admin/collections': typeof AdminCollectionsRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/gift-cards': typeof AdminGiftCardsRoute
+  '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/admin/customers/$id': typeof AdminCustomersIdRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
+  '/admin/orders/new': typeof AdminOrdersNewRoute
+  '/admin/products/$id': typeof AdminProductsIdRoute
+  '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
+  '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -159,7 +384,10 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/admin'
+    | '/affiliate'
     | '/auth'
+    | '/checkout'
     | '/collections'
     | '/order-success'
     | '/returns'
@@ -167,8 +395,30 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unboxing'
-    | '/account/callback'
+    | '/admin/abandoned'
+    | '/admin/analytics'
+    | '/admin/blog'
+    | '/admin/collections'
+    | '/admin/content'
+    | '/admin/discounts'
+    | '/admin/gift-cards'
+    | '/admin/inventory'
+    | '/admin/marketing'
+    | '/admin/reviews'
+    | '/admin/settings'
+    | '/blog/$slug'
     | '/product/$handle'
+    | '/admin/'
+    | '/blog/'
+    | '/admin/customers/$id'
+    | '/admin/orders/$id'
+    | '/admin/orders/new'
+    | '/admin/products/$id'
+    | '/api/public/razorpay-webhook'
+    | '/admin/customers/'
+    | '/admin/orders/'
+    | '/admin/products/'
+    | '/api/public/img/$'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -176,7 +426,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/affiliate'
     | '/auth'
+    | '/checkout'
     | '/collections'
     | '/order-success'
     | '/returns'
@@ -184,8 +436,30 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unboxing'
-    | '/account/callback'
+    | '/admin/abandoned'
+    | '/admin/analytics'
+    | '/admin/blog'
+    | '/admin/collections'
+    | '/admin/content'
+    | '/admin/discounts'
+    | '/admin/gift-cards'
+    | '/admin/inventory'
+    | '/admin/marketing'
+    | '/admin/reviews'
+    | '/admin/settings'
+    | '/blog/$slug'
     | '/product/$handle'
+    | '/admin'
+    | '/blog'
+    | '/admin/customers/$id'
+    | '/admin/orders/$id'
+    | '/admin/orders/new'
+    | '/admin/products/$id'
+    | '/api/public/razorpay-webhook'
+    | '/admin/customers'
+    | '/admin/orders'
+    | '/admin/products'
+    | '/api/public/img/$'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   id:
@@ -193,7 +467,10 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/admin'
+    | '/affiliate'
     | '/auth'
+    | '/checkout'
     | '/collections'
     | '/order-success'
     | '/returns'
@@ -201,8 +478,30 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unboxing'
-    | '/account/callback'
+    | '/admin/abandoned'
+    | '/admin/analytics'
+    | '/admin/blog'
+    | '/admin/collections'
+    | '/admin/content'
+    | '/admin/discounts'
+    | '/admin/gift-cards'
+    | '/admin/inventory'
+    | '/admin/marketing'
+    | '/admin/reviews'
+    | '/admin/settings'
+    | '/blog/$slug'
     | '/product/$handle'
+    | '/admin/'
+    | '/blog/'
+    | '/admin/customers/$id'
+    | '/admin/orders/$id'
+    | '/admin/orders/new'
+    | '/admin/products/$id'
+    | '/api/public/razorpay-webhook'
+    | '/admin/customers/'
+    | '/admin/orders/'
+    | '/admin/products/'
+    | '/api/public/img/$'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesById: FileRoutesById
@@ -210,8 +509,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AccountRoute: typeof AccountRouteWithChildren
+  AccountRoute: typeof AccountRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AffiliateRoute: typeof AffiliateRoute
   AuthRoute: typeof AuthRoute
+  CheckoutRoute: typeof CheckoutRoute
   CollectionsRoute: typeof CollectionsRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   ReturnsRoute: typeof ReturnsRoute
@@ -219,7 +521,11 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnboxingRoute: typeof UnboxingRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   ProductHandleRoute: typeof ProductHandleRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
+  ApiPublicImgSplatRoute: typeof ApiPublicImgSplatRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
 }
@@ -247,11 +553,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/affiliate': {
+      id: '/affiliate'
+      path: '/affiliate'
+      fullPath: '/affiliate'
+      preLoaderRoute: typeof AffiliateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/collections': {
@@ -303,18 +630,172 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnboxingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/account/callback': {
-      id: '/account/callback'
-      path: '/callback'
-      fullPath: '/account/callback'
-      preLoaderRoute: typeof AccountCallbackRouteImport
-      parentRoute: typeof AccountRoute
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/abandoned': {
+      id: '/admin/abandoned'
+      path: '/abandoned'
+      fullPath: '/admin/abandoned'
+      preLoaderRoute: typeof AdminAbandonedRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/blog': {
+      id: '/admin/blog'
+      path: '/blog'
+      fullPath: '/admin/blog'
+      preLoaderRoute: typeof AdminBlogRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/collections': {
+      id: '/admin/collections'
+      path: '/collections'
+      fullPath: '/admin/collections'
+      preLoaderRoute: typeof AdminCollectionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/content': {
+      id: '/admin/content'
+      path: '/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AdminContentRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/discounts': {
+      id: '/admin/discounts'
+      path: '/discounts'
+      fullPath: '/admin/discounts'
+      preLoaderRoute: typeof AdminDiscountsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/gift-cards': {
+      id: '/admin/gift-cards'
+      path: '/gift-cards'
+      fullPath: '/admin/gift-cards'
+      preLoaderRoute: typeof AdminGiftCardsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/inventory': {
+      id: '/admin/inventory'
+      path: '/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AdminInventoryRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/marketing': {
+      id: '/admin/marketing'
+      path: '/marketing'
+      fullPath: '/admin/marketing'
+      preLoaderRoute: typeof AdminMarketingRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/product/$handle': {
       id: '/product/$handle'
       path: '/product/$handle'
       fullPath: '/product/$handle'
       preLoaderRoute: typeof ProductHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/customers/': {
+      id: '/admin/customers/'
+      path: '/customers'
+      fullPath: '/admin/customers/'
+      preLoaderRoute: typeof AdminCustomersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/customers/$id': {
+      id: '/admin/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/admin/customers/$id'
+      preLoaderRoute: typeof AdminCustomersIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/orders/': {
+      id: '/admin/orders/'
+      path: '/orders'
+      fullPath: '/admin/orders/'
+      preLoaderRoute: typeof AdminOrdersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/orders/$id': {
+      id: '/admin/orders/$id'
+      path: '/orders/$id'
+      fullPath: '/admin/orders/$id'
+      preLoaderRoute: typeof AdminOrdersIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/orders/new': {
+      id: '/admin/orders/new'
+      path: '/orders/new'
+      fullPath: '/admin/orders/new'
+      preLoaderRoute: typeof AdminOrdersNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/products/': {
+      id: '/admin/products/'
+      path: '/products'
+      fullPath: '/admin/products/'
+      preLoaderRoute: typeof AdminProductsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/products/$id': {
+      id: '/admin/products/$id'
+      path: '/products/$id'
+      fullPath: '/admin/products/$id'
+      preLoaderRoute: typeof AdminProductsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/api/public/razorpay-webhook': {
+      id: '/api/public/razorpay-webhook'
+      path: '/api/public/razorpay-webhook'
+      fullPath: '/api/public/razorpay-webhook'
+      preLoaderRoute: typeof ApiPublicRazorpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/img/$': {
+      id: '/api/public/img/$'
+      path: '/api/public/img/$'
+      fullPath: '/api/public/img/$'
+      preLoaderRoute: typeof ApiPublicImgSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/auth/preview': {
@@ -334,22 +815,60 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AccountRouteChildren {
-  AccountCallbackRoute: typeof AccountCallbackRoute
+interface AdminRouteChildren {
+  AdminAbandonedRoute: typeof AdminAbandonedRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminBlogRoute: typeof AdminBlogRoute
+  AdminCollectionsRoute: typeof AdminCollectionsRoute
+  AdminContentRoute: typeof AdminContentRoute
+  AdminDiscountsRoute: typeof AdminDiscountsRoute
+  AdminGiftCardsRoute: typeof AdminGiftCardsRoute
+  AdminInventoryRoute: typeof AdminInventoryRoute
+  AdminMarketingRoute: typeof AdminMarketingRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminCustomersIdRoute: typeof AdminCustomersIdRoute
+  AdminOrdersIdRoute: typeof AdminOrdersIdRoute
+  AdminOrdersNewRoute: typeof AdminOrdersNewRoute
+  AdminProductsIdRoute: typeof AdminProductsIdRoute
+  AdminCustomersIndexRoute: typeof AdminCustomersIndexRoute
+  AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
+  AdminProductsIndexRoute: typeof AdminProductsIndexRoute
 }
 
-const AccountRouteChildren: AccountRouteChildren = {
-  AccountCallbackRoute: AccountCallbackRoute,
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAbandonedRoute: AdminAbandonedRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminBlogRoute: AdminBlogRoute,
+  AdminCollectionsRoute: AdminCollectionsRoute,
+  AdminContentRoute: AdminContentRoute,
+  AdminDiscountsRoute: AdminDiscountsRoute,
+  AdminGiftCardsRoute: AdminGiftCardsRoute,
+  AdminInventoryRoute: AdminInventoryRoute,
+  AdminMarketingRoute: AdminMarketingRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminCustomersIdRoute: AdminCustomersIdRoute,
+  AdminOrdersIdRoute: AdminOrdersIdRoute,
+  AdminOrdersNewRoute: AdminOrdersNewRoute,
+  AdminProductsIdRoute: AdminProductsIdRoute,
+  AdminCustomersIndexRoute: AdminCustomersIndexRoute,
+  AdminOrdersIndexRoute: AdminOrdersIndexRoute,
+  AdminProductsIndexRoute: AdminProductsIndexRoute,
 }
 
-const AccountRouteWithChildren =
-  AccountRoute._addFileChildren(AccountRouteChildren)
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AccountRoute: AccountRouteWithChildren,
+  AccountRoute: AccountRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AffiliateRoute: AffiliateRoute,
   AuthRoute: AuthRoute,
+  CheckoutRoute: CheckoutRoute,
   CollectionsRoute: CollectionsRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   ReturnsRoute: ReturnsRoute,
@@ -357,7 +876,11 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   UnboxingRoute: UnboxingRoute,
+  BlogSlugRoute: BlogSlugRoute,
   ProductHandleRoute: ProductHandleRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
+  ApiPublicImgSplatRoute: ApiPublicImgSplatRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
 }

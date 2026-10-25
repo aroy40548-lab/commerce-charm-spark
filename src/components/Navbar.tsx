@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { CartDrawer } from "@/components/CartDrawer";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { formatMoney } from "@/lib/catalog";
-import { useCustomerStore, useCustomerToken } from "@/stores/customerStore";
+import { useAuth } from "@/hooks/useAuth";
 import compactLightLogo from "@/assets/zankyo-compact-light.png.asset.json";
 import compactDarkLogo from "@/assets/zankyo-compact-dark.png.asset.json";
 import { FirstPurchaseOffer } from "@/components/FirstPurchaseOffer";
@@ -21,7 +21,7 @@ const NAV = [
 function WishlistSheet() {
   const items = useWishlistStore((s) => s.items);
   const remove = useWishlistStore((s) => s.remove);
-  const signedIn = !!useCustomerToken();
+  const signedIn = !!useAuth().user;
 
   return (
     <Sheet>
@@ -53,7 +53,7 @@ function WishlistSheet() {
         ) : (
           <div className="mt-3 rounded-2xl bg-muted/70 p-3">
             <p className="text-xs leading-5 text-muted-foreground">
-              Sign in with your email code to keep these on every device.
+              Sign in to keep these on every device.
             </p>
             <Link
               to="/auth"
@@ -93,8 +93,9 @@ function WishlistSheet() {
 }
 
 function AccountSheet() {
-  const signedIn = !!useCustomerToken();
-  const email = useCustomerStore((s) => s.profile?.firstName || s.email);
+  const { user, name } = useAuth();
+  const signedIn = !!user;
+  const email = name || user?.email;
 
   return (
     <Link

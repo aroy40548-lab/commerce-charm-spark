@@ -4,6 +4,8 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
+  redirect,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -16,7 +18,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { observeDecartLauncher } from "@/lib/decart";
 import { useWishlistSync } from "@/hooks/useWishlistSync";
-import { useCartSync } from "@/hooks/useCartSync";
+import { captureReferral } from "@/lib/referral";
 
 function NotFoundComponent() {
   return (
@@ -103,6 +105,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { src: "https://anywear.decart.ai/widget/latest/anywear.js?domain=zankyo.in", async: true },
     ],
   }),
+  // admin.zankyo.in only serves the admin panel (it also stays reachable at /admin).
+  beforeLoad: ({ location }) => {
+    if (typeof window === "undefined" || !window.location.hostname.startsWith("admin.")) return;
+    if (location.pathname !== "/admin" && !location.pathname.startsWith("/admin/")) throw redirect({ to: "/admin" });
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -124,9 +131,19 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function AppShell() {
+  const { pathname } = useLocation();
   useEffect(() => observeDecartLauncher(), []);
+  useEffect(() => captureReferral(), []);
   useWishlistSync();
-  useCartSync();
+
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return (
+      <>
+        <Outlet />
+        <Toaster position="bottom-center" mobileOffset={16} />
+      </>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

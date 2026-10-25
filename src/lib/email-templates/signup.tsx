@@ -17,6 +17,7 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  token?: string | null
 }
 
 export const SignupEmail = ({
@@ -24,6 +25,7 @@ export const SignupEmail = ({
   siteUrl,
   recipient,
   confirmationUrl,
+  token,
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
@@ -33,6 +35,12 @@ export const SignupEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Heading style={h1}>Confirm your email</Heading>
+        {token && (
+          <>
+            <Text style={text}>Enter this code on {siteName} to finish signing in:</Text>
+            <Text style={code}>{token}</Text>
+          </>
+        )}
         <Text style={text}>
           Thanks for signing up for{' '}
           <Link href={siteUrl} style={link}>
@@ -84,6 +92,7 @@ const button = {
   padding: '12px 20px',
   textDecoration: 'none',
 }
+const code = { fontSize: '32px', fontWeight: 'bold' as const, letterSpacing: '8px', color: '#000000', margin: '0 0 25px' }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
 // Rendered as a text child, which React may HTML-escape: keep this CSS free of >, &, and quotes.
 const darkModeCss = `

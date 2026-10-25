@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShoppingBag, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
@@ -6,16 +7,16 @@ import { formatMoney } from "@/lib/catalog";
 
 export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const { items, updateQuantity, removeItem, isLoading, isSyncing, syncCart, getCheckoutUrl } = useCartStore();
-  useEffect(() => { if (isOpen) syncCart(); }, [isOpen, syncCart]);
+  const { items, updateQuantity, removeItem } = useCartStore();
+  const navigate = useNavigate();
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + parseFloat(i.price.amount) * i.quantity, 0);
   const currency = items[0]?.price.currencyCode ?? "INR";
 
   const handleCheckout = () => {
-    const url = getCheckoutUrl();
-    if (url) { window.open(url, "_blank"); setIsOpen(false); }
+    setIsOpen(false);
+    navigate({ to: "/checkout" });
   };
 
   return (
@@ -110,13 +111,13 @@ export function CartDrawer() {
                   <span className="zk-label text-xs">Subtotal</span>
                   <span className="text-xl font-bold">{formatMoney(subtotal, currency)}</span>
                 </div>
-                <p className="text-xs leading-5 text-muted-foreground">Shipping at checkout: Standard ₹100 (7–14 days) or Diamond ₹500 (2–4 days). Discount codes apply at checkout.</p>
+                <p className="text-xs leading-5 text-muted-foreground">Shipping, discount codes and gift cards are added at checkout.</p>
                 <button
                   onClick={handleCheckout}
-                  disabled={items.length === 0 || isLoading || isSyncing}
+                  disabled={items.length === 0}
                   className="zk-label flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background active:opacity-80 disabled:opacity-60"
                 >
-                  {isLoading || isSyncing ? "Updating…" : "Checkout"} <ArrowRight className="h-4 w-4" />
+                  Checkout <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </>

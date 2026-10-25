@@ -11,7 +11,10 @@
 - [x] Publish requested for zankyo.in
 - [x] Add the FIRST20 first-order offer strip and one-time buyer-aware countdown popup
 - [x] Sign-in fixed: store uses Shopify new customer accounts (one-time email code) — /auth and /account now send customers to Shopify's hosted account page; old password form removed
-- [ ] Shipping: user must add India zone + Standard ₹100 (7–14 days) and Diamond ₹500 (2–4 days) rates in Shopify admin → Settings → Shipping and delivery; remove old ₹379 "मानक" rate and Local delivery
-- [ ] Stock: several sizes show "Sold out" (e.g. Chaos Skull Tee M/L/XL) — user sets inventory per size in Shopify admin
-- [ ] Delete test customer accounts (zankyo.test+launch1/launch2@gmail.com) in Shopify admin → Customers
-- [ ] After shipping zones are set: re-test checkout end to end and publish
+- [x] Replace Shopify with ZANKYO's own backend + Shopify-style admin (orders, drafts, abandoned checkouts, products, collections, inventory, gift cards, customers, files, blog, analytics, affiliates, discounts, reviews, settings, staff roles)
+- [x] On-site checkout with Razorpay + COD, discount codes, gift cards; buyer-only photo reviews; affiliate links with owner-approved 5% commission
+- [ ] Apply migration 0007_own_store_admin in Lovable Cloud
+- [ ] Lovable Cloud → Auth: turn on Email (one-time code) next to Google
+- [ ] Secrets: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET (+ SHIPROCKET_EMAIL/PASSWORD optional)
+- [ ] Connect admin.zankyo.in in Project Settings → Domains
+- [ ] Owner reviews products/prices/stock in /admin (data dates from before the Shopify switch)

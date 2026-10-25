@@ -9,8 +9,8 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CUSTOMER_ORDERS_QUERY, customerQuery } from "@/lib/customerAccount";
-import { useCustomerStore } from "@/stores/customerStore";
+import { getMyOrderCount } from "@/lib/account.functions";
+import { useAuth } from "@/hooks/useAuth";
 
 const OFFER_CODE = "FIRST20";
 const OFFER_SEEN_KEY = "zankyo-first20-seen";
@@ -35,7 +35,8 @@ function getCountdown(now: number): Countdown | null {
 }
 
 export function FirstPurchaseOffer() {
-  const token = useCustomerStore((state) => state.tokens?.accessToken ?? null);
+  const { user, loading } = useAuth();
+  const userId = user?.id ?? null;
   const [now, setNow] = useState(() => Date.now());
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -48,17 +49,14 @@ export function FirstPurchaseOffer() {
   }, []);
 
   useEffect(() => {
-    if (!offerActive || window.localStorage.getItem(OFFER_SEEN_KEY)) return;
+    if (loading || !offerActive || window.localStorage.getItem(OFFER_SEEN_KEY)) return;
     let cancelled = false;
 
     const decide = async () => {
       let hasPreviousOrder = false;
-      if (token) {
+      if (userId) {
         try {
-          const data = await customerQuery<{
-            customer?: { orders?: { nodes?: Array<{ id: string }> } };
-          }>(token, CUSTOMER_ORDERS_QUERY);
-          hasPreviousOrder = (data.customer?.orders?.nodes?.length ?? 0) > 0;
+          hasPreviousOrder = (await getMyOrderCount()) > 0;
         } catch {
           return;
         }
@@ -73,7 +71,7 @@ export function FirstPurchaseOffer() {
     return () => {
       cancelled = true;
     };
-  }, [offerActive, token]);
+  }, [offerActive, userId, loading]);
 
   if (!countdown) return null;
 
