@@ -17,7 +17,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BottomTabBar } from "@/components/BottomTabBar";
-import { SocialDesktopBar, SocialRealtime, SocialTabBar, SocialTopBar, isSocialPath } from "@/components/social/SocialChrome";
+import { SocialDesktopBar, SocialRealtime, SocialTabBar, SocialTopBar, isSocialPath, socialThemeClass, useSocialTheme } from "@/components/social/SocialChrome";
 import { observeDecartLauncher } from "@/lib/decart";
 import { useWishlistSync } from "@/hooks/useWishlistSync";
 import { captureReferral } from "@/lib/referral";
