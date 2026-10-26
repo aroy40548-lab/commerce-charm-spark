@@ -22,3 +22,6 @@
 - Customer Reels (≤59s) live in the private `reels` bucket; uploads go browser → signed upload URL, playback via signed URLs; public names come from `profiles` via `publicName`, never email. Why: big videos shouldn't pass through server functions, and privacy.
 - Phones get a bottom tab bar (Home/Reels/Bag) from `__root.tsx`; the bag opens via a window event so one CartDrawer stays the source of truth.
 - Account restrictions (profiles.account_status: hidden/reel_suspended/banned) are enforced only on the server via src/lib/account.server.ts; rules live in src/lib/accountStatus.ts. Why: client checks can be bypassed.
+- ZANKYO Social (/social, /reels, /u, /p, /social/inbox, /social/notifications) uses its own top/bottom bars from `src/components/social/SocialChrome.tsx`; server logic in `src/lib/social.functions.ts`, rules in `src/lib/social.ts`. Why: one place for social layout and rules.
+- `notifications`, `messages`, `conversations` have owner-only SELECT RLS policies solely so Realtime delivers rows to the right person; all writes still go through server functions. Notifications are created by SQL triggers. Why: live updates without opening write access.
+- Photo posts and chat photos live in the private `posts` bucket (browser-compressed WebP + thumbnail, signed upload/read URLs). Staff read chats only via a member's report. Why: speed and privacy.
