@@ -123,10 +123,14 @@ export const listReels = createServerFn({ method: "POST" })
   });
 
 export const viewReel = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d) => z.object({ id: z.string().uuid(), device: z.string().regex(/^[a-z0-9-]{8,64}$/i).optional() }).parse(d))
   .handler(async ({ data }) => {
     const sb = await db();
-    await sb.rpc("increment_reel_views", { _reel_id: data.id });
+    const me = await (await import("./profile.server")).viewerId(sb);
+    const viewer = me ? `u:${me}` : data.device ? `d:${data.device}` : null;
+    if (!viewer) return { ok: true };
+    const { data: added } = await sb.from("reel_views").upsert({ reel_id: data.id, viewer }, { onConflict: "reel_id,viewer", ignoreDuplicates: true }).select("reel_id");
+    if (added?.length) await sb.rpc("increment_reel_views", { _reel_id: data.id });
     return { ok: true };
   });
 

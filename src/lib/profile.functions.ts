@@ -126,3 +126,43 @@ export const setFollow = createServerFn({ method: "POST" })
     else await sb.from("follows").delete().eq("follower_id", context.userId).eq("following_id", data.userId);
     return { ok: true };
   });
+
+type PublicPerson = { id: string; name: string; username: string; avatarUrl: string | null; following: boolean };
+
+async function people(sb: Db, ids: string[], limit = 100): Promise<PublicPerson[]> {
+  if (!ids.length) return [];
+  const { data: rows } = await sb.from("profiles").select("id, full_name, username, avatar_path").in("id", ids.slice(0, limit)).eq("account_status", "active").not("username", "is", null);
+  const h = await helpers();
+  const me = await h.viewerId(sb);
+  const urls = await h.avatarUrls(sb, (rows ?? []).map((r) => r.avatar_path));
+  const { data: mine } = me ? await sb.from("follows").select("following_id").eq("follower_id", me).in("following_id", ids.slice(0, limit)) : { data: [] as Array<{ following_id: string }> };
+  const f = new Set((mine ?? []).map((m) => m.following_id));
+  const byId = new Map((rows ?? []).map((r) => [r.id, r]));
+  return ids.flatMap((id) => {
+    const r = byId.get(id);
+    return r ? [{ id: r.id, name: r.full_name ?? r.username!, username: r.username!, avatarUrl: r.avatar_path ? urls.get(r.avatar_path) ?? null : null, following: f.has(r.id) }] : [];
+  });
+}
+
+export const searchProfiles = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ q: z.string().trim().max(40) }).parse(d))
+  .handler(async ({ data }) => {
+    const q = data.q.replace(/^@/, "").replace(/[%_,()]/g, "");
+    if (q.length < 1) return [] as PublicPerson[];
+    const sb = await db();
+    const { data: rows } = await sb.from("profiles").select("id").eq("account_status", "active").not("username", "is", null)
+      .or(`username.ilike.%${q}%,full_name.ilike.%${q}%`).limit(20);
+    return people(sb, (rows ?? []).map((r) => r.id));
+  });
+
+export const listFollows = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ username: z.string().max(40), kind: z.enum(["followers", "following"]) }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = await db();
+    const { data: p } = await sb.from("profiles").select("id").ilike("username", normalizeUsername(data.username)).eq("account_status", "active").maybeSingle();
+    if (!p) return [] as PublicPerson[];
+    const { data: rows } = data.kind === "followers"
+      ? await sb.from("follows").select("other:follower_id").eq("following_id", p.id).order("created_at", { ascending: false }).limit(200)
+      : await sb.from("follows").select("other:following_id").eq("follower_id", p.id).order("created_at", { ascending: false }).limit(200);
+    return people(sb, ((rows ?? []) as Array<{ other: string }>).map((r) => r.other), 200);
+  });

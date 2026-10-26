@@ -120,7 +120,7 @@ function ReelItem({
           void v.play().catch(() => {
             if (!v.muted) { v.muted = true; onBlocked(); void v.play().catch(() => {}); }
           });
-          if (!viewed.current) { viewed.current = true; void viewReel({ data: { id: reel.id } }).catch(() => {}); }
+          if (!viewed.current) { viewed.current = true; void viewReel({ data: { id: reel.id, device: deviceId() } }).catch(() => {}); }
           onNear?.();
         } else v.pause();
       },
@@ -319,4 +319,12 @@ export function Avatar({ url, label, size = "h-8 w-8" }: { url: string | null; l
   ) : (
     <span className={`${size} grid shrink-0 place-items-center rounded-full bg-accent text-xs font-bold uppercase text-accent-foreground`}>{label[0]}</span>
   );
+}
+
+function deviceId() {
+  try {
+    let id = localStorage.getItem("zankyo-device");
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem("zankyo-device", id); }
+    return id;
+  } catch { return undefined; }
 }
