@@ -8,23 +8,8 @@ async function db() {
 }
 type Db = Awaited<ReturnType<typeof db>>;
 
-/** Signed-in viewer for public functions (optional). */
-export async function viewerId(sb: Db): Promise<string | null> {
-  const { getRequestHeader } = await import("@tanstack/react-start/server");
-  const h = getRequestHeader("authorization") ?? "";
-  const token = h.startsWith("Bearer ") ? h.slice(7) : "";
-  if (!token || token.startsWith("sb_")) return null;
-  const { data } = await sb.auth.getUser(token);
-  return data.user?.id ?? null;
-}
-
-export async function avatarUrls(sb: Db, paths: Array<string | null | undefined>) {
-  const list = [...new Set(paths.filter((p): p is string => !!p))];
-  const map = new Map<string, string>();
-  if (!list.length) return map;
-  const { data } = await sb.storage.from("reels").createSignedUrls(list, 60 * 60 * 6);
-  data?.forEach((s) => s.path && s.signedUrl && map.set(s.path, s.signedUrl));
-  return map;
+async function helpers() {
+  return import("./profile.server");
 }
 
 export const getMyProfile = createServerFn({ method: "POST" })
@@ -32,7 +17,7 @@ export const getMyProfile = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const sb = await db();
     const { data: p } = await sb.from("profiles").select("full_name, first_name, last_name, username, bio, avatar_path").eq("id", context.userId).maybeSingle();
-    const urls = await avatarUrls(sb, [p?.avatar_path]);
+    const urls = await (await helpers()).avatarUrls(sb, [p?.avatar_path]);
     const suggested = p?.full_name || [p?.first_name, p?.last_name].filter(Boolean).join(" ");
     return {
       fullName: suggested ?? "",
@@ -100,14 +85,14 @@ export const getPublicProfile = createServerFn({ method: "POST" })
     const u = normalizeUsername(data.username);
     const { data: p } = await sb.from("profiles").select("id, full_name, username, bio, avatar_path").ilike("username", u).maybeSingle();
     if (!p || !p.username) return null;
-    const me = await viewerId(sb);
+    const me = await (await helpers()).viewerId(sb);
     const [followers, following, isFollowing, reels] = await Promise.all([
       sb.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", p.id),
       sb.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", p.id),
       me ? sb.from("follows").select("follower_id").eq("follower_id", me).eq("following_id", p.id).maybeSingle() : Promise.resolve({ data: null }),
       sb.from("reels").select("id, video_path, views").eq("user_id", p.id).eq("status", "live").order("created_at", { ascending: false }).limit(60),
     ]);
-    const urls = await avatarUrls(sb, [p.avatar_path]);
+    const urls = await (await helpers()).avatarUrls(sb, [p.avatar_path]);
     const vids = (reels.data ?? []).length
       ? (await sb.storage.from("reels").createSignedUrls((reels.data ?? []).map((r) => r.video_path), 60 * 60 * 6)).data ?? []
       : [];

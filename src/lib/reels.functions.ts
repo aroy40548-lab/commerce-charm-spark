@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MAX_REEL_SECONDS, MAX_REEL_BYTES, REEL_TYPES, publicName, feedWeight } from "@/lib/reels";
-import { avatarUrls, viewerId } from "@/lib/profile.functions";
 
 async function db() {
   return (await import("@/integrations/supabase/client.server")).supabaseAdmin;
@@ -18,7 +17,7 @@ async function peopleFor(sb: Db, ids: string[]) {
   const map = new Map<string, Person>();
   if (!ids.length) return map;
   const { data } = await sb.from("profiles").select("id, full_name, first_name, last_name, username, avatar_path, feed_priority").in("id", [...new Set(ids)]);
-  const urls = await avatarUrls(sb, (data ?? []).map((p) => p.avatar_path));
+  const urls = await (await import("./profile.server")).avatarUrls(sb, (data ?? []).map((p) => p.avatar_path));
   data?.forEach((p) => map.set(p.id, {
     name: p.full_name?.trim() || publicName(p),
     username: p.username && !p.username.includes("@") ? p.username : null,
@@ -97,7 +96,7 @@ export const listReels = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ seen: z.array(z.string().uuid()).max(400).default([]), startId: z.string().uuid().optional().nullable() }).parse(d ?? {}))
   .handler(async ({ data }) => {
     const sb = await db();
-    const me = await viewerId(sb);
+    const me = await (await import("./profile.server")).viewerId(sb);
     const [{ data: pool }, follows] = await Promise.all([
       sb.from("reels").select("id, user_id, priority, created_at").eq("status", "live").order("created_at", { ascending: false }).limit(500),
       me ? sb.from("follows").select("following_id").eq("follower_id", me) : Promise.resolve({ data: [] as Array<{ following_id: string }> }),
