@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Bookmark, Clapperboard, Heart, MessageCircle, Send } from "lucide-react";
@@ -18,7 +18,7 @@ export function CreatorRow({ username, name, avatarUrl, at }: { username: string
     <div className="flex items-center gap-2 px-3 py-2">
       {username ? (
         <Link to="/u/$username" params={{ username }} className="flex min-w-0 items-center gap-2">
-          <Avatar url={avatarUrl} label={username} />
+          <span className="rounded-full bg-gradient-to-tr from-accent to-primary p-[2px]"><span className="block rounded-full bg-background p-[2px]"><Avatar url={avatarUrl} label={username} /></span></span>
           <span className="truncate text-sm font-semibold">{username}</span>
         </Link>
       ) : (
@@ -33,18 +33,18 @@ export function ShopChip({ products }: { products: ProductChip[] }) {
   const p = products[0];
   if (!p) return null;
   return (
-    <Link to="/product/$handle" params={{ handle: p.handle }} className="mx-3 mt-2 flex items-center gap-3 border border-border p-2 active:opacity-80">
-      <div className="h-11 w-11 shrink-0 overflow-hidden bg-muted">{p.image && <img src={p.image} alt="" loading="lazy" className="h-full w-full object-cover" />}</div>
+    <Link to="/product/$handle" params={{ handle: p.handle }} className="mx-3 mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-muted/40 p-2 active:scale-[0.99] transition-transform">
+      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">{p.image && <img src={p.image} alt="" loading="lazy" className="h-full w-full object-cover" />}</div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{p.title}</p>
         <p className="text-xs text-muted-foreground">{formatMoney(p.price)}{products.length > 1 ? ` · +${products.length - 1} more` : ""}</p>
       </div>
-      <span className="zk-label bg-accent px-2 py-1 text-[9px] text-accent-foreground">Shop this look</span>
+      <span className="zk-label rounded-full bg-accent px-3 py-1.5 text-[9px] text-accent-foreground">Shop</span>
     </Link>
   );
 }
 
-export function PostCardView({ post, eager = false }: { post: Post; eager?: boolean }) {
+export const PostCardView = memo(function PostCardView({ post, eager = false }: { post: Post; eager?: boolean }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [liked, setLiked] = useState(post.liked);
@@ -83,7 +83,7 @@ export function PostCardView({ post, eager = false }: { post: Post; eager?: bool
   };
 
   return (
-    <article className="border-b border-border pb-3">
+    <article className="zk-feed-card pb-5">
       <CreatorRow username={post.username} name={post.name} avatarUrl={post.avatarUrl} at={post.createdAt} />
       <div className="relative bg-muted" style={{ aspectRatio: `1 / ${ratio}` }} onClick={tap}>
         <div
@@ -92,7 +92,10 @@ export function PostCardView({ post, eager = false }: { post: Post; eager?: bool
           className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
         >
           {post.media.map((m, i) => (
-            <img key={i} src={m.url} alt="" loading={eager && i === 0 ? "eager" : "lazy"} decoding="async" className="h-full w-full shrink-0 snap-center object-cover" />
+            <div key={i} className="relative h-full w-full shrink-0 snap-center">
+              {m.thumb && <img src={m.thumb} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl" />}
+              <img src={m.url} alt="" loading={eager && i === 0 ? "eager" : "lazy"} decoding="async" width={m.w || undefined} height={m.h || undefined} className="relative h-full w-full object-cover opacity-0 transition-opacity duration-300" onLoad={(e) => e.currentTarget.classList.remove("opacity-0")} />
+            </div>
           ))}
         </div>
         {post.media.length > 1 && (
@@ -106,41 +109,63 @@ export function PostCardView({ post, eager = false }: { post: Post; eager?: bool
         {heart > 0 && <Heart key={heart} className="zk-reel-heart pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 fill-accent text-accent" />}
       </div>
       <div className="flex items-center gap-1 px-1.5 pt-1">
-        <button onClick={() => like(!liked)} aria-label="Like" aria-pressed={liked} className="grid h-11 w-11 place-items-center"><Heart className={`h-6 w-6 ${liked ? "fill-accent text-accent" : ""}`} /></button>
-        <Link to="/p/$id" params={{ id: post.id }} aria-label="Comments" className="grid h-11 w-11 place-items-center"><MessageCircle className="h-6 w-6" /></Link>
-        <button onClick={share} aria-label="Share" className="grid h-11 w-11 place-items-center"><Send className="h-6 w-6" /></button>
-        <button onClick={save} aria-label="Save" aria-pressed={saved} className="ml-auto grid h-11 w-11 place-items-center"><Bookmark className={`h-6 w-6 ${saved ? "fill-foreground" : ""}`} /></button>
+        <button onClick={() => like(!liked)} aria-label="Like" aria-pressed={liked} className="grid h-11 w-11 place-items-center"><Heart key={liked ? "on" : "off"} className={`h-7 w-7 ${liked ? "zk-pop fill-accent text-accent" : ""}`} /></button>
+        <Link to="/p/$id" params={{ id: post.id }} aria-label="Comments" className="grid h-11 w-11 place-items-center"><MessageCircle className="h-7 w-7" /></Link>
+        <button onClick={share} aria-label="Share" className="grid h-11 w-11 place-items-center"><Send className="h-7 w-7" /></button>
+        <button onClick={save} aria-label="Save" aria-pressed={saved} className="ml-auto grid h-11 w-11 place-items-center"><Bookmark className={`h-7 w-7 ${saved ? "zk-pop fill-foreground" : ""}`} /></button>
       </div>
       <p className="px-3 text-sm font-semibold">{likes} {likes === 1 ? "like" : "likes"}</p>
-      {post.caption && <p className="whitespace-pre-line px-3 text-sm"><b>{post.username ?? post.name}</b> {post.caption}</p>}
+      {post.caption && <Caption who={post.username ?? post.name} text={post.caption} />}
       {post.comments > 0 && <Link to="/p/$id" params={{ id: post.id }} className="block px-3 pt-1 text-sm text-muted-foreground">View all {post.comments} comments</Link>}
       <ShopChip products={post.products} />
     </article>
   );
-}
+});
 
 /** Reel inside the photo feed: plays silently when on screen, tap to open full screen. */
-export function ReelTileView({ reel }: { reel: ReelTile }) {
+export const ReelTileView = memo(function ReelTileView({ reel }: { reel: ReelTile }) {
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(reel.saved);
+  const save = async () => {
+    if (!user) return needSignIn("save reels");
+    const next = !saved; setSaved(next);
+    try { await toggleSave({ data: { kind: "reel", id: reel.id, save: next } }); } catch { setSaved(!next); toast.error("Couldn't save"); }
+  };
   const box = useRef<HTMLDivElement>(null);
   const vid = useRef<HTMLVideoElement>(null);
   const [near, setNear] = useState(false);
   useEffect(() => {
     const el = box.current; if (!el) return;
     const io = new IntersectionObserver(([e]) => {
-      if (e?.isIntersecting) { setNear(true); void vid.current?.play().catch(() => {}); } else vid.current?.pause();
-    }, { threshold: 0.5, rootMargin: "200px 0px" });
+      setNear(!!e?.isIntersecting);
+      if (e?.isIntersecting && e.intersectionRatio > 0.6) void vid.current?.play().catch(() => {}); else vid.current?.pause();
+    }, { threshold: [0, 0.6] });
     io.observe(el); return () => io.disconnect();
   }, []);
   return (
     <article ref={box} className="border-b border-border pb-3">
       <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} />
-      <Link to="/reels/$id" params={{ id: reel.id }} className="relative block aspect-[4/5] bg-ink">
+      <Link to="/reels/$id" params={{ id: reel.id }} className="relative block aspect-[4/5] overflow-hidden bg-ink">
         <video ref={vid} src={near ? reel.videoUrl : undefined} muted loop playsInline preload="none" className="h-full w-full object-cover" />
         <span className="zk-label absolute right-2 top-2 flex items-center gap-1 bg-ink/70 px-2 py-1 text-[9px] text-white"><Clapperboard className="h-3 w-3" /> Reel</span>
       </Link>
-      <p className="px-3 pt-2 text-sm font-semibold">{reel.likes} likes · {reel.views} views</p>
-      {reel.caption && <p className="px-3 text-sm"><b>{reel.username ?? reel.name}</b> {reel.caption}</p>}
+      <div className="flex items-center px-3 pt-2">
+        <p className="text-sm font-semibold">{reel.likes} likes · {reel.views} views</p>
+        <button onClick={save} aria-label="Save reel" aria-pressed={saved} className="ml-auto grid h-11 w-11 place-items-center"><Bookmark className={`h-7 w-7 ${saved ? "zk-pop fill-foreground" : ""}`} /></button>
+      </div>
+      {reel.caption && <Caption who={reel.username ?? reel.name} text={reel.caption} />}
       <ShopChip products={reel.products} />
     </article>
+  );
+});
+
+function Caption({ who, text }: { who: string; text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 110 || text.includes("\n");
+  return (
+    <p className="whitespace-pre-line px-3 pt-0.5 text-sm leading-5">
+      <b>{who}</b> {open || !long ? text : `${text.slice(0, 110).split("\n")[0]}…`}
+      {long && !open && <button onClick={() => setOpen(true)} className="ml-1 text-muted-foreground">more</button>}
+    </p>
   );
 }
