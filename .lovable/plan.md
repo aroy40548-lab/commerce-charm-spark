@@ -7,7 +7,14 @@ Tapping **Reels** opens a complete "ZANKYO Social" app inside the site, styled l
 - Top bar: ZANKYO Social logo, a heart icon (notifications) and a message icon (chats), with red unread dots.
 
 ## 2. Photo posts
-- Customers can post **1–10 photos** with a caption and up to 5 tagged products (same "Shop" chip as reels; partner credit works the same way).
+- **No limit on how many posts or reels** someone can upload.
+- Each photo post holds **at most 10 photos** (the 11th is blocked, with a clear message), plus a caption and up to 5 tagged products (same "Shop" chip as reels; partner credit works the same way).
+
+## Speed (so the site stays fast with lots of uploads)
+- Photos are shrunk and compressed on the phone before upload (small files, sharp on screen), with a tiny preview version for the grid.
+- Feed, profile grid, notifications and chats load in small pages as you scroll, never all at once.
+- Only the photos/videos near the screen load; the rest wait.
+- Previously loaded screens open instantly from memory when you go back.
 - **Feed tab**: Instagram-style scrolling posts (photos + reels mixed), swipe between photos, double-tap to like, like / comment / share / save, "Shop this look" chip.
 - Same weighted shuffle as reels (people you follow show more often; admin Boost/Top still applies).
 
