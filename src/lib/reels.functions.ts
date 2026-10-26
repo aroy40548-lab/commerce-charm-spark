@@ -228,7 +228,7 @@ export const listMyReels = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = await db();
-    const { data: rows } = await sb.from("reels").select(REEL_SELECT).eq("user_id", context.userId).order("created_at", { ascending: false }).limit(100);
+    const { data: rows } = await sb.from("reels").select(REEL_SELECT + ", status").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(100);
     const list = (rows ?? []) as unknown as ReelRow[];
     const cards = await toCards(sb, list);
     const { data: aff } = await sb.from("affiliates").select("id").eq("user_id", context.userId).maybeSingle();
