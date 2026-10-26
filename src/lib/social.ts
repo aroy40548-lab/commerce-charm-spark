@@ -27,6 +27,7 @@ export function notificationText(kind: string, onReel: boolean, body: string) {
   const what = onReel ? "reel" : "post";
   if (kind === "like") return `liked your ${what}.`;
   if (kind === "comment") return `commented: ${body}`;
+  if (kind === "reply") return `replied to your comment: ${body}`;
   if (kind === "follow") return "started following you.";
   return body;
 }
