@@ -140,6 +140,7 @@ function AppShell() {
   useEffect(() => { getAffiliateProgram().then((p) => captureReferral(p.cookieDays || 365)).catch(() => captureReferral()); }, []);
   useWishlistSync();
 
+  const { theme } = useSocialTheme();
   const isReels = pathname === "/reels" || pathname.startsWith("/reels/") && pathname !== "/reels/studio";
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     return (
@@ -151,8 +152,9 @@ function AppShell() {
   }
 
   const social = isSocialPath(pathname);
+  const socialTheme = socialThemeClass(theme);
   return (
-    <div className={`flex min-h-screen flex-col bg-background text-foreground pb-[calc(3.5rem+env(safe-area-inset-bottom))] ${social ? "dark zk-social" : "lg:pb-0"}`}>
+    <div className={`flex min-h-screen flex-col bg-background text-foreground pb-[calc(3.5rem+env(safe-area-inset-bottom))] ${social ? `zk-social ${socialTheme}` : "lg:pb-0"}`}>
       {/* Inside Social the store menu only shows on laptops; phones get the Social top bar. */}
       <div className={social ? "sticky top-0 z-50 hidden lg:block" : "contents"}>
         <Navbar />
