@@ -1,25 +1,4 @@
 # Roadmap
-- [x] Optimize the storefront for mobile browsers first, with touch, overflow, bag, search, and desktop regression checks
-- [x] Automatically load the current product photo when Virtual try-on (AI) opens
-- [x] Replace the browser-tab icon with the ZANKYO star logo
-- [x] Replace the old star branding with the supplied ZANKYO symbol, kanji, text logo, and light/dark variants
-- [x] Add complete About, Terms & Conditions, and Return & Refund Policy pages with footer links
-- [x] Move storefront to Shopify (catalog, cart, checkout, customer accounts, account page, wishlist)
-- [x] Remove custom admin panel
-- [x] Connected existing Shopify store; code points at shopflow-suite store; shop/product/cart verified
-- [x] Verify add to bag and checkout against the existing store (checkout page loads, HTTP 200)
-- [x] Publish requested for zankyo.in
-- [x] Add the FIRST20 first-order offer strip and one-time buyer-aware countdown popup
-- [x] Sign-in fixed: store uses Shopify new customer accounts (one-time email code) — /auth and /account now send customers to Shopify's hosted account page; old password form removed
-- [x] Replace Shopify with ZANKYO's own backend + Shopify-style admin (orders, drafts, abandoned checkouts, products, collections, inventory, gift cards, customers, files, blog, analytics, affiliates, discounts, reviews, settings, staff roles)
-- [x] On-site checkout with Razorpay + COD, discount codes, gift cards; buyer-only photo reviews; affiliate links with owner-approved 5% commission
-- [ ] Apply migration 0007_own_store_admin in Lovable Cloud
-- [ ] Lovable Cloud → Auth: turn on Email (one-time code) next to Google
-- [ ] Secrets: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET (+ SHIPROCKET_EMAIL/PASSWORD optional)
-- [ ] Connect admin.zankyo.in in Project Settings → Domains
-- [ ] Owner reviews products/prices/stock in /admin (data dates from before the Shopify switch)
-- [x] Bottom tab bar (Home/Reels/Bag), customer Reels with likes/dislikes/comments/share, creator studio, admin moderation
-- [x] Affiliate credit via unique product links and reels, only on linked products
-- [x] Reels: refresh feed while scrolling
-- [x] ZANKYO Social: photo posts (max 10 photos, unlimited posts), feed, Instagram-style profile + Saved, notifications, real-time messages, admin Social dashboard
-- [x] Share button on every profile (own + others)
+- [x] Social themes Navy/Black/White + back arrow to feed
+- [ ] Instagram-style replies on reel and post comments
+- [ ] Admin-given verified badge (red glow tick + red glow ring on profile photo)
