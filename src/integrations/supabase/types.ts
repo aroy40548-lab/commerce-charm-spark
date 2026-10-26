@@ -798,6 +798,7 @@ export type Database = {
           created_at: string
           hidden: boolean
           id: string
+          parent_id: string | null
           post_id: string
           user_id: string
         }
@@ -806,6 +807,7 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          parent_id?: string | null
           post_id: string
           user_id: string
         }
@@ -814,10 +816,18 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          parent_id?: string | null
           post_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "post_comments_post_id_fkey"
             columns: ["post_id"]
@@ -1161,6 +1171,8 @@ export type Database = {
           status_changed_by: string | null
           status_reason: string | null
           username: string | null
+          verified: boolean
+          verified_at: string | null
         }
         Insert: {
           account_status?: string
@@ -1179,6 +1191,8 @@ export type Database = {
           status_changed_by?: string | null
           status_reason?: string | null
           username?: string | null
+          verified?: boolean
+          verified_at?: string | null
         }
         Update: {
           account_status?: string
@@ -1197,6 +1211,8 @@ export type Database = {
           status_changed_by?: string | null
           status_reason?: string | null
           username?: string | null
+          verified?: boolean
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -1206,6 +1222,7 @@ export type Database = {
           created_at: string
           hidden: boolean
           id: string
+          parent_id: string | null
           reel_id: string
           user_id: string
         }
@@ -1214,6 +1231,7 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          parent_id?: string | null
           reel_id: string
           user_id: string
         }
@@ -1222,10 +1240,18 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          parent_id?: string | null
           reel_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reel_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "reel_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reel_comments_reel_id_fkey"
             columns: ["reel_id"]
