@@ -1,31 +1,35 @@
-# Set up Razorpay online payments
+# ZANKYO Reels + bottom tab bar + product-link affiliates
 
-The checkout already includes Razorpay (card/UPI/netbanking), payment checking and the order confirmation. Online payments stay switched off until the store's Razorpay keys are added. This plan connects them and tests a real payment.
+## 1. Bottom tab bar (phones only, Myntra-style)
+- Fixed bar at the bottom on phones: **Home**, **Reels**, **Bag** (bag shows item count, opens the existing bag).
+- ZANKYO theme: ink/paper colours, sharp edges, signal-red active state, works in dark and white mode.
+- Safe-area padding for iPhones; page content gets bottom spacing so nothing hides behind the bar. Laptops keep the current top menu (Reels link added there too).
 
-## Steps
+## 2. Reels page (`/reels`)
+- Full-screen vertical feed, swipe/scroll one reel at a time, auto-play muted when on screen, tap to unmute/pause.
+- Each reel shows: creator **name only** (never email), caption, like, dislike, comment count, share button.
+- Small product popup at the bottom of the video: product photo, name, price. Tap opens the product page.
+- Share copies a unique reel link (`/reels/<id>`), which opens that reel first. Opening a shared reel credits the creator (see section 4).
+- Comments open in a bottom sheet; signed-in users can comment and delete their own. Name shown, email hidden.
+- Like/dislike: one vote per user, tap again to remove. Signed-out users see "Sign in to like/comment".
 
-1. **Add your Razorpay keys (secure form)**
-   - In Razorpay Dashboard → Account & Settings → API Keys, generate a key pair (start with **Test mode**, switch to **Live** later).
-   - Paste them into the secure form: `RAZORPAY_KEY_ID` (starts `rzp_test_` or `rzp_live_`) and `RAZORPAY_KEY_SECRET`.
+## 3. Creator dashboard (`/reels/studio`, signed-in)
+- Upload a video (MP4/MOV/WebM, max 59 seconds, max ~50MB) — length checked in the browser and on the server.
+- Add caption and attach one or more ZANKYO products (search the catalog).
+- List of my reels with views, likes, comments, sales earned; edit caption/products or delete.
+- Uploading a reel automatically gives the user an affiliate account if they don't have one.
+- Admin (`/admin`) gets a Reels section to hide/remove any reel or comment.
 
-2. **Set up the payment confirmation link (webhook)**
-   - The form generates a `RAZORPAY_WEBHOOK_SECRET` for you to copy.
-   - In Razorpay → Webhooks → Add: URL `https://zankyo.in/api/public/razorpay-webhook`, paste the same secret, tick events `payment.captured` and `order.paid`.
-   - This records the order as paid even if the customer closes the tab right after paying.
-
-3. **Razorpay website setting**
-   - Since checkout now happens on zankyo.in (no longer on Shopify), the registered website in Razorpay → Website and app settings must be **zankyo.in**. This fixes the old "Business – Website mismatch" error.
-
-4. **Check and test**
-   - Make sure the checkout shows "Pay online" once the keys are in.
-   - Place a test order in Test mode: bag → checkout → Razorpay → success page → order shows as Paid in /admin → Orders, stock is reduced and the confirmation email is sent.
-   - Check that cancelling the payment leaves the order pending and lets the customer try again.
-   - Fix anything that breaks along the way.
-
-5. **Go live**
-   - Once the test works, replace the test keys with live keys (same form) and publish.
+## 4. Affiliate system change: product links instead of site links
+- Each affiliate gets a **unique link per product**: `zankyo.in/product/<handle>?ref=CODE` — a "Copy my link" button appears on every product page for affiliates, and in the affiliate dashboard.
+- Reels links carry the creator's code automatically.
+- Commission is paid only on the product(s) the link/reel was for, not the whole order (rate stays the store's affiliate rate, default 5%, owner approval stays the same).
+- Old site-wide `?ref=` links keep working on product pages; the homepage-only link is no longer offered.
+- Affiliate dashboard shows earnings per product and per reel.
 
 ## Technical details
-- The code is already in `src/lib/store.server.ts` (order creation, HMAC signature check), `src/lib/checkout.functions.ts` (placeOrder/confirmPayment) and `src/routes/api/public/razorpay-webhook.ts`. `getCheckoutConfig.online` becomes true when both keys exist.
-- Also confirm that `crypto`/`Buffer` work in the published worker runtime. If they don't, switch to Web Crypto HMAC.
-- Update roadmap.md once the secrets are added.
+- New tables (RLS on, no client policies; all access through server functions with the service-role client after auth, per project rule): `reels` (user_id, video_path, caption, duration, status, views), `reel_products`, `reel_votes` (unique user+reel, value ±1), `reel_comments`. Display name comes from `profiles` (first/last name or username), never email.
+- New private storage bucket `reels` (50MB limit); videos served through the existing `/api/public/img/*` style proxy extended for video with range support, or via short-lived signed URLs.
+- Referral store becomes `{ code, productHandle?, reelId?, until }`; checkout sends it; `affiliate_commissions` gains `product_id`/`reel_id`, and `commit_order` computes commission from the matching order items only.
+- Bottom bar component mounted in `__root.tsx`, hidden on `/admin` and `/checkout`.
+- Tests for: 59-second limit, one vote per user, commission only on linked product.
