@@ -57,6 +57,13 @@
       "when": 1792930933534,
       "tag": "0007_own_store_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793043511424,
+      "tag": "0008_reels_and_product_affiliates",
+      "breakpoints": true
     }
   ]
 }

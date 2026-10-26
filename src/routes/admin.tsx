@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  BarChart3, ExternalLink, FileText, Home, Inbox, Loader2, LogOut, Megaphone, Menu, MessageSquareQuote, Package,
+  BarChart3, Clapperboard, ExternalLink, FileText, Home, Inbox, Loader2, LogOut, Megaphone, Menu, MessageSquareQuote, Package,
   Percent, Settings, ShoppingCart, Users,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
@@ -37,6 +37,7 @@ const NAV: NavItem[] = [
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone, children: [{ to: "/admin/marketing", label: "Affiliates" }] },
   { to: "/admin/discounts", label: "Discounts", icon: Percent },
   { to: "/admin/reviews", label: "Reviews", icon: MessageSquareQuote },
+  { to: "/admin/reels", label: "Reels", icon: Clapperboard },
 ];
 
 function AdminLayout() {

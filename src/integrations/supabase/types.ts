@@ -71,7 +71,9 @@ export type Database = {
           order_amount: number
           order_id: string
           paid_at: string | null
+          product_ids: string[]
           rate: number
+          reel_id: string | null
           status: string
         }
         Insert: {
@@ -85,7 +87,9 @@ export type Database = {
           order_amount: number
           order_id: string
           paid_at?: string | null
+          product_ids?: string[]
           rate: number
+          reel_id?: string | null
           status?: string
         }
         Update: {
@@ -99,7 +103,9 @@ export type Database = {
           order_amount?: number
           order_id?: string
           paid_at?: string | null
+          product_ids?: string[]
           rate?: number
+          reel_id?: string | null
           status?: string
         }
         Relationships: [
@@ -461,6 +467,7 @@ export type Database = {
       orders: {
         Row: {
           affiliate_id: string | null
+          affiliate_product_ids: string[]
           awb_code: string | null
           cancel_reason: string | null
           cancelled_at: string | null
@@ -482,6 +489,7 @@ export type Database = {
           phone: string
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
+          reel_id: string | null
           refund_id: string | null
           shipped_at: string | null
           shipping: number
@@ -501,6 +509,7 @@ export type Database = {
         }
         Insert: {
           affiliate_id?: string | null
+          affiliate_product_ids?: string[]
           awb_code?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
@@ -522,6 +531,7 @@ export type Database = {
           phone?: string
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          reel_id?: string | null
           refund_id?: string | null
           shipped_at?: string | null
           shipping?: number
@@ -541,6 +551,7 @@ export type Database = {
         }
         Update: {
           affiliate_id?: string | null
+          affiliate_product_ids?: string[]
           awb_code?: string | null
           cancel_reason?: string | null
           cancelled_at?: string | null
@@ -562,6 +573,7 @@ export type Database = {
           phone?: string
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          reel_id?: string | null
           refund_id?: string | null
           shipped_at?: string | null
           shipping?: number
@@ -803,6 +815,136 @@ export type Database = {
         }
         Relationships: []
       }
+      reel_comments: {
+        Row: {
+          body: string
+          created_at: string
+          hidden: boolean
+          id: string
+          reel_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          reel_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          reel_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_comments_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reel_products: {
+        Row: {
+          position: number
+          product_id: string
+          reel_id: string
+        }
+        Insert: {
+          position?: number
+          product_id: string
+          reel_id: string
+        }
+        Update: {
+          position?: number
+          product_id?: string
+          reel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_products_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reel_votes: {
+        Row: {
+          created_at: string
+          reel_id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          reel_id: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          reel_id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_votes_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reels: {
+        Row: {
+          caption: string
+          created_at: string
+          duration: number
+          id: string
+          status: string
+          user_id: string
+          video_path: string
+          views: number
+        }
+        Insert: {
+          caption?: string
+          created_at?: string
+          duration?: number
+          id?: string
+          status?: string
+          user_id: string
+          video_path: string
+          views?: number
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          duration?: number
+          id?: string
+          status?: string
+          user_id?: string
+          video_path?: string
+          views?: number
+        }
+        Relationships: []
+      }
       shopify_wishlists: {
         Row: {
           created_at: string
@@ -1019,6 +1161,10 @@ export type Database = {
         }
         Returns: number
       }
+      affiliate_commission_base: {
+        Args: { _order_id: string }
+        Returns: number
+      }
       commit_order: {
         Args: { _order_id: string; _payment_id: string; _status: string }
         Returns: boolean
@@ -1030,6 +1176,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_reel_views: { Args: { _reel_id: string }; Returns: undefined }
       mark_order_paid: {
         Args: { _order_id: string; _payment_id: string }
         Returns: boolean

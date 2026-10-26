@@ -10,7 +10,7 @@ import { AddressFields, EMPTY_ADDRESS, formatAddress, type AddressInput } from "
 import { confirmPayment, getCheckoutConfig, placeOrder, quoteCheckout } from "@/lib/checkout.functions";
 import { getMyAddresses } from "@/lib/account.functions";
 import { formatMoney } from "@/lib/catalog";
-import { readReferral } from "@/lib/referral";
+import { readReferral, readReferralFull } from "@/lib/referral";
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
@@ -112,7 +112,7 @@ function Checkout() {
     setBusy(true);
     try {
       const res = await placeOrder({
-        data: { lines, code, giftCard: gift, shipping, payment, address: finalAddress, note: note || null, affiliateCode: readReferral(), saveAddress: !chosen },
+        data: { lines, code, giftCard: gift, shipping, payment, address: finalAddress, note: note || null, affiliateCode: readReferral(), affiliateProducts: readReferralFull()?.products ?? [], affiliateReel: readReferralFull()?.reelId ?? null, saveAddress: !chosen },
       });
       if (res.kind === "done") {
         clearCart();

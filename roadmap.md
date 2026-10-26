@@ -18,3 +18,5 @@
 - [ ] Secrets: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET (+ SHIPROCKET_EMAIL/PASSWORD optional)
 - [ ] Connect admin.zankyo.in in Project Settings → Domains
 - [ ] Owner reviews products/prices/stock in /admin (data dates from before the Shopify switch)
+- [x] Bottom tab bar (Home/Reels/Bag), customer Reels with likes/dislikes/comments/share, creator studio, admin moderation
+- [x] Affiliate credit via unique product links and reels, only on linked products

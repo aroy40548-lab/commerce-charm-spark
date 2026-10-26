@@ -33,11 +33,15 @@ import { Route as AdminDiscountsRouteImport } from './routes/admin.discounts'
 import { Route as AdminGiftCardsRouteImport } from './routes/admin.gift-cards'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
+import { Route as AdminReelsRouteImport } from './routes/admin.reels'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
+import { Route as ReelsIndexRouteImport } from './routes/reels.index'
+import { Route as ReelsIdRouteImport } from './routes/reels.$id'
+import { Route as ReelsStudioRouteImport } from './routes/reels.studio'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin.customers.index'
 import { Route as AdminCustomersIdRouteImport } from './routes/admin.customers.$id'
 import { Route as AdminOrdersIndexRouteImport } from './routes/admin.orders.index'
@@ -170,6 +174,11 @@ const AdminMarketingRoute = AdminMarketingRouteImport.update({
   path: '/marketing',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReelsRoute = AdminReelsRouteImport.update({
+  id: '/reels',
+  path: '/reels',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReviewsRoute = AdminReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
@@ -193,6 +202,21 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
   path: '/product/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReelsIndexRoute = ReelsIndexRouteImport.update({
+  id: '/reels/',
+  path: '/reels/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReelsIdRoute = ReelsIdRouteImport.update({
+  id: '/reels/$id',
+  path: '/reels/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReelsStudioRoute = ReelsStudioRouteImport.update({
+  id: '/reels/studio',
+  path: '/reels/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
@@ -276,12 +300,16 @@ export interface FileRoutesByFullPath {
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/reels/$id': typeof ReelsIdRoute
+  '/reels/studio': typeof ReelsStudioRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/reels/': typeof ReelsIndexRoute
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
@@ -317,12 +345,16 @@ export interface FileRoutesByTo {
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/reels/$id': typeof ReelsIdRoute
+  '/reels/studio': typeof ReelsStudioRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/reels': typeof ReelsIndexRoute
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
@@ -360,12 +392,16 @@ export interface FileRoutesById {
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/product/$handle': typeof ProductHandleRoute
+  '/reels/$id': typeof ReelsIdRoute
+  '/reels/studio': typeof ReelsStudioRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/reels/': typeof ReelsIndexRoute
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
@@ -404,12 +440,16 @@ export interface FileRouteTypes {
     | '/admin/gift-cards'
     | '/admin/inventory'
     | '/admin/marketing'
+    | '/admin/reels'
     | '/admin/reviews'
     | '/admin/settings'
     | '/blog/$slug'
     | '/product/$handle'
+    | '/reels/$id'
+    | '/reels/studio'
     | '/admin/'
     | '/blog/'
+    | '/reels/'
     | '/admin/customers/$id'
     | '/admin/orders/$id'
     | '/admin/orders/new'
@@ -445,12 +485,16 @@ export interface FileRouteTypes {
     | '/admin/gift-cards'
     | '/admin/inventory'
     | '/admin/marketing'
+    | '/admin/reels'
     | '/admin/reviews'
     | '/admin/settings'
     | '/blog/$slug'
     | '/product/$handle'
+    | '/reels/$id'
+    | '/reels/studio'
     | '/admin'
     | '/blog'
+    | '/reels'
     | '/admin/customers/$id'
     | '/admin/orders/$id'
     | '/admin/orders/new'
@@ -487,12 +531,16 @@ export interface FileRouteTypes {
     | '/admin/gift-cards'
     | '/admin/inventory'
     | '/admin/marketing'
+    | '/admin/reels'
     | '/admin/reviews'
     | '/admin/settings'
     | '/blog/$slug'
     | '/product/$handle'
+    | '/reels/$id'
+    | '/reels/studio'
     | '/admin/'
     | '/blog/'
+    | '/reels/'
     | '/admin/customers/$id'
     | '/admin/orders/$id'
     | '/admin/orders/new'
@@ -523,7 +571,10 @@ export interface RootRouteChildren {
   UnboxingRoute: typeof UnboxingRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ProductHandleRoute: typeof ProductHandleRoute
+  ReelsIdRoute: typeof ReelsIdRoute
+  ReelsStudioRoute: typeof ReelsStudioRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  ReelsIndexRoute: typeof ReelsIndexRoute
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
   ApiPublicImgSplatRoute: typeof ApiPublicImgSplatRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -700,6 +751,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMarketingRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reels': {
+      id: '/admin/reels'
+      path: '/reels'
+      fullPath: '/admin/reels'
+      preLoaderRoute: typeof AdminReelsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reviews': {
       id: '/admin/reviews'
       path: '/reviews'
@@ -733,6 +791,27 @@ declare module '@tanstack/react-router' {
       path: '/product/$handle'
       fullPath: '/product/$handle'
       preLoaderRoute: typeof ProductHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reels/': {
+      id: '/reels/'
+      path: '/reels'
+      fullPath: '/reels/'
+      preLoaderRoute: typeof ReelsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reels/$id': {
+      id: '/reels/$id'
+      path: '/reels/$id'
+      fullPath: '/reels/$id'
+      preLoaderRoute: typeof ReelsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reels/studio': {
+      id: '/reels/studio'
+      path: '/reels/studio'
+      fullPath: '/reels/studio'
+      preLoaderRoute: typeof ReelsStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/customers/': {
@@ -825,6 +904,7 @@ interface AdminRouteChildren {
   AdminGiftCardsRoute: typeof AdminGiftCardsRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
+  AdminReelsRoute: typeof AdminReelsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -847,6 +927,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminGiftCardsRoute: AdminGiftCardsRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminMarketingRoute: AdminMarketingRoute,
+  AdminReelsRoute: AdminReelsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -878,7 +959,10 @@ const rootRouteChildren: RootRouteChildren = {
   UnboxingRoute: UnboxingRoute,
   BlogSlugRoute: BlogSlugRoute,
   ProductHandleRoute: ProductHandleRoute,
+  ReelsIdRoute: ReelsIdRoute,
+  ReelsStudioRoute: ReelsStudioRoute,
   BlogIndexRoute: BlogIndexRoute,
+  ReelsIndexRoute: ReelsIndexRoute,
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
   ApiPublicImgSplatRoute: ApiPublicImgSplatRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
