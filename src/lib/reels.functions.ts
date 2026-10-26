@@ -37,6 +37,7 @@ export interface ReelCard {
   username: string | null;
   avatarUrl: string | null;
   following: boolean;
+  saved: boolean;
   likes: number;
   dislikes: number;
   comments: number;
@@ -53,17 +54,19 @@ type ReelRow = {
   reel_products: Array<{ position: number; products: { id: string; handle: string; title: string; price: number; status: string; product_images: Array<{ url: string; position: number }> } | null }>;
 };
 
-async function toCards(sb: Db, rows: ReelRow[], followed: Set<string> = new Set()): Promise<ReelCard[]> {
+async function toCards(sb: Db, rows: ReelRow[], followed: Set<string> = new Set(), me: string | null = null): Promise<ReelCard[]> {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
   const users = rows.map((r) => r.user_id);
-  const [names, votes, comments, affs, signed] = await Promise.all([
+  const [names, votes, comments, affs, signed, saves] = await Promise.all([
     peopleFor(sb, users),
     sb.from("reel_votes").select("reel_id, value").in("reel_id", ids),
     sb.from("reel_comments").select("reel_id").in("reel_id", ids).eq("hidden", false),
     sb.from("affiliates").select("user_id, code").in("user_id", users).eq("status", "active"),
     sb.storage.from("reels").createSignedUrls(rows.map((r) => r.video_path), 60 * 60 * 6),
+    me ? sb.from("saves").select("item_id").eq("user_id", me).eq("kind", "reel").in("item_id", ids) : Promise.resolve({ data: [] as Array<{ item_id: string }> }),
   ]);
+  const savedSet = new Set((saves.data ?? []).map((x) => x.item_id));
   const urlFor = new Map((signed.data ?? []).map((s) => [s.path, s.signedUrl]));
   const code = new Map((affs.data ?? []).map((a) => [a.user_id, a.code]));
   return rows.map((r) => ({
@@ -76,6 +79,7 @@ async function toCards(sb: Db, rows: ReelRow[], followed: Set<string> = new Set(
     username: names.get(r.user_id)?.username ?? null,
     avatarUrl: names.get(r.user_id)?.avatarUrl ?? null,
     following: followed.has(r.user_id),
+    saved: savedSet.has(r.id),
     likes: (votes.data ?? []).filter((v) => v.reel_id === r.id && v.value === 1).length,
     dislikes: (votes.data ?? []).filter((v) => v.reel_id === r.id && v.value === -1).length,
     comments: (comments.data ?? []).filter((c) => c.reel_id === r.id).length,
@@ -119,7 +123,7 @@ export const listReels = createServerFn({ method: "POST" })
     const { data: full } = await sb.from("reels").select(REEL_SELECT).in("id", pick).eq("status", "live");
     const byId = new Map(((full ?? []) as unknown as ReelRow[]).map((r) => [r.id, r]));
     const ordered = pick.flatMap((id) => (byId.has(id) && !blocked.has(byId.get(id)!.user_id) ? [byId.get(id)!] : []));
-    return { reels: await toCards(sb, ordered, followed), more: ranked.length > 8 };
+    return { reels: await toCards(sb, ordered, followed, me), more: ranked.length > 8 };
   });
 
 export const viewReel = createServerFn({ method: "POST" })
