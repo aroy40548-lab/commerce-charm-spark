@@ -343,7 +343,7 @@ export const adminModerateReel = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { requireStaff } = await import("./admin/guard.server");
-    await requireStaff(context, "marketing");
+    await requireStaff(context, "community");
     const sb = await db();
     if (data.action === "hide" || data.action === "show") await sb.from("reels").update({ status: data.action === "hide" ? "hidden" : "live" }).eq("id", data.id);
     if (data.action === "delete") {
@@ -361,7 +361,7 @@ export const adminSetPriority = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ kind: z.enum(["reel", "creator"]), id: z.string().uuid(), value: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(4)]) }).parse(d))
   .handler(async ({ data, context }) => {
     const { requireStaff } = await import("./admin/guard.server");
-    await requireStaff(context, "marketing");
+    await requireStaff(context, "community");
     const sb = await db();
     if (data.kind === "reel") await sb.from("reels").update({ priority: data.value }).eq("id", data.id);
     else await sb.from("profiles").update({ feed_priority: data.value }).eq("id", data.id);
@@ -467,7 +467,7 @@ export const adminBulkReels = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { requireStaff } = await import("./admin/guard.server");
-    await requireStaff(context, "marketing");
+    await requireStaff(context, "community");
     const sb = await db();
     if (data.action === "hide" || data.action === "show") await sb.from("reels").update({ status: data.action === "hide" ? "hidden" : "live" }).in("id", data.ids);
     if (data.action === "priority") await sb.from("reels").update({ priority: data.value ?? 1 }).in("id", data.ids);

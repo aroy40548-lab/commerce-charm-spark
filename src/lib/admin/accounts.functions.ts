@@ -29,7 +29,9 @@ export const adminSetAccountStatus = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ userId: z.string().uuid(), status: STATUS, reason: z.string().trim().max(300) }).parse(d))
   .handler(async ({ data, context }) => {
     const g = await import("./guard.server");
-    const me = await g.requireStaff(context as never, "customers");
+    const me = await g.requireStaff(context as never);
+    const { canRestrictAccounts } = await import("./permissions");
+    if (!canRestrictAccounts(me)) throw new Error("You need the Customers or Social Manager power to change accounts.");
     if (data.status !== "active" && data.reason.length < 3) throw new Error("Please give a reason");
     const { data: owner } = await g.db.from("user_roles").select("id").eq("user_id", data.userId).eq("role", "admin").maybeSingle();
     if (!canRestrict(!!owner, data.status)) throw new Error("Store owners can't be restricted.");
