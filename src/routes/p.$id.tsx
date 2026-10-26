@@ -1,3 +1,4 @@
+import { VerifiedTick } from "@/components/social/Verified";
 import { toThreads } from "@/lib/commentThreads";
 import { useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -66,7 +67,7 @@ function PostPage() {
               <div key={c.id} className={`flex gap-3 ${i ? "ml-11" : ""}`}>
                 <Avatar url={c.avatarUrl} label={c.name} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs"><b>{c.name}</b> <span className="text-muted-foreground">· {timeAgo(c.createdAt)}</span></p>
+                  <p className="flex items-center gap-1 text-xs"><b>{c.name}</b>{c.verified && <VerifiedTick className="h-3 w-3" />} <span className="text-muted-foreground">· {timeAgo(c.createdAt)}</span></p>
                   <p className="break-words text-sm">{c.body}</p>
                   {user && <button onClick={() => { const who = c.username ?? c.name; setReplyTo({ id: t.id, name: who }); setText(i ? `@${who} ` : ""); inputRef.current?.focus(); }} className="mt-0.5 text-xs font-semibold text-muted-foreground">Reply</button>}
                 </div>

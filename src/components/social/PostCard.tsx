@@ -1,3 +1,4 @@
+import { VerifiedTick } from "@/components/social/Verified";
 import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,13 +14,13 @@ function needSignIn(what: string) {
   toast(`Sign in to ${what}`, { action: { label: "Sign in", onClick: () => (window.location.href = "/auth") } });
 }
 
-export function CreatorRow({ username, name, avatarUrl, at }: { username: string | null; name: string; avatarUrl: string | null; at: string }) {
+export function CreatorRow({ username, name, avatarUrl, at, verified = false }: { username: string | null; name: string; avatarUrl: string | null; at: string; verified?: boolean }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2">
       {username ? (
         <Link to="/u/$username" params={{ username }} className="flex min-w-0 items-center gap-2">
-          <span className="rounded-full bg-gradient-to-tr from-accent to-primary p-[2px]"><span className="block rounded-full bg-background p-[2px]"><Avatar url={avatarUrl} label={username} /></span></span>
-          <span className="truncate text-sm font-semibold">{username}</span>
+          <span className={verified ? "zk-verified-ring !p-[2px]" : "rounded-full bg-gradient-to-tr from-accent to-primary p-[2px]"}><span className="block rounded-full bg-background p-[2px]"><Avatar url={avatarUrl} label={username} /></span></span>
+          <span className="truncate text-sm font-semibold">{username}</span>{verified && <VerifiedTick className="h-3.5 w-3.5" />}
         </Link>
       ) : (
         <span className="flex items-center gap-2"><Avatar url={avatarUrl} label={name} /><span className="text-sm font-semibold">{name}</span></span>
