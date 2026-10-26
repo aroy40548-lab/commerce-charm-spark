@@ -952,6 +952,32 @@ export type Database = {
           },
         ]
       }
+      reel_views: {
+        Row: {
+          created_at: string
+          reel_id: string
+          viewer: string
+        }
+        Insert: {
+          created_at?: string
+          reel_id: string
+          viewer: string
+        }
+        Update: {
+          created_at?: string
+          reel_id?: string
+          viewer?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_views_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reel_votes: {
         Row: {
           created_at: string
