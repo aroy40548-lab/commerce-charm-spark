@@ -59,7 +59,7 @@ export function useSocialTheme() {
     return () => window.removeEventListener(THEME_EVENT, read);
   }, []);
   const cycle = () => {
-    const next = ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length];
+    const next = ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length] ?? "navy";
     try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode */ }
     setTheme(next);
     window.dispatchEvent(new Event(THEME_EVENT));
