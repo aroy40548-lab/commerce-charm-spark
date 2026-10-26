@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { Avatar } from "@/components/ReelsFeed";
+import { useMyProfile } from "@/components/ProfileEditor";
 import { Loader2, PlusSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PostCardView, ReelTileView } from "@/components/social/PostCard";
-import { listSocialFeed } from "@/lib/social.functions";
+import { listSocialFeed, listStories } from "@/lib/social.functions";
 
 export const Route = createFileRoute("/social/")({
   head: () => ({
@@ -40,6 +42,7 @@ function Feed() {
   const items = feed.data?.pages.flatMap((p) => p.items) ?? [];
   return (
     <div className="mx-auto w-full max-w-xl pb-6">
+      <Stories />
       {feed.isLoading && <div className="grid min-h-[50vh] place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
       {feed.isError && <p className="p-6 text-center text-sm text-muted-foreground">Couldn't load the feed. Try again.</p>}
       {!feed.isLoading && !items.length && !feed.isError && (
@@ -53,6 +56,33 @@ function Feed() {
       <div ref={end} />
       {feed.isFetchingNextPage && <Loader2 className="mx-auto my-6 h-5 w-5 animate-spin text-muted-foreground" />}
       {!feed.hasNextPage && items.length > 0 && <p className="py-8 text-center text-xs text-muted-foreground">You're all caught up.</p>}
+    </div>
+  );
+}
+
+function Stories() {
+  const { user } = useAuth();
+  const me = useMyProfile();
+  const q = useQuery({ queryKey: ["stories", user?.id], enabled: !!user, queryFn: () => listStories(), staleTime: 5 * 60_000 });
+  const ring = "rounded-full bg-gradient-to-tr from-accent to-primary p-[2px]";
+  return (
+    <div className="flex gap-4 overflow-x-auto border-b border-border/60 px-3 py-3 [scrollbar-width:none]">
+      <Link to="/social/new" className="flex w-16 shrink-0 flex-col items-center gap-1">
+        <span className="relative">
+          <Avatar url={me.data?.avatarUrl ?? null} label={me.data?.username || "+"} size="h-16 w-16 text-lg" />
+          <span className="absolute -bottom-0.5 -right-0.5 grid h-6 w-6 place-items-center rounded-full border-2 border-background bg-accent text-accent-foreground"><PlusSquare className="h-3 w-3" /></span>
+        </span>
+        <span className="w-full truncate text-center text-[11px]">Your post</span>
+      </Link>
+      {q.data?.map((s) => (
+        <Link key={s.username} to={s.kind === "post" ? "/p/$id" : "/reels/$id"} params={{ id: s.id }} className="flex w-16 shrink-0 flex-col items-center gap-1">
+          <span className={ring}><span className="block rounded-full bg-background p-[2px]"><Avatar url={s.avatarUrl} label={s.username} size="h-[56px] w-[56px] text-lg" /></span></span>
+          <span className="w-full truncate text-center text-[11px]">{s.username}</span>
+        </Link>
+      ))}
+      {user && q.data?.length === 0 && (
+        <Link to="/search" className="flex shrink-0 items-center px-2 text-xs text-muted-foreground">Follow people to see their latest posts here →</Link>
+      )}
     </div>
   );
 }

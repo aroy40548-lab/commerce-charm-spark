@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, Search, MessageCircle, Plus, Share2, ThumbsDown, ThumbsUp, Volume2, VolumeX, Loader2, Trash2, Send, Clapperboard } from "lucide-react";
+import { Bookmark, RefreshCw, Search, MessageCircle, Plus, Share2, ThumbsDown, ThumbsUp, Volume2, VolumeX, Loader2, Trash2, Send, Clapperboard } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { formatMoney } from "@/lib/catalog";
 import { reelLink } from "@/lib/reels";
 import { setFollow } from "@/lib/profile.functions";
+import { toggleSave } from "@/lib/social.functions";
 import {
   addReelComment, deleteReelComment, getMyVotes, listReelComments, listReels, viewReel, voteReel, type ReelCard,
 } from "@/lib/reels.functions";
@@ -131,7 +132,7 @@ function ReelItem({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const nearIo = new IntersectionObserver(([e]) => { if (e?.isIntersecting) setNear(true); }, { rootMargin: "100% 0px" });
+    const nearIo = new IntersectionObserver(([e]) => setNear(!!e?.isIntersecting), { rootMargin: "100% 0px" });
     const io = new IntersectionObserver(
       ([e]) => {
         const v = video.current;
@@ -175,6 +176,13 @@ function ReelItem({
     } catch { setVote(vote); setCounts(counts); toast.error("Couldn't save your vote"); }
   };
 
+  const [saved, setSaved] = useState(reel.saved);
+  const toggleSaved = async () => {
+    if (!user) { toast("Sign in to save reels", { action: { label: "Sign in", onClick: () => (window.location.href = "/auth") } }); return; }
+    const next = !saved; setSaved(next);
+    try { await toggleSave({ data: { kind: "reel", id: reel.id, save: next } }); qc.invalidateQueries({ queryKey: ["grid"] }); if (next) toast.success("Saved"); }
+    catch { setSaved(!next); toast.error("Couldn't save"); }
+  };
   const [following, setFollowing] = useState(reel.following);
   const toggleFollow = async () => {
     if (!user) { toast("Sign in to follow creators", { action: { label: "Sign in", onClick: () => (window.location.href = "/auth") } }); return; }
@@ -232,6 +240,9 @@ function ReelItem({
         </button>
         <button onClick={share} aria-label="Share reel" className={action}>
           <Share2 className="h-7 w-7" /> Share
+        </button>
+        <button onClick={toggleSaved} aria-label="Save reel" aria-pressed={saved} className={action}>
+          <Bookmark className={`h-7 w-7 ${saved ? "fill-accent text-accent" : ""}`} /> {saved ? "Saved" : "Save"}
         </button>
       </div>
 

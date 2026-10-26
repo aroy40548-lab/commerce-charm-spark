@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/BrandLogo";
 import { useState } from "react";
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -85,8 +86,8 @@ function Shell({ me }: { me: StaffSession }) {
       <div className="min-w-0 flex-1">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background px-3 lg:hidden">
           <button onClick={() => setOpen(true)} aria-label="Open menu" className="grid h-10 w-10 place-items-center rounded-lg active:bg-muted"><Menu className="h-5 w-5" /></button>
-          <ZankyoStar className="h-4 w-4" />
-          <span className="text-sm font-bold">ZANKYO Admin</span>
+          <BrandLogo className="w-24" />
+          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">Admin</span>
         </header>
         <main className="mx-auto max-w-6xl px-3 py-5 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-8"><Outlet /></main>
       </div>
@@ -100,8 +101,7 @@ function Sidebar({ me, storeUrl, onNavigate }: { me: StaffSession; storeUrl: str
   return (
     <div className="flex h-full flex-col p-3">
       <div className="flex items-center gap-2 py-2 pl-2 pr-10 lg:pr-2">
-        <ZankyoStar className="h-5 w-5" />
-        <span className="zk-display text-lg">ZANKYO</span>
+        <BrandLogo className="w-28" />
         <span className="ml-auto rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">Admin</span>
       </div>
       <nav className="mt-3 flex-1 space-y-0.5 overflow-y-auto">

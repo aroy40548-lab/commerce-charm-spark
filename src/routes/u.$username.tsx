@@ -77,15 +77,16 @@ function ProfilePage() {
       <div className="mt-5 flex gap-2">
         {p.isMe ? (
           <>
-            <button onClick={() => setEditing(true)} className="zk-label inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-foreground text-xs sm:flex-none sm:px-8"><Pencil className="h-4 w-4" /> Edit profile</button>
-            <button onClick={shareProfile} className="zk-label inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-border text-xs sm:flex-none sm:px-8"><Share2 className="h-4 w-4" /> Share profile</button>
+            <button onClick={() => setEditing(true)} className="zk-label rounded-lg inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-foreground text-xs sm:flex-none sm:px-8"><Pencil className="h-4 w-4" /> Edit profile</button>
+            <button onClick={shareProfile} className="zk-label rounded-lg inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-border text-xs sm:flex-none sm:px-8"><Share2 className="h-4 w-4" /> Share profile</button>
           </>
         ) : (
           <>
-            <button onClick={follow} className={`zk-label min-h-10 flex-1 text-xs sm:flex-none sm:px-10 ${p.isFollowing ? "border border-foreground" : "bg-foreground text-background"}`}>
+            <button onClick={follow} className={`zk-label rounded-lg min-h-10 flex-1 text-xs sm:flex-none sm:px-10 ${p.isFollowing ? "border border-foreground" : "bg-foreground text-background"}`}>
               {p.isFollowing ? "Following" : "Follow"}
             </button>
-            <button onClick={message} className="zk-label inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-border text-xs sm:flex-none sm:px-10"><MessageCircle className="h-4 w-4" /> Message</button>
+            <button onClick={message} className="zk-label rounded-lg inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-border text-xs sm:flex-none sm:px-10"><MessageCircle className="h-4 w-4" /> Message</button>
+            <button onClick={shareProfile} aria-label="Share profile" className="grid min-h-10 w-11 place-items-center rounded-lg border border-border"><Share2 className="h-4 w-4" /></button>
           </>
         )}
       </div>

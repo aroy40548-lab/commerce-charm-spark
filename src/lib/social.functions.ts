@@ -21,7 +21,7 @@ export interface PostCard {
 }
 export interface ReelTile {
   id: string; videoUrl: string; caption: string; creatorId: string; username: string | null; name: string; avatarUrl: string | null;
-  likes: number; comments: number; views: number; createdAt: string; products: ProductChip[];
+  likes: number; comments: number; views: number; createdAt: string; products: ProductChip[]; saved: boolean;
 }
 export type FeedItem = { type: "post"; post: PostCard } | { type: "reel"; reel: ReelTile };
 
@@ -71,16 +71,18 @@ async function toPosts(sb: Db, rows: PostRow[], me: string | null): Promise<Post
 
 type ReelRow = { id: string; user_id: string; video_path: string; caption: string; views: number; created_at: string; reel_products: ProdRow[] };
 const REEL_SELECT = `id, user_id, video_path, caption, views, created_at, reel_products(${PROD})`;
-async function toReels(sb: Db, rows: ReelRow[]): Promise<ReelTile[]> {
+async function toReels(sb: Db, rows: ReelRow[], me: string | null = null): Promise<ReelTile[]> {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
   const h = await helpers();
-  const [ppl, urls, votes, comments] = await Promise.all([
+  const [ppl, urls, votes, comments, saves] = await Promise.all([
     h.people(sb, rows.map((r) => r.user_id)),
     h.signed(sb, "reels", rows.map((r) => r.video_path)),
     sb.from("reel_votes").select("reel_id").in("reel_id", ids).eq("value", 1),
     sb.from("reel_comments").select("reel_id").in("reel_id", ids).eq("hidden", false),
+    me ? sb.from("saves").select("item_id").eq("user_id", me).eq("kind", "reel").in("item_id", ids) : Promise.resolve({ data: [] as Array<{ item_id: string }> }),
   ]);
+  const savedSet = new Set((saves.data ?? []).map((x) => x.item_id));
   return rows.map((r) => {
     const p = ppl.get(r.user_id);
     return {
@@ -88,7 +90,7 @@ async function toReels(sb: Db, rows: ReelRow[]): Promise<ReelTile[]> {
       name: p?.name ?? "ZANKYO member", avatarUrl: p?.avatarUrl ?? null, views: r.views, createdAt: r.created_at,
       likes: (votes.data ?? []).filter((v) => v.reel_id === r.id).length,
       comments: (comments.data ?? []).filter((c) => c.reel_id === r.id).length,
-      products: chips(r.reel_products),
+      products: chips(r.reel_products), saved: savedSet.has(r.id),
     };
   });
 }
@@ -127,7 +129,7 @@ export const listSocialFeed = createServerFn({ method: "POST" })
       reelIds.length ? sb.from("reels").select(REEL_SELECT).in("id", reelIds) : Promise.resolve({ data: [] }),
     ]);
     const pc = new Map((await toPosts(sb, (pf.data ?? []) as unknown as PostRow[], me)).map((p) => [p.id, p]));
-    const rc = new Map((await toReels(sb, (rf.data ?? []) as unknown as ReelRow[])).map((r) => [r.id, r]));
+    const rc = new Map((await toReels(sb, (rf.data ?? []) as unknown as ReelRow[], me)).map((r) => [r.id, r]));
     const items = pick.flatMap((k): Array<FeedItem & { key: string }> => {
       const id = k.slice(2);
       if (k.startsWith("p:")) { const post = pc.get(id); return post ? [{ type: "post" as const, post, key: k }] : []; }
@@ -298,6 +300,12 @@ export const profileGrid = createServerFn({ method: "POST" })
       const { data: rows } = await q;
       const urls = await h.signed(sb, "reels", (rows ?? []).map((r) => r.video_path));
       (rows ?? []).forEach((r) => tiles.push({ kind: "reel", id: r.id, thumb: "", videoUrl: urls.get(r.video_path) ?? "", views: r.views }));
+    }
+    if (data.tab === "saved") {
+      const order = new Map([...postIds.map((id) => `post:${id}`), ...reelIds.map((id) => `reel:${id}`)].map((k, i) => [k, i]));
+      const { data: s2 } = await sb.from("saves").select("kind, item_id").eq("user_id", data.userId).order("created_at", { ascending: false }).limit(90);
+      const rank = new Map((s2 ?? []).map((x, i) => [`${x.kind}:${x.item_id}`, i]));
+      tiles.sort((a, b) => (rank.get(`${a.kind}:${a.id}`) ?? order.get(`${a.kind}:${a.id}`) ?? 0) - (rank.get(`${b.kind}:${b.id}`) ?? order.get(`${b.kind}:${b.id}`) ?? 0));
     }
     return { tiles, products: [] as ProductChip[] };
   });
@@ -640,4 +648,31 @@ export const adminBroadcast = createServerFn({ method: "POST" })
     const { data: n, error } = await sb.rpc("broadcast_notification", { _body: data.body });
     if (error) throw new Error("Couldn't send");
     return { sent: n ?? 0 };
+  });
+
+/** Followed people who posted in the last 3 days, newest first. */
+export const listStories = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const sb = await db();
+    const { data: f } = await sb.from("follows").select("following_id").eq("follower_id", context.userId).limit(500);
+    const ids = (f ?? []).map((x) => x.following_id);
+    if (!ids.length) return [];
+    const since = new Date(Date.now() - 3 * 864e5).toISOString();
+    const [p, r, blocked] = await Promise.all([
+      sb.from("posts").select("id, user_id, created_at").in("user_id", ids).eq("status", "live").gte("created_at", since).order("created_at", { ascending: false }).limit(200),
+      sb.from("reels").select("id, user_id, created_at").in("user_id", ids).eq("status", "live").gte("created_at", since).order("created_at", { ascending: false }).limit(200),
+      (await import("./account.server")).hiddenCreators(sb),
+    ]);
+    const latest = new Map<string, { kind: "post" | "reel"; id: string; at: string }>();
+    for (const x of [...(p.data ?? []).map((y) => ({ ...y, kind: "post" as const })), ...(r.data ?? []).map((y) => ({ ...y, kind: "reel" as const }))]) {
+      if (blocked.has(x.user_id)) continue;
+      const cur = latest.get(x.user_id);
+      if (!cur || cur.at < x.created_at) latest.set(x.user_id, { kind: x.kind, id: x.id, at: x.created_at });
+    }
+    const ppl = await (await helpers()).people(sb, [...latest.keys()]);
+    return [...latest.entries()].sort((a, b) => b[1].at.localeCompare(a[1].at)).slice(0, 30).flatMap(([uid, it]) => {
+      const person = ppl.get(uid);
+      return person?.username ? [{ ...it, username: person.username, avatarUrl: person.avatarUrl }] : [];
+    });
   });

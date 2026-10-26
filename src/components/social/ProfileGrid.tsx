@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Bookmark, Clapperboard, Eye, Grid3x3, Layers, Loader2, Tag } from "lucide-react";
@@ -41,7 +41,7 @@ export function ProfileGrid({ userId, isMe }: { userId: string; isMe: boolean })
             </Link>
           ) : (
             <Link key={`r${t.id}`} to="/reels/$id" params={{ id: t.id }} className={`relative overflow-hidden bg-ink ${tab === "reels" ? "aspect-[9/16]" : "aspect-square"}`}>
-              <video src={t.videoUrl} muted playsInline preload="metadata" className="pointer-events-none h-full w-full object-cover" />
+              <LazyVideo src={t.videoUrl ?? ""} />
               <span className="absolute bottom-1 left-1 flex items-center gap-1 text-[11px] font-semibold text-white drop-shadow"><Eye className="h-3 w-3" /> {t.views}</span>
             </Link>
           ))}
@@ -52,4 +52,16 @@ export function ProfileGrid({ userId, isMe }: { userId: string; isMe: boolean })
       )}
     </div>
   );
+}
+
+/** Grid video: only fetches its first frame once it scrolls near the screen. */
+function LazyVideo({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e?.isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: "300px 0px" });
+    io.observe(el); return () => io.disconnect();
+  }, []);
+  return <video ref={ref} src={on ? `${src}#t=0.1` : undefined} muted playsInline preload="metadata" className="pointer-events-none h-full w-full object-cover" />;
 }
