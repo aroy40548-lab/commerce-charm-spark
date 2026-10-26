@@ -14,7 +14,13 @@ import {
 
 export function ReelsFeed({ startId }: { startId?: string | undefined }) {
   const { user } = useAuth();
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
+  const [soundBlocked, setSoundBlocked] = useState(false);
+  const toggleMute = () => {
+    if (soundBlocked) { setSoundBlocked(false); setMuted(false); return; }
+    setMuted((m) => !m);
+  };
+  const onBlocked = () => { setMuted(true); setSoundBlocked(true); };
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const feed = useInfiniteQuery({
     queryKey: ["reels", startId ?? null, user?.id ?? null],
@@ -58,7 +64,8 @@ export function ReelsFeed({ startId }: { startId?: string | undefined }) {
             key={r.id}
             reel={r}
             muted={muted}
-            onToggleMute={() => setMuted((m) => !m)}
+            onToggleMute={toggleMute}
+            onBlocked={onBlocked}
             myVote={votes.data?.[r.id] ?? 0}
             onComments={() => setCommentsFor(r.id)}
             onNear={i >= reels.length - 3 && feed.hasNextPage && !feed.isFetchingNextPage ? () => feed.fetchNextPage() : undefined}
@@ -72,15 +79,20 @@ export function ReelsFeed({ startId }: { startId?: string | undefined }) {
       >
         <Plus className="h-5 w-5" />
       </Link>
+      {soundBlocked && (
+        <button onClick={toggleMute} className="zk-label absolute left-1/2 top-3 z-20 flex min-h-9 -translate-x-1/2 items-center gap-2 bg-black/70 px-4 text-[10px] text-white">
+          <Volume2 className="h-4 w-4" /> Tap for sound
+        </button>
+      )}
       <CommentsSheet reelId={commentsFor} onClose={() => setCommentsFor(null)} />
     </>
   );
 }
 
 function ReelItem({
-  reel, muted, onToggleMute, myVote, onComments, onNear,
+  reel, muted, onToggleMute, onBlocked, myVote, onComments, onNear,
 }: {
-  reel: ReelCard; muted: boolean; onToggleMute: () => void; myVote: number; onComments: () => void; onNear?: (() => void) | undefined;
+  reel: ReelCard; muted: boolean; onToggleMute: () => void; onBlocked: () => void; myVote: number; onComments: () => void; onNear?: (() => void) | undefined;
 }) {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -105,7 +117,9 @@ function ReelItem({
         const v = video.current;
         if (!v) return;
         if (e?.isIntersecting) {
-          void v.play().catch(() => {});
+          void v.play().catch(() => {
+            if (!v.muted) { v.muted = true; onBlocked(); void v.play().catch(() => {}); }
+          });
           if (!viewed.current) { viewed.current = true; void viewReel({ data: { id: reel.id } }).catch(() => {}); }
           onNear?.();
         } else v.pause();

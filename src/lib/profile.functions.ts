@@ -16,7 +16,7 @@ export const getMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = await db();
-    const { data: p } = await sb.from("profiles").select("full_name, first_name, last_name, username, bio, avatar_path").eq("id", context.userId).maybeSingle();
+    const { data: p } = await sb.from("profiles").select("full_name, first_name, last_name, username, bio, avatar_path, account_status, status_reason").eq("id", context.userId).maybeSingle();
     const urls = await (await helpers()).avatarUrls(sb, [p?.avatar_path]);
     const suggested = p?.full_name || [p?.first_name, p?.last_name].filter(Boolean).join(" ");
     return {
@@ -25,6 +25,8 @@ export const getMyProfile = createServerFn({ method: "POST" })
       bio: p?.bio ?? "",
       avatarUrl: p?.avatar_path ? urls.get(p.avatar_path) ?? null : null,
       complete: profileComplete(p),
+      status: p?.account_status ?? "active",
+      statusReason: p?.status_reason ?? null,
     };
   });
 
@@ -61,9 +63,10 @@ export const saveMyProfile = createServerFn({ method: "POST" })
       if (data.avatarPath && !data.avatarPath.startsWith(`avatars/${context.userId}/`)) throw new Error("Bad photo");
       patch.avatar_path = data.avatarPath ?? null;
     }
-    const { error } = await sb.from("profiles").update(patch).eq("id", context.userId);
+    const email = String((context.claims as { email?: string }).email ?? "") || null;
+    const { error } = await sb.from("profiles").upsert({ id: context.userId, email, ...patch }, { onConflict: "id" });
     if (error) throw new Error(error.message.includes("username") ? "That username is taken" : "Couldn't save your profile");
-    return { username: u };
+    return { username: u, fullName: data.fullName, bio: data.bio };
   });
 
 export const createAvatarUpload = createServerFn({ method: "POST" })
@@ -83,9 +86,10 @@ export const getPublicProfile = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const sb = await db();
     const u = normalizeUsername(data.username);
-    const { data: p } = await sb.from("profiles").select("id, full_name, username, bio, avatar_path").ilike("username", u).maybeSingle();
+    const { data: p } = await sb.from("profiles").select("id, full_name, username, bio, avatar_path, account_status").ilike("username", u).maybeSingle();
     if (!p || !p.username) return null;
     const me = await (await helpers()).viewerId(sb);
+    if (p.account_status !== "active" && me !== p.id) return null;
     const [followers, following, isFollowing, reels] = await Promise.all([
       sb.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", p.id),
       sb.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", p.id),
@@ -117,6 +121,7 @@ export const setFollow = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.userId === context.userId) throw new Error("You can't follow yourself");
     const sb = await db();
+    await (await import("./account.server")).assertCanUseReels(sb, context.userId);
     if (data.follow) await sb.from("follows").upsert({ follower_id: context.userId, following_id: data.userId }, { onConflict: "follower_id,following_id" });
     else await sb.from("follows").delete().eq("follower_id", context.userId).eq("following_id", data.userId);
     return { ok: true };

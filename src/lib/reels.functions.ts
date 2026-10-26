@@ -103,7 +103,8 @@ export const listReels = createServerFn({ method: "POST" })
     ]);
     const followed = new Set((follows.data ?? []).map((f) => f.following_id));
     const seen = new Set(data.seen);
-    const rows = (pool ?? []).filter((r) => !seen.has(r.id) && r.id !== data.startId);
+    const blocked = await (await import("./account.server")).hiddenCreators(sb);
+    const rows = (pool ?? []).filter((r) => !seen.has(r.id) && r.id !== data.startId && !blocked.has(r.user_id));
     const { data: creators } = await sb.from("profiles").select("id, feed_priority").in("id", [...new Set(rows.map((r) => r.user_id))].concat("00000000-0000-0000-0000-000000000000"));
     const cp = new Map((creators ?? []).map((c) => [c.id, c.feed_priority]));
     const now = Date.now();
@@ -117,7 +118,7 @@ export const listReels = createServerFn({ method: "POST" })
     if (!pick.length) return { reels: [] as ReelCard[], more: false };
     const { data: full } = await sb.from("reels").select(REEL_SELECT).in("id", pick).eq("status", "live");
     const byId = new Map(((full ?? []) as unknown as ReelRow[]).map((r) => [r.id, r]));
-    const ordered = pick.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
+    const ordered = pick.flatMap((id) => (byId.has(id) && !blocked.has(byId.get(id)!.user_id) ? [byId.get(id)!] : []));
     return { reels: await toCards(sb, ordered, followed), more: ranked.length > 8 };
   });
 
@@ -145,6 +146,7 @@ export const voteReel = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid(), value: z.union([z.literal(1), z.literal(-1), z.literal(0)]) }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = await db();
+    await (await import("./account.server")).assertCanUseReels(sb, context.userId);
     if (data.value === 0) {
       await sb.from("reel_votes").delete().eq("reel_id", data.id).eq("user_id", context.userId);
     } else {
@@ -161,9 +163,10 @@ export const listReelComments = createServerFn({ method: "GET" })
     const sb = await db();
     const { data: rows } = await sb.from("reel_comments").select("id, user_id, body, created_at")
       .eq("reel_id", data.id).eq("hidden", false).order("created_at", { ascending: false }).limit(200);
+    const blocked = await (await import("./account.server")).hiddenCreators(sb);
     const names = await namesFor(sb, (rows ?? []).map((r) => r.user_id));
     // user_id is only returned so the author can see a delete button; never an email.
-    return (rows ?? []).map((r) => ({ id: r.id, userId: r.user_id, name: names.get(r.user_id) ?? "ZANKYO member", body: r.body, createdAt: r.created_at }));
+    return (rows ?? []).filter((r) => !blocked.has(r.user_id)).map((r) => ({ id: r.id, userId: r.user_id, name: names.get(r.user_id) ?? "ZANKYO member", body: r.body, createdAt: r.created_at }));
   });
 
 export const addReelComment = createServerFn({ method: "POST" })
@@ -171,6 +174,7 @@ export const addReelComment = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(500) }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = await db();
+    await (await import("./account.server")).assertCanUseReels(sb, context.userId);
     const { data: reel } = await sb.from("reels").select("id").eq("id", data.id).eq("status", "live").maybeSingle();
     if (!reel) throw new Error("This reel isn't available");
     const { error } = await sb.from("reel_comments").insert({ reel_id: data.id, user_id: context.userId, body: data.body });
@@ -213,6 +217,7 @@ export const createReelUpload = createServerFn({ method: "POST" })
   .inputValidator((d) => meta.parse(d))
   .handler(async ({ data, context }) => {
     const sb = await db();
+    await (await import("./account.server")).assertCanUseReels(sb, context.userId);
     const ext = data.type === "video/webm" ? "webm" : data.type === "video/quicktime" ? "mov" : "mp4";
     const path = `${context.userId}/${crypto.randomUUID()}.${ext}`;
     const { data: up, error } = await sb.storage.from("reels").createSignedUploadUrl(path);
@@ -232,6 +237,7 @@ export const publishReel = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const sb = await db();
+    await (await import("./account.server")).assertCanUseReels(sb, context.userId);
     if (!data.path.startsWith(`${context.userId}/`) || data.path.includes("..")) throw new Error("Upload not found");
     const [folder, file] = data.path.split("/");
     const { data: files } = await sb.storage.from("reels").list(folder, { search: file ?? "" });

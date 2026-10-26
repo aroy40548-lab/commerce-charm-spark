@@ -21,3 +21,4 @@
 - Customers must set a full name + unique username (popup gate); reels show @username, comments show full name; follows table; feed is a weighted shuffle (followed x3, admin push Boost x2/Top x4) via `feedWeight`.
 - Customer Reels (≤59s) live in the private `reels` bucket; uploads go browser → signed upload URL, playback via signed URLs; public names come from `profiles` via `publicName`, never email. Why: big videos shouldn't pass through server functions, and privacy.
 - Phones get a bottom tab bar (Home/Reels/Bag) from `__root.tsx`; the bag opens via a window event so one CartDrawer stays the source of truth.
+- Account restrictions (profiles.account_status: hidden/reel_suspended/banned) are enforced only on the server via src/lib/account.server.ts; rules live in src/lib/accountStatus.ts. Why: client checks can be bypassed.

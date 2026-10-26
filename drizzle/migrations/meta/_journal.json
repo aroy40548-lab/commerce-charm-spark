@@ -71,6 +71,13 @@
       "when": 1793045498736,
       "tag": "0009_profiles_follows_feed_priority",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793046393722,
+      "tag": "0010_account_status",
+      "breakpoints": true
     }
   ]
 }

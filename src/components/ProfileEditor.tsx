@@ -14,6 +14,20 @@ export function useMyProfile() {
   return useQuery({ queryKey: ["my-profile", user?.id], enabled: !!user, queryFn: () => getMyProfile(), staleTime: 60_000 });
 }
 
+export function AccountNotice() {
+  const me = useMyProfile();
+  const s = me.data?.status;
+  if (!s || s === "active") return null;
+  const text = s === "banned" ? "Your account is banned from placing orders and from reels." : s === "reel_suspended" ? "Your account is suspended from reels: you can't post, like, comment or follow." : "Your reels and profile are hidden from other shoppers.";
+  return (
+    <div role="alert" className="mb-5 border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+      <p className="font-semibold">{text}</p>
+      {me.data?.statusReason && <p className="mt-1">Reason: {me.data.statusReason}</p>}
+      <p className="mt-1">Questions? Email help@zankyo.in.</p>
+    </div>
+  );
+}
+
 /** Name, username, bio and photo form. `required` hides the cancel option. */
 export function ProfileForm({ required, onSaved, onCancel }: { required?: boolean; onSaved?: (username: string) => void; onCancel?: () => void }) {
   const me = useMyProfile();
@@ -62,7 +76,8 @@ export function ProfileForm({ required, onSaved, onCancel }: { required?: boolea
     setBusy(true);
     try {
       const r = await saveMyProfile({ data: { fullName: name, username, bio, ...(avatar ? { avatarPath: avatar.path } : {}) } });
-      await qc.invalidateQueries({ queryKey: ["my-profile"] });
+      qc.setQueriesData({ queryKey: ["my-profile"] }, (old: unknown) => (old && typeof old === "object" ? { ...old, fullName: r.fullName, username: r.username, bio: r.bio, complete: true } : old));
+      void qc.invalidateQueries({ queryKey: ["my-profile"] });
       qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Profile saved");
       onSaved?.(r.username);

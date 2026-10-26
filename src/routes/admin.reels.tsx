@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Loader2, Trash2 } from "lucide-react";
@@ -42,7 +43,7 @@ function AdminReels() {
             <div className="flex gap-4">
               <video src={r.videoUrl} controls muted playsInline preload="metadata" className="aspect-[9/16] w-32 shrink-0 rounded bg-black object-cover" />
               <div className="min-w-0 flex-1 text-sm">
-                <p className="font-semibold">{r.creator} {r.status === "hidden" && <span className="ml-2 rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive">Hidden</span>}</p>
+                <p className="font-semibold">{r.creator} <Link to="/admin/customers/$id" params={{ id: r.creatorId }} className="ml-1 text-xs font-normal underline">Account access</Link> {r.status === "hidden" && <span className="ml-2 rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive">Hidden</span>}</p>
                 <p className="mt-1">{r.caption}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{r.views} views · {r.likes} likes · {r.dislikes} dislikes · {new Date(r.createdAt).toLocaleString("en-IN")}</p>
                 <p className="mt-1 text-xs text-muted-foreground">Products: {r.products.map((p) => p.title).join(", ") || "none"}</p>
