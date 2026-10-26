@@ -50,6 +50,8 @@ export const placeOrder = createServerFn({ method: "POST" })
       address: addressSchema,
       note: z.string().max(500).optional().nullable(),
       affiliateCode: z.string().max(40).optional().nullable(),
+      affiliateProducts: z.array(z.string().max(255)).max(20).default([]),
+      affiliateReel: z.string().uuid().optional().nullable(),
       saveAddress: z.boolean().default(true),
     }).parse(d),
   )
@@ -65,9 +67,27 @@ export const placeOrder = createServerFn({ method: "POST" })
     const email = String((context.claims as { email?: string }).email ?? "");
 
     let affiliateId: string | null = null;
+    let affiliateProductIds: string[] = [];
+    let reelId: string | null = null;
     if (data.affiliateCode) {
       const { data: a } = await db.from("affiliates").select("id, user_id").eq("code", data.affiliateCode.toUpperCase()).eq("status", "active").maybeSingle();
-      if (a && a.user_id !== context.userId) affiliateId = a.id;
+      if (a && a.user_id !== context.userId) {
+        affiliateId = a.id;
+        // Commission only counts the products this affiliate's link or reel pointed to.
+        const ids = new Set<string>();
+        if (data.affiliateProducts.length) {
+          const { data: ps } = await db.from("products").select("id").in("handle", data.affiliateProducts);
+          ps?.forEach((p) => ids.add(p.id));
+        }
+        if (data.affiliateReel) {
+          const { data: reel } = await db.from("reels").select("id, user_id, reel_products(product_id)").eq("id", data.affiliateReel).maybeSingle();
+          if (reel && reel.user_id === a.user_id) {
+            reelId = reel.id;
+            reel.reel_products.forEach((rp) => ids.add(rp.product_id));
+          }
+        }
+        affiliateProductIds = [...ids];
+      }
     }
 
     const { data: order, error } = await db.from("orders").insert({
@@ -77,7 +97,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       gift_card_code: q.giftCardCode, gift_card_amount: q.giftCardAmount,
       total: q.total, discount_code: q.discountCode, shipping_address: data.address,
       shipping_method: q.shippingMethod, payment_method: q.total === 0 ? "gift_card" : data.payment,
-      affiliate_id: affiliateId, customer_note: data.note || null,
+      affiliate_id: affiliateId, affiliate_product_ids: affiliateProductIds, reel_id: reelId, customer_note: data.note || null,
     }).select("id, order_number").single();
     if (error) throw new Error(error.message);
     const { error: ie } = await db.from("order_items").insert(q.items.map((i) => ({ ...i, order_id: order.id })));
