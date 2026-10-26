@@ -47,7 +47,7 @@ function AffiliatePage() {
         ].map(([Icon, t, d]) => {
           const I = Icon as typeof Link2;
           return (
-            <div key={t as string} className="rounded-2xl bg-muted/60 p-4">
+            <div key={t as string} className="border border-border bg-muted/40 p-4">
               <I className="h-5 w-5" />
               <p className="mt-2 text-sm font-semibold">{t as string}</p>
               <p className="text-xs text-muted-foreground">{d as string}</p>
@@ -154,7 +154,7 @@ function Dashboard({ rate }: { rate: number }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-muted/60 p-3">
+    <div className="border border-border bg-muted/40 p-3">
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-1 text-lg font-bold">{value}</p>
     </div>
