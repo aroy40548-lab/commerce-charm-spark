@@ -169,23 +169,29 @@ export const listReelComments = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const sb = await db();
-    const { data: rows } = await sb.from("reel_comments").select("id, user_id, body, created_at")
+    const { data: rows } = await sb.from("reel_comments").select("id, user_id, body, created_at, parent_id")
       .eq("reel_id", data.id).eq("hidden", false).order("created_at", { ascending: false }).limit(200);
     const blocked = await (await import("./account.server")).hiddenCreators(sb);
     const names = await namesFor(sb, (rows ?? []).map((r) => r.user_id));
     // user_id is only returned so the author can see a delete button; never an email.
-    return (rows ?? []).filter((r) => !blocked.has(r.user_id)).map((r) => ({ id: r.id, userId: r.user_id, name: names.get(r.user_id) ?? "ZANKYO member", body: r.body, createdAt: r.created_at }));
+    return (rows ?? []).filter((r) => !blocked.has(r.user_id)).map((r) => ({ id: r.id, userId: r.user_id, name: names.get(r.user_id) ?? "ZANKYO member", body: r.body, createdAt: r.created_at, parentId: r.parent_id as string | null }));
   });
 
 export const addReelComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(500) }).parse(d))
+  .inputValidator((d) => z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(500), parentId: z.string().uuid().nullish() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = await db();
+    let parent_id: string | null = null;
+    if (data.parentId) {
+      const { data: p } = await sb.from("reel_comments").select("id, parent_id").eq("id", data.parentId).eq("reel_id", data.id).maybeSingle();
+      if (!p) throw new Error("That comment was removed");
+      parent_id = (p.parent_id as string | null) ?? p.id;
+    }
     await (await import("./account.server")).assertCanUseReels(sb, context.userId);
     const { data: reel } = await sb.from("reels").select("id").eq("id", data.id).eq("status", "live").maybeSingle();
     if (!reel) throw new Error("This reel isn't available");
-    const { error } = await sb.from("reel_comments").insert({ reel_id: data.id, user_id: context.userId, body: data.body });
+    const { error } = await sb.from("reel_comments").insert({ reel_id: data.id, user_id: context.userId, body: data.body, parent_id });
     if (error) throw new Error("Couldn't post your comment");
     return { ok: true };
   });

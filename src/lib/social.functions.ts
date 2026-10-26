@@ -233,19 +233,25 @@ export const listPostComments = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const sb = await db();
-    const { data: rows } = await sb.from("post_comments").select("id, user_id, body, created_at").eq("post_id", data.id).eq("hidden", false).order("created_at").limit(300);
+    const { data: rows } = await sb.from("post_comments").select("id, user_id, body, created_at, parent_id").eq("post_id", data.id).eq("hidden", false).order("created_at").limit(300);
     const blocked = await (await import("./account.server")).hiddenCreators(sb);
     const ppl = await (await helpers()).people(sb, (rows ?? []).map((r) => r.user_id));
-    return (rows ?? []).filter((r) => !blocked.has(r.user_id)).map((r) => ({ id: r.id, userId: r.user_id, body: r.body, createdAt: r.created_at, name: ppl.get(r.user_id)?.name ?? "ZANKYO member", username: ppl.get(r.user_id)?.username ?? null, avatarUrl: ppl.get(r.user_id)?.avatarUrl ?? null }));
+    return (rows ?? []).filter((r) => !blocked.has(r.user_id)).map((r) => ({ id: r.id, userId: r.user_id, body: r.body, createdAt: r.created_at, parentId: r.parent_id as string | null, name: ppl.get(r.user_id)?.name ?? "ZANKYO member", username: ppl.get(r.user_id)?.username ?? null, avatarUrl: ppl.get(r.user_id)?.avatarUrl ?? null }));
   });
 
 export const addPostComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(500) }).parse(d))
+  .inputValidator((d) => z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(500), parentId: z.string().uuid().nullish() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = await db();
     await assertActive(sb, context.userId);
-    const { error } = await sb.from("post_comments").insert({ post_id: data.id, user_id: context.userId, body: data.body });
+    let parent_id: string | null = null;
+    if (data.parentId) {
+      const { data: p } = await sb.from("post_comments").select("id, parent_id").eq("id", data.parentId).eq("post_id", data.id).maybeSingle();
+      if (!p) throw new Error("That comment was removed");
+      parent_id = (p.parent_id as string | null) ?? p.id;
+    }
+    const { error } = await sb.from("post_comments").insert({ post_id: data.id, user_id: context.userId, body: data.body, parent_id });
     if (error) throw new Error("Couldn't post your comment");
     return { ok: true };
   });
