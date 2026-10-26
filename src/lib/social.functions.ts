@@ -20,7 +20,7 @@ export interface PostCard {
   likes: number; liked: boolean; saved: boolean; comments: number; products: ProductChip[];
 }
 export interface ReelTile {
-  id: string; videoUrl: string; caption: string; creatorId: string; username: string | null; name: string; avatarUrl: string | null;
+  id: string; videoUrl: string; caption: string; creatorId: string; username: string | null; name: string; avatarUrl: string | null; verified: boolean;
   likes: number; comments: number; views: number; createdAt: string; products: ProductChip[]; saved: boolean;
 }
 export type FeedItem = { type: "post"; post: PostCard } | { type: "reel"; reel: ReelTile };
@@ -87,7 +87,7 @@ async function toReels(sb: Db, rows: ReelRow[], me: string | null = null): Promi
     const p = ppl.get(r.user_id);
     return {
       id: r.id, videoUrl: urls.get(r.video_path) ?? "", caption: r.caption, creatorId: r.user_id, username: p?.username ?? null,
-      name: p?.name ?? "ZANKYO member", avatarUrl: p?.avatarUrl ?? null, views: r.views, createdAt: r.created_at,
+      name: p?.name ?? "ZANKYO member", avatarUrl: p?.avatarUrl ?? null, verified: !!p?.verified, views: r.views, createdAt: r.created_at,
       likes: (votes.data ?? []).filter((v) => v.reel_id === r.id).length,
       comments: (comments.data ?? []).filter((c) => c.reel_id === r.id).length,
       products: chips(r.reel_products), saved: savedSet.has(r.id),

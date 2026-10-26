@@ -85,7 +85,7 @@ export const PostCardView = memo(function PostCardView({ post, eager = false }: 
 
   return (
     <article className="zk-feed-card pb-5">
-      <CreatorRow username={post.username} name={post.name} avatarUrl={post.avatarUrl} at={post.createdAt} />
+      <CreatorRow username={post.username} name={post.name} avatarUrl={post.avatarUrl} at={post.createdAt} verified={post.verified} />
       <div className="relative bg-muted" style={{ aspectRatio: `1 / ${ratio}` }} onClick={tap}>
         <div
           ref={strip}
@@ -150,7 +150,7 @@ export const ReelTileView = memo(function ReelTileView({ reel }: { reel: ReelTil
   }, [inView, near]);
   return (
     <article ref={box} className="border-b border-border pb-3">
-      <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} />
+      <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} verified={reel.verified} />
       <Link to="/reels/$id" params={{ id: reel.id }} className="relative block aspect-[4/5] overflow-hidden bg-ink">
         <video ref={vid} src={near ? reel.videoUrl : undefined} muted autoPlay={inView} loop playsInline preload={near ? "auto" : "none"} onLoadedData={(e) => { if (inView) void e.currentTarget.play().catch(() => {}); }} className="h-full w-full object-cover" />
         <span className="zk-label absolute right-2 top-2 flex items-center gap-1 bg-ink/70 px-2 py-1 text-[9px] text-white"><Clapperboard className="h-3 w-3" /> Reel</span>
