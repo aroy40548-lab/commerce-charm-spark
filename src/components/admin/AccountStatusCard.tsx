@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { ACCOUNT_STATUSES, type AccountStatus } from "@/lib/accountStatus";
 import { adminGetAccountStatus, adminSetAccountStatus } from "@/lib/admin/accounts.functions";
-import { Card, Field, btn, dateTime, inputCls, useAction, useCanEdit } from "@/components/admin/ui";
+import { Card, Field, btn, dateTime, inputCls, useAction, useCanEdit, useCanRestrictAccounts } from "@/components/admin/ui";
 
 export function AccountStatusCard({ userId }: { userId: string }) {
   const q = useQuery({ queryKey: ["admin-account-status", userId], queryFn: () => adminGetAccountStatus({ data: { userId } }) });
-  const canEdit = useCanEdit("customers");
+  const canEdit = useCanRestrictAccounts();
   const { busy, run } = useAction();
   const [status, setStatus] = useState<AccountStatus>("active");
   const [reason, setReason] = useState("");

@@ -22,6 +22,11 @@ export function useCanEdit(section: Section) {
   return canEdit(useContext(StaffCtx), section);
 }
 
+export function useCanRestrictAccounts() {
+  const me = useContext(StaffCtx);
+  return canEdit(me, "customers") || canEdit(me, "community");
+}
+
 // ---------- Layout ----------
 export function PageHeader({ title, back, action, subtitle }: { title: string; back?: string; action?: ReactNode; subtitle?: ReactNode }) {
   return (
