@@ -73,7 +73,7 @@ export function Overview({ d, onOpen }: { d: Dash; onOpen: (id: string) => void 
 
 // ---------- Reels grid ----------
 export function ReelsGrid({ d, onOpen }: { d: Dash; onOpen: (id: string) => void }) {
-  const canEdit = useCanEdit("marketing");
+  const canEdit = useCanEdit("community");
   const { busy, run } = useAction();
   const [filter, setFilter] = useState<"all" | "live" | "hidden" | "boosted">("all");
   const [q, setQ] = useState("");
@@ -148,7 +148,7 @@ export function ReelsGrid({ d, onOpen }: { d: Dash; onOpen: (id: string) => void
 // ---------- Reel side panel ----------
 export function ReelPanel({ d, id, onClose }: { d: Dash; id: string | null; onClose: () => void }) {
   const r = d.reels.find((x) => x.id === id) ?? null;
-  const canEdit = useCanEdit("marketing");
+  const canEdit = useCanEdit("community");
   const { busy, run } = useAction();
   const comments = d.comments.filter((c) => c.reelId === id);
   const mod = (action: "hide" | "show" | "delete" | "hideComment" | "showComment" | "deleteComment", target: string) => {
@@ -220,7 +220,7 @@ export function ReelPanel({ d, id, onClose }: { d: Dash; id: string | null; onCl
 
 // ---------- Creators ----------
 export function Creators({ d }: { d: Dash }) {
-  const canEdit = useCanEdit("marketing");
+  const canEdit = useCanEdit("community");
   const { run } = useAction();
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"views" | "followers" | "orders" | "earnings" | "reels">("views");
@@ -272,7 +272,7 @@ export function Creators({ d }: { d: Dash }) {
 
 // ---------- Comments ----------
 export function Comments({ d, onOpen }: { d: Dash; onOpen: (id: string) => void }) {
-  const canEdit = useCanEdit("marketing");
+  const canEdit = useCanEdit("community");
   const { busy, run } = useAction();
   const [q, setQ] = useState("");
   const [onlyHidden, setOnlyHidden] = useState(false);
