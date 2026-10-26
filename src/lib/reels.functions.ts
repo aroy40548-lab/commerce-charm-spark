@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { MAX_REEL_SECONDS, MAX_REEL_BYTES, REEL_TYPES, publicName } from "@/lib/reels";
+import { MAX_REEL_SECONDS, MAX_REEL_BYTES, REEL_TYPES, publicName, feedWeight } from "@/lib/reels";
+import { avatarUrls, viewerId } from "@/lib/profile.functions";
 
 async function db() {
   return (await import("@/integrations/supabase/client.server")).supabaseAdmin;
@@ -9,10 +10,21 @@ async function db() {
 type Db = Awaited<ReturnType<typeof db>>;
 
 async function namesFor(sb: Db, ids: string[]) {
-  const map = new Map<string, string>();
+  return new Map([...(await peopleFor(sb, ids))].map(([k, v]) => [k, v.name]));
+}
+
+type Person = { name: string; username: string | null; avatarUrl: string | null; priority: number };
+async function peopleFor(sb: Db, ids: string[]) {
+  const map = new Map<string, Person>();
   if (!ids.length) return map;
-  const { data } = await sb.from("profiles").select("id, first_name, last_name, username").in("id", [...new Set(ids)]);
-  data?.forEach((p) => map.set(p.id, publicName(p)));
+  const { data } = await sb.from("profiles").select("id, full_name, first_name, last_name, username, avatar_path, feed_priority").in("id", [...new Set(ids)]);
+  const urls = await avatarUrls(sb, (data ?? []).map((p) => p.avatar_path));
+  data?.forEach((p) => map.set(p.id, {
+    name: p.full_name?.trim() || publicName(p),
+    username: p.username && !p.username.includes("@") ? p.username : null,
+    avatarUrl: p.avatar_path ? urls.get(p.avatar_path) ?? null : null,
+    priority: p.feed_priority,
+  }));
   return map;
 }
 
@@ -22,6 +34,10 @@ export interface ReelCard {
   caption: string;
   creator: string;
   creatorCode: string | null;
+  creatorId: string;
+  username: string | null;
+  avatarUrl: string | null;
+  following: boolean;
   likes: number;
   dislikes: number;
   comments: number;
@@ -38,12 +54,12 @@ type ReelRow = {
   reel_products: Array<{ position: number; products: { id: string; handle: string; title: string; price: number; status: string; product_images: Array<{ url: string; position: number }> } | null }>;
 };
 
-async function toCards(sb: Db, rows: ReelRow[]): Promise<ReelCard[]> {
+async function toCards(sb: Db, rows: ReelRow[], followed: Set<string> = new Set()): Promise<ReelCard[]> {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
   const users = rows.map((r) => r.user_id);
   const [names, votes, comments, affs, signed] = await Promise.all([
-    namesFor(sb, users),
+    peopleFor(sb, users),
     sb.from("reel_votes").select("reel_id, value").in("reel_id", ids),
     sb.from("reel_comments").select("reel_id").in("reel_id", ids).eq("hidden", false),
     sb.from("affiliates").select("user_id, code").in("user_id", users).eq("status", "active"),
@@ -55,8 +71,12 @@ async function toCards(sb: Db, rows: ReelRow[]): Promise<ReelCard[]> {
     id: r.id,
     videoUrl: urlFor.get(r.video_path) ?? "",
     caption: r.caption,
-    creator: names.get(r.user_id) ?? "ZANKYO member",
+    creator: names.get(r.user_id)?.username ?? names.get(r.user_id)?.name ?? "ZANKYO member",
     creatorCode: code.get(r.user_id) ?? null,
+    creatorId: r.user_id,
+    username: names.get(r.user_id)?.username ?? null,
+    avatarUrl: names.get(r.user_id)?.avatarUrl ?? null,
+    following: followed.has(r.user_id),
     likes: (votes.data ?? []).filter((v) => v.reel_id === r.id && v.value === 1).length,
     dislikes: (votes.data ?? []).filter((v) => v.reel_id === r.id && v.value === -1).length,
     comments: (comments.data ?? []).filter((c) => c.reel_id === r.id).length,
@@ -72,24 +92,34 @@ async function toCards(sb: Db, rows: ReelRow[]): Promise<ReelCard[]> {
   }));
 }
 
-// ---------- Public feed ----------
-export const listReels = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ before: z.string().max(40).optional().nullable(), startId: z.string().uuid().optional().nullable() }).parse(d ?? {}))
+// ---------- Public feed (weighted shuffle) ----------
+export const listReels = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ seen: z.array(z.string().uuid()).max(400).default([]), startId: z.string().uuid().optional().nullable() }).parse(d ?? {}))
   .handler(async ({ data }) => {
     const sb = await db();
-    let q = sb.from("reels").select(REEL_SELECT).eq("status", "live").order("created_at", { ascending: false }).limit(8);
-    if (data.before) q = q.lt("created_at", data.before);
-    if (data.startId) q = q.neq("id", data.startId);
-    const { data: rows, error } = await q;
-    if (error) throw new Error(error.message);
-    let all = (rows ?? []) as unknown as ReelRow[];
-    if (data.startId && !data.before) {
-      const { data: first } = await sb.from("reels").select(REEL_SELECT).eq("id", data.startId).eq("status", "live").maybeSingle();
-      if (first) all = [first as unknown as ReelRow, ...all];
-    }
-    const cards = await toCards(sb, all);
-    const last = (rows ?? []).at(-1) as { created_at: string } | undefined;
-    return { reels: cards, next: (rows ?? []).length === 8 && last ? last.created_at : null };
+    const me = await viewerId(sb);
+    const [{ data: pool }, follows] = await Promise.all([
+      sb.from("reels").select("id, user_id, priority, created_at").eq("status", "live").order("created_at", { ascending: false }).limit(500),
+      me ? sb.from("follows").select("following_id").eq("follower_id", me) : Promise.resolve({ data: [] as Array<{ following_id: string }> }),
+    ]);
+    const followed = new Set((follows.data ?? []).map((f) => f.following_id));
+    const seen = new Set(data.seen);
+    const rows = (pool ?? []).filter((r) => !seen.has(r.id) && r.id !== data.startId);
+    const { data: creators } = await sb.from("profiles").select("id, feed_priority").in("id", [...new Set(rows.map((r) => r.user_id))].concat("00000000-0000-0000-0000-000000000000"));
+    const cp = new Map((creators ?? []).map((c) => [c.id, c.feed_priority]));
+    const now = Date.now();
+    const ranked = rows
+      .map((r) => ({ id: r.id, w: feedWeight({ followed: followed.has(r.user_id), reelPriority: r.priority, creatorPriority: cp.get(r.user_id) ?? 1, ageHours: (now - Date.parse(r.created_at)) / 36e5 }) }))
+      .filter((r) => r.w > 0)
+      .map((r) => ({ id: r.id, k: Math.pow(Math.random(), 1 / r.w) }))
+      .sort((a, b) => b.k - a.k);
+    const pick = ranked.slice(0, 8).map((r) => r.id);
+    if (data.startId && !data.seen.length) pick.unshift(data.startId);
+    if (!pick.length) return { reels: [] as ReelCard[], more: false };
+    const { data: full } = await sb.from("reels").select(REEL_SELECT).in("id", pick).eq("status", "live");
+    const byId = new Map(((full ?? []) as unknown as ReelRow[]).map((r) => [r.id, r]));
+    const ordered = pick.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
+    return { reels: await toCards(sb, ordered, followed), more: ranked.length > 8 };
   });
 
 export const viewReel = createServerFn({ method: "POST" })
@@ -273,15 +303,19 @@ export const adminListReels = createServerFn({ method: "POST" })
     const { requireStaff } = await import("./admin/guard.server");
     await requireStaff(context);
     const sb = await db();
-    const { data: rows } = await sb.from("reels").select(REEL_SELECT + ", status").order("created_at", { ascending: false }).limit(200);
+    const { data: rows } = await sb.from("reels").select(REEL_SELECT + ", status, priority").order("created_at", { ascending: false }).limit(200);
     const list = (rows ?? []) as unknown as Array<ReelRow & { status: string }>;
     const cards = await toCards(sb, list);
     const { data: comments } = await sb.from("reel_comments").select("id, reel_id, user_id, body, hidden, created_at")
       .in("reel_id", list.map((r) => r.id).concat("00000000-0000-0000-0000-000000000000")).order("created_at", { ascending: false }).limit(500);
     const names = await namesFor(sb, (comments ?? []).map((c) => c.user_id));
+    const { data: cps } = await sb.from("profiles").select("id, feed_priority").in("id", cards.map((c) => c.creatorId).concat("00000000-0000-0000-0000-000000000000"));
+    const creatorPrio = new Map((cps ?? []).map((p) => [p.id, p.feed_priority]));
     return cards.map((c, i) => ({
       ...c,
       status: list[i]!.status,
+      priority: (list[i] as unknown as { priority: number }).priority,
+      creatorPriority: creatorPrio.get(c.creatorId) ?? 1,
       commentList: (comments ?? []).filter((x) => x.reel_id === c.id).map((x) => ({ id: x.id, name: names.get(x.user_id) ?? "Member", body: x.body, hidden: x.hidden, createdAt: x.created_at })),
     }));
   });
@@ -306,5 +340,17 @@ export const adminModerateReel = createServerFn({ method: "POST" })
     }
     if (data.action === "hideComment" || data.action === "showComment") await sb.from("reel_comments").update({ hidden: data.action === "hideComment" }).eq("id", data.id);
     if (data.action === "deleteComment") await sb.from("reel_comments").delete().eq("id", data.id);
+    return { ok: true };
+  });
+
+export const adminSetPriority = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ kind: z.enum(["reel", "creator"]), id: z.string().uuid(), value: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(4)]) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { requireStaff } = await import("./admin/guard.server");
+    await requireStaff(context, "marketing");
+    const sb = await db();
+    if (data.kind === "reel") await sb.from("reels").update({ priority: data.value }).eq("id", data.id);
+    else await sb.from("profiles").update({ feed_priority: data.value }).eq("id", data.id);
     return { ok: true };
   });
