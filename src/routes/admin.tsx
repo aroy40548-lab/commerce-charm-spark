@@ -1,10 +1,10 @@
 import { BrandLogo } from "@/components/BrandLogo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   BarChart3, Clapperboard, ExternalLink, FileText, Home, Inbox, Loader2, LogOut, Megaphone, Menu, MessageSquareQuote, Package,
-  Percent, Settings, ShoppingCart, Users,
+  Moon, Percent, Settings, ShoppingCart, Sun, Users,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { SignInPanel } from "@/components/SignInPanel";
@@ -68,19 +68,42 @@ function AdminLayout() {
   );
 }
 
+const THEME_KEY = "zankyo-admin-theme";
+/** Admin theme: dark by default, remembered per device. Admin is client-only, so storage is safe to read here. */
+function useAdminTheme() {
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem(THEME_KEY) !== "light"; } catch { return true; } });
+  useEffect(() => {
+    const root = document.documentElement;
+    const had = root.classList.contains("dark");
+    root.classList.toggle("dark", dark);
+    try { localStorage.setItem(THEME_KEY, dark ? "dark" : "light"); } catch { /* private mode */ }
+    return () => { if (!had) root.classList.remove("dark"); else root.classList.add("dark"); };
+  }, [dark]);
+  return [dark, () => setDark((d) => !d)] as const;
+}
+
+function ThemeButton({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
+  return (
+    <button onClick={onToggle} aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} title={dark ? "Light mode" : "Dark mode"} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground">
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
 function Shell({ me }: { me: StaffSession }) {
   const [open, setOpen] = useState(false);
+  const [dark, toggleTheme] = useAdminTheme();
   const storeUrl = typeof window !== "undefined" && window.location.hostname.startsWith("admin.") ? "https://zankyo.in" : "/";
   return (
-    <div className="zk-hide-vton flex min-h-screen bg-muted/40">
+    <div className={`zk-hide-vton flex min-h-screen bg-muted/40 text-foreground ${dark ? "dark" : ""}`}>
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-border bg-background lg:block">
-        <Sidebar me={me} storeUrl={storeUrl} />
+        <Sidebar me={me} storeUrl={storeUrl} theme={<ThemeButton dark={dark} onToggle={toggleTheme} />} />
       </aside>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-72 p-0">
           <SheetTitle className="sr-only">Admin menu</SheetTitle>
           <SheetDescription className="sr-only">Navigate the admin panel</SheetDescription>
-          <Sidebar me={me} storeUrl={storeUrl} onNavigate={() => setOpen(false)} />
+          <Sidebar me={me} storeUrl={storeUrl} theme={<ThemeButton dark={dark} onToggle={toggleTheme} />} onNavigate={() => setOpen(false)} />
         </SheetContent>
       </Sheet>
       <div className="min-w-0 flex-1">
@@ -88,6 +111,7 @@ function Shell({ me }: { me: StaffSession }) {
           <button onClick={() => setOpen(true)} aria-label="Open menu" className="grid h-10 w-10 place-items-center rounded-lg active:bg-muted"><Menu className="h-5 w-5" /></button>
           <BrandLogo className="w-24" />
           <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">Admin</span>
+          <span className="ml-auto"><ThemeButton dark={dark} onToggle={toggleTheme} /></span>
         </header>
         <main className="mx-auto max-w-6xl px-3 py-5 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-8"><Outlet /></main>
       </div>
@@ -95,7 +119,7 @@ function Shell({ me }: { me: StaffSession }) {
   );
 }
 
-function Sidebar({ me, storeUrl, onNavigate }: { me: StaffSession; storeUrl: string; onNavigate?: () => void }) {
+function Sidebar({ me, storeUrl, onNavigate, theme }: { me: StaffSession; storeUrl: string; onNavigate?: () => void; theme?: React.ReactNode }) {
   const { pathname } = useLocation();
   const link = "flex min-h-9 items-center gap-3 rounded-lg px-3 text-sm text-muted-foreground hover:bg-muted data-[status=active]:bg-muted data-[status=active]:font-semibold data-[status=active]:text-foreground";
   return (
@@ -103,6 +127,7 @@ function Sidebar({ me, storeUrl, onNavigate }: { me: StaffSession; storeUrl: str
       <div className="flex items-center gap-2 py-2 pl-2 pr-10 lg:pr-2">
         <BrandLogo className="w-28" />
         <span className="ml-auto rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">Admin</span>
+        {theme}
       </div>
       <nav className="mt-3 flex-1 space-y-0.5 overflow-y-auto">
         {NAV.map((n) => {
