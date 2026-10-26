@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Eye, EyeOff, Heart, MessageCircle, ShoppingBag, ThumbsDown, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Heart, MessageCircle, ShoppingBag, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Avatar } from "@/components/ReelsFeed";
 import { Card, Empty, Stat, StatusBadge, btnDanger, btnGhost, dateTime, inputCls, inr, useAction, useCanEdit } from "@/components/admin/ui";
@@ -320,4 +320,3 @@ export function Comments({ d, onOpen }: { d: Dash; onOpen: (id: string) => void 
   );
 }
 
-export { ThumbsDown };
