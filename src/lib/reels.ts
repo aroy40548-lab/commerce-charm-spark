@@ -39,3 +39,35 @@ export function readVideoDuration(file: File): Promise<number> {
     v.src = url;
   });
 }
+
+// ---------- Usernames & profiles ----------
+export const USERNAME_RE = /^[a-z0-9._]{3,20}$/;
+export function normalizeUsername(v: string) {
+  return v.trim().toLowerCase().replace(/^@/, "");
+}
+export function usernameOk(v: string) {
+  const u = normalizeUsername(v);
+  return USERNAME_RE.test(u) && !u.startsWith(".") && !u.endsWith(".") && !u.includes("..");
+}
+export function profileComplete(p: { full_name?: string | null; username?: string | null } | null | undefined) {
+  return !!p && !!p.full_name?.trim() && !!p.username && usernameOk(p.username);
+}
+
+// ---------- Feed mix ----------
+/** Priority levels the admin can choose. 0 = hidden from feed. */
+export const PRIORITIES = [
+  { value: 0, label: "Hide from feed" },
+  { value: 1, label: "Normal" },
+  { value: 2, label: "Boost" },
+  { value: 4, label: "Top" },
+] as const;
+
+/** How much more often a reel shows up in the shuffled feed. */
+export function feedWeight(o: { followed: boolean; reelPriority: number; creatorPriority: number; ageHours: number }) {
+  const push = Math.max(o.reelPriority, o.creatorPriority);
+  if (o.reelPriority === 0 || o.creatorPriority === 0) return 0;
+  let w = push;
+  if (o.followed) w *= 3;
+  if (o.ageHours < 48) w *= 1.5;
+  return w;
+}

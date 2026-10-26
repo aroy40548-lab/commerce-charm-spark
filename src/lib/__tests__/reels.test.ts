@@ -24,3 +24,22 @@ describe("product-link referrals", () => {
     expect(b.products).toEqual(["y"]);
   });
 });
+
+import { feedWeight, usernameOk } from "@/lib/reels";
+describe("usernames", () => {
+  it("allows lowercase letters, numbers, dot and underscore, 3-20 long", () => {
+    expect(usernameOk("biswajit_roy")).toBe(true);
+    expect(usernameOk("ab")).toBe(false);
+    expect(usernameOk("has space")).toBe(false);
+    expect(usernameOk("a@b.com")).toBe(false);
+  });
+});
+describe("feed weights", () => {
+  const base = { followed: false, reelPriority: 1, creatorPriority: 1, ageHours: 100 };
+  it("followed creators show 3x more", () => expect(feedWeight({ ...base, followed: true })).toBe(3));
+  it("Boost is 2x and Top is 4x", () => {
+    expect(feedWeight({ ...base, reelPriority: 2 })).toBe(2);
+    expect(feedWeight({ ...base, creatorPriority: 4 })).toBe(4);
+  });
+  it("hidden never shows", () => expect(feedWeight({ ...base, creatorPriority: 0, followed: true })).toBe(0));
+});

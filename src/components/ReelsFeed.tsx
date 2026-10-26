@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { useAuth } from "@/hooks/useAuth";
 import { formatMoney } from "@/lib/catalog";
 import { reelLink } from "@/lib/reels";
+import { setFollow } from "@/lib/profile.functions";
 import {
   addReelComment, deleteReelComment, getMyVotes, listReelComments, listReels, viewReel, voteReel, type ReelCard,
 } from "@/lib/reels.functions";
@@ -16,10 +17,12 @@ export function ReelsFeed({ startId }: { startId?: string | undefined }) {
   const [muted, setMuted] = useState(true);
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const feed = useInfiniteQuery({
-    queryKey: ["reels", startId ?? null],
-    queryFn: ({ pageParam }) => listReels({ data: { before: pageParam, startId: startId ?? null } }),
-    initialPageParam: null as string | null,
-    getNextPageParam: (last) => last.next,
+    queryKey: ["reels", startId ?? null, user?.id ?? null],
+    queryFn: ({ pageParam }) => listReels({ data: { seen: pageParam, startId: startId ?? null } }),
+    initialPageParam: [] as string[],
+    getNextPageParam: (last, pages) => (last.more ? pages.flatMap((p) => p.reels.map((r) => r.id)).slice(-400) : undefined),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
   const reels = feed.data?.pages.flatMap((p) => p.reels) ?? [];
   const ids = reels.map((r) => r.id);
@@ -120,6 +123,15 @@ function ReelItem({
     } catch { setVote(vote); setCounts(counts); toast.error("Couldn't save your vote"); }
   };
 
+  const [following, setFollowing] = useState(reel.following);
+  const toggleFollow = async () => {
+    if (!user) { toast("Sign in to follow creators", { action: { label: "Sign in", onClick: () => (window.location.href = "/auth") } }); return; }
+    const next = !following;
+    setFollowing(next);
+    try { await setFollow({ data: { userId: reel.creatorId, follow: next } }); }
+    catch { setFollowing(!next); toast.error("Couldn't update follow"); }
+  };
+
   const share = async () => {
     const link = reelLink(window.location.origin, reel.id, reel.creatorCode);
     try {
@@ -165,7 +177,21 @@ function ReelItem({
       </div>
 
       <div className="absolute inset-x-0 bottom-0 space-y-2 p-3 pr-16 text-white">
-        <p className="zk-label text-[12px]">@{reel.creator}</p>
+        <div className="flex items-center gap-2">
+          {reel.username ? (
+            <Link to="/u/$username" params={{ username: reel.username }} className="flex min-w-0 items-center gap-2">
+              <Avatar url={reel.avatarUrl} label={reel.username} />
+              <span className="zk-label truncate text-[12px]">@{reel.username}</span>
+            </Link>
+          ) : (
+            <span className="zk-label text-[12px]">{reel.creator}</span>
+          )}
+          {user?.id !== reel.creatorId && reel.username && (
+            <button onClick={toggleFollow} className={`zk-label min-h-8 shrink-0 border px-3 text-[10px] ${following ? "border-white/40 text-white/80" : "border-white bg-white text-black"}`}>
+              {following ? "Following" : "Follow"}
+            </button>
+          )}
+        </div>
         {reel.caption && <p className="line-clamp-2 text-sm leading-5 text-white/90">{reel.caption}</p>}
         {product && (
           <Link
@@ -245,5 +271,13 @@ function CommentsSheet({ reelId, onClose }: { reelId: string | null; onClose: ()
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+export function Avatar({ url, label, size = "h-8 w-8" }: { url: string | null; label: string; size?: string }) {
+  return url ? (
+    <img src={url} alt="" className={`${size} shrink-0 rounded-full object-cover`} />
+  ) : (
+    <span className={`${size} grid shrink-0 place-items-center rounded-full bg-accent text-xs font-bold uppercase text-accent-foreground`}>{label[0]}</span>
   );
 }

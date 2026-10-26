@@ -20,6 +20,7 @@ import { BottomTabBar } from "@/components/BottomTabBar";
 import { observeDecartLauncher } from "@/lib/decart";
 import { useWishlistSync } from "@/hooks/useWishlistSync";
 import { captureReferral } from "@/lib/referral";
+import { ProfileSetupGate } from "@/components/ProfileEditor";
 
 function NotFoundComponent() {
   return (
@@ -159,6 +160,7 @@ function AppShell() {
       </main>
       {!isReels && <Footer />}
       {!pathname.startsWith("/checkout") && <BottomTabBar />}
+      <ProfileSetupGate />
       <Toaster position="bottom-center" mobileOffset={72} />
     </div>
   );
