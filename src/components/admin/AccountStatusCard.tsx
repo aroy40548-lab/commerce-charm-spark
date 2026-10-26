@@ -23,7 +23,7 @@ export function AccountStatusCard({ userId }: { userId: string }) {
       </p>
       <form className="mt-3 space-y-3" onSubmit={(e) => {
         e.preventDefault();
-        void run("status", () => adminSetAccountStatus({ data: { userId, status, reason } }), "Account updated", ["admin-account-status", "admin-reels"]).then(() => setReason(""));
+        void run("status", () => adminSetAccountStatus({ data: { userId, status, reason } }), "Account updated", ["admin-account-status", "admin-reels-dash"]).then(() => setReason(""));
       }}>
         <fieldset disabled={!canEdit} className="space-y-3">
           <Field label="Set access">
