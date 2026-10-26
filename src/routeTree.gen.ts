@@ -42,6 +42,7 @@ import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as ReelsIndexRouteImport } from './routes/reels.index'
 import { Route as ReelsIdRouteImport } from './routes/reels.$id'
 import { Route as ReelsStudioRouteImport } from './routes/reels.studio'
+import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin.customers.index'
 import { Route as AdminCustomersIdRouteImport } from './routes/admin.customers.$id'
 import { Route as AdminOrdersIndexRouteImport } from './routes/admin.orders.index'
@@ -219,6 +220,11 @@ const ReelsStudioRoute = ReelsStudioRouteImport.update({
   path: '/reels/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
   id: '/customers/',
   path: '/customers/',
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/reels/': typeof ReelsIndexRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/reels': typeof ReelsIndexRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/reels/': typeof ReelsIndexRoute
@@ -447,6 +456,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/u/$username'
     | '/admin/'
     | '/blog/'
     | '/reels/'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/u/$username'
     | '/admin'
     | '/blog'
     | '/reels'
@@ -538,6 +549,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/u/$username'
     | '/admin/'
     | '/blog/'
     | '/reels/'
@@ -573,6 +585,7 @@ export interface RootRouteChildren {
   ProductHandleRoute: typeof ProductHandleRoute
   ReelsIdRoute: typeof ReelsIdRoute
   ReelsStudioRoute: typeof ReelsStudioRoute
+  UUsernameRoute: typeof UUsernameRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ReelsIndexRoute: typeof ReelsIndexRoute
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
@@ -814,6 +827,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReelsStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/customers/': {
       id: '/admin/customers/'
       path: '/customers'
@@ -961,6 +981,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductHandleRoute: ProductHandleRoute,
   ReelsIdRoute: ReelsIdRoute,
   ReelsStudioRoute: ReelsStudioRoute,
+  UUsernameRoute: UUsernameRoute,
   BlogIndexRoute: BlogIndexRoute,
   ReelsIndexRoute: ReelsIndexRoute,
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
