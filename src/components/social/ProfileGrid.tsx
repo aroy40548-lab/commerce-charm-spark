@@ -41,7 +41,7 @@ export function ProfileGrid({ userId, isMe }: { userId: string; isMe: boolean })
             </Link>
           ) : (
             <Link key={`r${t.id}`} to="/reels/$id" params={{ id: t.id }} className={`relative overflow-hidden bg-ink ${tab === "reels" ? "aspect-[9/16]" : "aspect-square"}`}>
-              <LazyVideo src={t.videoUrl} />
+              <LazyVideo src={t.videoUrl ?? ""} />
               <span className="absolute bottom-1 left-1 flex items-center gap-1 text-[11px] font-semibold text-white drop-shadow"><Eye className="h-3 w-3" /> {t.views}</span>
             </Link>
           ))}
