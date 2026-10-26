@@ -71,10 +71,10 @@ export const saveMyProfile = createServerFn({ method: "POST" })
     const sb = await db();
     const { data: taken } = await sb.from("profiles").select("id").ilike("username", u).neq("id", context.userId).maybeSingle();
     if (taken) throw new Error("That username is taken");
-    const patch: Record<string, unknown> = { full_name: data.fullName, username: u, bio: data.bio };
+    const patch: { full_name: string; username: string; bio: string; avatar_path?: string | null } = { full_name: data.fullName, username: u, bio: data.bio };
     if (data.avatarPath !== undefined) {
       if (data.avatarPath && !data.avatarPath.startsWith(`avatars/${context.userId}/`)) throw new Error("Bad photo");
-      patch["avatar_path"] = data.avatarPath;
+      patch.avatar_path = data.avatarPath ?? null;
     }
     const { error } = await sb.from("profiles").update(patch).eq("id", context.userId);
     if (error) throw new Error(error.message.includes("username") ? "That username is taken" : "Couldn't save your profile");
