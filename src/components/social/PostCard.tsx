@@ -140,7 +140,7 @@ export const ReelTileView = memo(function ReelTileView({ reel }: { reel: ReelTil
     const io = new IntersectionObserver(([e]) => {
       if (e?.isIntersecting) setNear(true);
       setInView(!!e?.isIntersecting && e.intersectionRatio >= 0.5);
-    }, { threshold: [0, 0.5, 0.8], rootMargin: "300px 0px" });
+    }, { threshold: [0, 0.5, 0.8] });
     io.observe(el); return () => io.disconnect();
   }, []);
   useEffect(() => {
