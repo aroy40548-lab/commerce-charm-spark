@@ -58,6 +58,7 @@ export const placeOrder = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { priceCart, razorpay, razorpayKeyId, razorpayConfigured } = await import("./store.server");
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    await (await import("./account.server")).assertCanOrder(db, context.userId, String((context.claims as { email?: string }).email ?? ""));
     const q = await priceCart(data.lines, { ...data, userId: context.userId });
     if (q.discountError) throw new Error(q.discountError);
     if (q.giftCardError) throw new Error(q.giftCardError);
