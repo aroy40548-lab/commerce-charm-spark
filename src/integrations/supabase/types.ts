@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_actions: {
+        Row: {
+          actor: string
+          created_at: string
+          id: string
+          reason: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          actor: string
+          created_at?: string
+          id?: string
+          reason?: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       addresses: {
         Row: {
           address1: string
@@ -805,6 +832,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           avatar_path: string | null
           bio: string
           created_at: string
@@ -815,9 +843,13 @@ export type Database = {
           id: string
           last_name: string | null
           phone: string | null
+          status_changed_at: string | null
+          status_changed_by: string | null
+          status_reason: string | null
           username: string | null
         }
         Insert: {
+          account_status?: string
           avatar_path?: string | null
           bio?: string
           created_at?: string
@@ -828,9 +860,13 @@ export type Database = {
           id: string
           last_name?: string | null
           phone?: string | null
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
           username?: string | null
         }
         Update: {
+          account_status?: string
           avatar_path?: string | null
           bio?: string
           created_at?: string
@@ -841,6 +877,9 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
           username?: string | null
         }
         Relationships: []
