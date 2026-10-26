@@ -39,10 +39,14 @@ import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as ReelsIndexRouteImport } from './routes/reels.index'
 import { Route as ReelsIdRouteImport } from './routes/reels.$id'
 import { Route as ReelsStudioRouteImport } from './routes/reels.studio'
+import { Route as SocialIndexRouteImport } from './routes/social.index'
+import { Route as SocialNewRouteImport } from './routes/social.new'
+import { Route as SocialNotificationsRouteImport } from './routes/social.notifications'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin.customers.index'
 import { Route as AdminCustomersIdRouteImport } from './routes/admin.customers.$id'
@@ -52,6 +56,8 @@ import { Route as AdminOrdersNewRouteImport } from './routes/admin.orders.new'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
 import { Route as AdminProductsIdRouteImport } from './routes/admin.products.$id'
 import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay-webhook'
+import { Route as SocialInboxIndexRouteImport } from './routes/social.inbox.index'
+import { Route as SocialInboxIdRouteImport } from './routes/social.inbox.$id'
 import { Route as ApiPublicImgSplatRouteImport } from './routes/api/public/img.$'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -206,6 +212,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PIdRoute = PIdRouteImport.update({
+  id: '/p/$id',
+  path: '/p/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
   path: '/product/$handle',
@@ -224,6 +235,21 @@ const ReelsIdRoute = ReelsIdRouteImport.update({
 const ReelsStudioRoute = ReelsStudioRouteImport.update({
   id: '/reels/studio',
   path: '/reels/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialIndexRoute = SocialIndexRouteImport.update({
+  id: '/social/',
+  path: '/social/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialNewRoute = SocialNewRouteImport.update({
+  id: '/social/new',
+  path: '/social/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialNotificationsRoute = SocialNotificationsRouteImport.update({
+  id: '/social/notifications',
+  path: '/social/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UUsernameRoute = UUsernameRouteImport.update({
@@ -272,6 +298,16 @@ const ApiPublicRazorpayWebhookRoute =
     path: '/api/public/razorpay-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const SocialInboxIndexRoute = SocialInboxIndexRouteImport.update({
+  id: '/social/inbox/',
+  path: '/social/inbox/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialInboxIdRoute = SocialInboxIdRouteImport.update({
+  id: '/social/inbox/$id',
+  path: '/social/inbox/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicImgSplatRoute = ApiPublicImgSplatRouteImport.update({
   id: '/api/public/img/$',
   path: '/api/public/img/$',
@@ -317,21 +353,27 @@ export interface FileRoutesByFullPath {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/p/$id': typeof PIdRoute
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/social/new': typeof SocialNewRoute
+  '/social/notifications': typeof SocialNotificationsRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/reels/': typeof ReelsIndexRoute
+  '/social/': typeof SocialIndexRoute
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
   '/admin/products/$id': typeof AdminProductsIdRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/social/inbox/$id': typeof SocialInboxIdRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/social/inbox/': typeof SocialInboxIndexRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -364,21 +406,27 @@ export interface FileRoutesByTo {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/p/$id': typeof PIdRoute
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/social/new': typeof SocialNewRoute
+  '/social/notifications': typeof SocialNotificationsRoute
   '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/reels': typeof ReelsIndexRoute
+  '/social': typeof SocialIndexRoute
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
   '/admin/products/$id': typeof AdminProductsIdRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/social/inbox/$id': typeof SocialInboxIdRoute
   '/admin/customers': typeof AdminCustomersIndexRoute
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
+  '/social/inbox': typeof SocialInboxIndexRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -413,21 +461,27 @@ export interface FileRoutesById {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/p/$id': typeof PIdRoute
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/social/new': typeof SocialNewRoute
+  '/social/notifications': typeof SocialNotificationsRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/reels/': typeof ReelsIndexRoute
+  '/social/': typeof SocialIndexRoute
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/orders/$id': typeof AdminOrdersIdRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
   '/admin/products/$id': typeof AdminProductsIdRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/social/inbox/$id': typeof SocialInboxIdRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/social/inbox/': typeof SocialInboxIndexRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -463,21 +517,27 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/blog/$slug'
+    | '/p/$id'
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/social/new'
+    | '/social/notifications'
     | '/u/$username'
     | '/admin/'
     | '/blog/'
     | '/reels/'
+    | '/social/'
     | '/admin/customers/$id'
     | '/admin/orders/$id'
     | '/admin/orders/new'
     | '/admin/products/$id'
     | '/api/public/razorpay-webhook'
+    | '/social/inbox/$id'
     | '/admin/customers/'
     | '/admin/orders/'
     | '/admin/products/'
+    | '/social/inbox/'
     | '/api/public/img/$'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -510,21 +570,27 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/blog/$slug'
+    | '/p/$id'
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/social/new'
+    | '/social/notifications'
     | '/u/$username'
     | '/admin'
     | '/blog'
     | '/reels'
+    | '/social'
     | '/admin/customers/$id'
     | '/admin/orders/$id'
     | '/admin/orders/new'
     | '/admin/products/$id'
     | '/api/public/razorpay-webhook'
+    | '/social/inbox/$id'
     | '/admin/customers'
     | '/admin/orders'
     | '/admin/products'
+    | '/social/inbox'
     | '/api/public/img/$'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -558,21 +624,27 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/blog/$slug'
+    | '/p/$id'
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/social/new'
+    | '/social/notifications'
     | '/u/$username'
     | '/admin/'
     | '/blog/'
     | '/reels/'
+    | '/social/'
     | '/admin/customers/$id'
     | '/admin/orders/$id'
     | '/admin/orders/new'
     | '/admin/products/$id'
     | '/api/public/razorpay-webhook'
+    | '/social/inbox/$id'
     | '/admin/customers/'
     | '/admin/orders/'
     | '/admin/products/'
+    | '/social/inbox/'
     | '/api/public/img/$'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -595,13 +667,19 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   UnboxingRoute: typeof UnboxingRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  PIdRoute: typeof PIdRoute
   ProductHandleRoute: typeof ProductHandleRoute
   ReelsIdRoute: typeof ReelsIdRoute
   ReelsStudioRoute: typeof ReelsStudioRoute
+  SocialNewRoute: typeof SocialNewRoute
+  SocialNotificationsRoute: typeof SocialNotificationsRoute
   UUsernameRoute: typeof UUsernameRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ReelsIndexRoute: typeof ReelsIndexRoute
+  SocialIndexRoute: typeof SocialIndexRoute
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
+  SocialInboxIdRoute: typeof SocialInboxIdRoute
+  SocialInboxIndexRoute: typeof SocialInboxIndexRoute
   ApiPublicImgSplatRoute: typeof ApiPublicImgSplatRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -819,6 +897,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$id': {
+      id: '/p/$id'
+      path: '/p/$id'
+      fullPath: '/p/$id'
+      preLoaderRoute: typeof PIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/product/$handle': {
       id: '/product/$handle'
       path: '/product/$handle'
@@ -845,6 +930,27 @@ declare module '@tanstack/react-router' {
       path: '/reels/studio'
       fullPath: '/reels/studio'
       preLoaderRoute: typeof ReelsStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/': {
+      id: '/social/'
+      path: '/social'
+      fullPath: '/social/'
+      preLoaderRoute: typeof SocialIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/new': {
+      id: '/social/new'
+      path: '/social/new'
+      fullPath: '/social/new'
+      preLoaderRoute: typeof SocialNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/notifications': {
+      id: '/social/notifications'
+      path: '/social/notifications'
+      fullPath: '/social/notifications'
+      preLoaderRoute: typeof SocialNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/u/$username': {
@@ -908,6 +1014,20 @@ declare module '@tanstack/react-router' {
       path: '/api/public/razorpay-webhook'
       fullPath: '/api/public/razorpay-webhook'
       preLoaderRoute: typeof ApiPublicRazorpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/inbox/': {
+      id: '/social/inbox/'
+      path: '/social/inbox'
+      fullPath: '/social/inbox/'
+      preLoaderRoute: typeof SocialInboxIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/inbox/$id': {
+      id: '/social/inbox/$id'
+      path: '/social/inbox/$id'
+      fullPath: '/social/inbox/$id'
+      preLoaderRoute: typeof SocialInboxIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/img/$': {
@@ -999,13 +1119,19 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   UnboxingRoute: UnboxingRoute,
   BlogSlugRoute: BlogSlugRoute,
+  PIdRoute: PIdRoute,
   ProductHandleRoute: ProductHandleRoute,
   ReelsIdRoute: ReelsIdRoute,
   ReelsStudioRoute: ReelsStudioRoute,
+  SocialNewRoute: SocialNewRoute,
+  SocialNotificationsRoute: SocialNotificationsRoute,
   UUsernameRoute: UUsernameRoute,
   BlogIndexRoute: BlogIndexRoute,
   ReelsIndexRoute: ReelsIndexRoute,
+  SocialIndexRoute: SocialIndexRoute,
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
+  SocialInboxIdRoute: SocialInboxIdRoute,
+  SocialInboxIndexRoute: SocialInboxIndexRoute,
   ApiPublicImgSplatRoute: ApiPublicImgSplatRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

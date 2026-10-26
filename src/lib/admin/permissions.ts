@@ -7,6 +7,7 @@ export const SECTIONS = [
   { key: "discounts", label: "Discounts", hint: "Discount codes" },
   { key: "marketing", label: "Marketing", hint: "Affiliates and commission approval" },
   { key: "reviews", label: "Reviews", hint: "Hide, reply to and delete reviews" },
+  { key: "community", label: "Community", hint: "Social posts, chat reports and announcements" },
   { key: "content", label: "Content", hint: "Files and blog posts" },
   { key: "settings", label: "Settings", hint: "Shipping, payments, store details" },
   { key: "staff", label: "Staff", hint: "Invite staff and assign roles" },

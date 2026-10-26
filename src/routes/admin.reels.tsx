@@ -5,31 +5,37 @@ import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { PageHeader, Spinner, Tabs } from "@/components/admin/ui";
 import { Comments, Creators, Overview, ReelPanel, ReelsGrid } from "@/components/admin/reels/ReelsDashboard";
+import { BroadcastAdmin, PostsAdmin, ReportsAdmin, SocialOverview } from "@/components/admin/reels/SocialAdmin";
 import { adminReelsDashboard } from "@/lib/reels.functions";
 
-const TABS = ["overview", "reels", "creators", "comments"] as const;
+const TABS = ["overview", "posts", "reels", "creators", "comments", "reports", "broadcast"] as const;
 type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/admin/reels")({
   validateSearch: zodValidator(z.object({ tab: fallback(z.string(), "overview").default("overview") })),
-  head: () => ({ meta: [{ title: "Reels dashboard — ZANKYO Admin" }, { name: "robots", content: "noindex" }] }),
-  component: AdminReels,
+  head: () => ({ meta: [{ title: "Social dashboard — ZANKYO Admin" }, { name: "robots", content: "noindex" }] }),
+  component: AdminSocial,
 });
 
-function AdminReels() {
+function AdminSocial() {
   const { tab: raw } = Route.useSearch();
   const tab: Tab = (TABS as readonly string[]).includes(raw) ? (raw as Tab) : "overview";
   const navigate = useNavigate({ from: "/admin/reels" });
   const [open, setOpen] = useState<string | null>(null);
-  const q = useQuery({ queryKey: ["admin-reels-dash"], queryFn: () => adminReelsDashboard() });
+  const reelsTab = tab === "overview" || tab === "reels" || tab === "creators" || tab === "comments";
+  const q = useQuery({ queryKey: ["admin-reels-dash"], enabled: reelsTab, queryFn: () => adminReelsDashboard() });
 
   return (
     <div>
-      <PageHeader title="Reels" subtitle="Customer reels, creators, comments and sales from reels. Push makes reels show more often in the feed (Boost = 2×, Top = 4×)." />
-      <div className="mb-4">
-        <Tabs<Tab> value={tab} onChange={(t) => navigate({ search: { tab: t } })} options={[["overview", "Overview"], ["reels", `Reels${q.data ? ` (${q.data.reels.length})` : ""}`], ["creators", "Creators"], ["comments", "Comments"]]} />
+      <PageHeader title="Social" subtitle="Photo posts, reels, creators, comments, chat reports and announcements. Push makes posts show more often in the feed (Boost = 2×, Top = 4×)." />
+      <div className="mb-4 overflow-x-auto">
+        <Tabs<Tab> value={tab} onChange={(t) => navigate({ search: { tab: t } })} options={[["overview", "Overview"], ["posts", "Photo posts"], ["reels", `Reels${q.data ? ` (${q.data.reels.length})` : ""}`], ["creators", "Creators"], ["comments", "Comments"], ["reports", "Chat reports"], ["broadcast", "Announce"]]} />
       </div>
-      {!q.data ? (q.isError ? <p className="text-sm text-destructive">{q.error instanceof Error ? q.error.message : "Couldn't load"}</p> : <Spinner />) : (
+      {tab === "overview" && <SocialOverview />}
+      {tab === "posts" && <PostsAdmin />}
+      {tab === "reports" && <ReportsAdmin />}
+      {tab === "broadcast" && <BroadcastAdmin />}
+      {reelsTab && (!q.data ? (q.isError ? <p className="text-sm text-destructive">{q.error instanceof Error ? q.error.message : "Couldn't load"}</p> : <Spinner />) : (
         <>
           {tab === "overview" && <Overview d={q.data} onOpen={setOpen} />}
           {tab === "reels" && <ReelsGrid d={q.data} onOpen={setOpen} />}
@@ -37,7 +43,7 @@ function AdminReels() {
           {tab === "comments" && <Comments d={q.data} onOpen={setOpen} />}
           <ReelPanel d={q.data} id={open} onClose={() => setOpen(null)} />
         </>
-      )}
+      ))}
     </div>
   );
 }
