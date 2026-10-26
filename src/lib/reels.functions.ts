@@ -363,3 +363,111 @@ export const adminSetPriority = createServerFn({ method: "POST" })
     else await sb.from("profiles").update({ feed_priority: data.value }).eq("id", data.id);
     return { ok: true };
   });
+
+// ---------- Admin dashboard ----------
+const SOLD_STATUSES = ["paid", "confirmed", "shipped", "delivered"];
+
+export const adminReelsDashboard = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { requireStaff } = await import("./admin/guard.server");
+    await requireStaff(context);
+    const sb = await db();
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const { data: rows } = await sb.from("reels").select(REEL_SELECT + ", status, priority").order("created_at", { ascending: false }).limit(500);
+    const list = (rows ?? []) as unknown as Array<ReelRow & { status: string; priority: number }>;
+    const NONE = "00000000-0000-0000-0000-000000000000";
+    const ids = list.map((r) => r.id).concat(NONE);
+    const [cards, orders, comms, cmts, views] = await Promise.all([
+      toCards(sb, list),
+      sb.from("orders").select("reel_id, total, status").not("reel_id", "is", null).in("status", SOLD_STATUSES),
+      sb.from("affiliate_commissions").select("reel_id, amount, status").not("reel_id", "is", null),
+      sb.from("reel_comments").select("id, reel_id, user_id, body, hidden, created_at").order("created_at", { ascending: false }).limit(400),
+      sb.from("reel_views").select("created_at").gte("created_at", since).limit(20000),
+    ]);
+    const sales = new Map<string, { orders: number; revenue: number }>();
+    (orders.data ?? []).forEach((o) => { const s = sales.get(o.reel_id!) ?? { orders: 0, revenue: 0 }; s.orders++; s.revenue += Number(o.total); sales.set(o.reel_id!, s); });
+    const earn = new Map<string, number>();
+    const commission = { pending: 0, approved: 0, paid: 0 };
+    (comms.data ?? []).forEach((c) => {
+      if (c.status === "rejected") return;
+      earn.set(c.reel_id!, (earn.get(c.reel_id!) ?? 0) + Number(c.amount));
+      if (c.status in commission) commission[c.status as keyof typeof commission] += Number(c.amount);
+    });
+    const reels = cards.map((c, i) => ({
+      ...c,
+      status: list[i]!.status,
+      priority: list[i]!.priority,
+      orders: sales.get(c.id)?.orders ?? 0,
+      revenue: sales.get(c.id)?.revenue ?? 0,
+      earnings: earn.get(c.id) ?? 0,
+    }));
+
+    const creatorIds = [...new Set(reels.map((r) => r.creatorId))];
+    const [{ data: profs }, { data: fol }] = await Promise.all([
+      sb.from("profiles").select("id, full_name, username, avatar_path, feed_priority, account_status").in("id", creatorIds.concat(NONE)),
+      sb.from("follows").select("following_id").in("following_id", creatorIds.concat(NONE)),
+    ]);
+    const avatars = await (await import("./profile.server")).avatarUrls(sb, (profs ?? []).map((p) => p.avatar_path));
+    const creators = (profs ?? []).map((p) => {
+      const mine = reels.filter((r) => r.creatorId === p.id);
+      return {
+        id: p.id, name: p.full_name ?? p.username ?? "Member", username: p.username,
+        avatarUrl: p.avatar_path ? avatars.get(p.avatar_path) ?? null : null,
+        priority: p.feed_priority, status: p.account_status,
+        reels: mine.length,
+        followers: (fol ?? []).filter((f) => f.following_id === p.id).length,
+        views: mine.reduce((a, r) => a + r.views, 0),
+        orders: mine.reduce((a, r) => a + r.orders, 0),
+        earnings: mine.reduce((a, r) => a + r.earnings, 0),
+      };
+    });
+
+    const names = await namesFor(sb, (cmts.data ?? []).map((c) => c.user_id));
+    const caption = new Map(reels.map((r) => [r.id, r.caption || "(no caption)"]));
+    const comments = (cmts.data ?? []).filter((c) => ids.includes(c.reel_id)).map((c) => ({
+      id: c.id, reelId: c.reel_id, reelCaption: caption.get(c.reel_id) ?? "", name: names.get(c.user_id) ?? "Member", body: c.body, hidden: c.hidden, createdAt: c.created_at,
+    }));
+
+    const days: Array<{ day: string; reels: number; views: number }> = [];
+    for (let i = 29; i >= 0; i--) days.push({ day: new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10), reels: 0, views: 0 });
+    const idx = new Map(days.map((d, i) => [d.day, i]));
+    reels.forEach((r) => { const i = idx.get(r.createdAt.slice(0, 10)); if (i !== undefined) days[i]!.reels++; });
+    (views.data ?? []).forEach((v) => { const i = idx.get(v.created_at.slice(0, 10)); if (i !== undefined) days[i]!.views++; });
+
+    const weekAgo = Date.now() - 7 * 86_400_000;
+    return {
+      overview: {
+        total: reels.length,
+        live: reels.filter((r) => r.status === "live").length,
+        hidden: reels.filter((r) => r.status !== "live").length,
+        views: reels.reduce((a, r) => a + r.views, 0),
+        likes: reels.reduce((a, r) => a + r.likes, 0),
+        comments: reels.reduce((a, r) => a + r.comments, 0),
+        newThisWeek: reels.filter((r) => Date.parse(r.createdAt) >= weekAgo).length,
+        creators: creators.filter((c) => c.reels > 0).length,
+        orders: reels.reduce((a, r) => a + r.orders, 0),
+        revenue: reels.reduce((a, r) => a + r.revenue, 0),
+        commission,
+      },
+      days, reels, creators, comments,
+    };
+  });
+
+export const adminBulkReels = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    ids: z.array(z.string().uuid()).min(1).max(200),
+    action: z.enum(["hide", "show", "priority", "hideComments", "showComments", "deleteComments"]),
+    value: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(4)]).optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { requireStaff } = await import("./admin/guard.server");
+    await requireStaff(context, "marketing");
+    const sb = await db();
+    if (data.action === "hide" || data.action === "show") await sb.from("reels").update({ status: data.action === "hide" ? "hidden" : "live" }).in("id", data.ids);
+    if (data.action === "priority") await sb.from("reels").update({ priority: data.value ?? 1 }).in("id", data.ids);
+    if (data.action === "hideComments" || data.action === "showComments") await sb.from("reel_comments").update({ hidden: data.action === "hideComments" }).in("id", data.ids);
+    if (data.action === "deleteComments") await sb.from("reel_comments").delete().in("id", data.ids);
+    return { ok: true, count: data.ids.length };
+  });
