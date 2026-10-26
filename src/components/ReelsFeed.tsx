@@ -61,7 +61,7 @@ export function ReelsFeed({ startId }: { startId?: string | undefined }) {
             onToggleMute={() => setMuted((m) => !m)}
             myVote={votes.data?.[r.id] ?? 0}
             onComments={() => setCommentsFor(r.id)}
-            onNear={i >= reels.length - 2 && feed.hasNextPage && !feed.isFetchingNextPage ? () => feed.fetchNextPage() : undefined}
+            onNear={i >= reels.length - 3 && feed.hasNextPage && !feed.isFetchingNextPage ? () => feed.fetchNextPage() : undefined}
           />
         ))}
       </div>
@@ -91,9 +91,15 @@ function ReelItem({
   const [counts, setCounts] = useState({ likes: reel.likes, dislikes: reel.dislikes });
   useEffect(() => setVote(myVote), [myVote]);
 
+  const [near, setNear] = useState(false);
+  const [loadingVid, setLoadingVid] = useState(true);
+  const [heart, setHeart] = useState(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const nearIo = new IntersectionObserver(([e]) => { if (e?.isIntersecting) setNear(true); }, { rootMargin: "100% 0px" });
     const io = new IntersectionObserver(
       ([e]) => {
         const v = video.current;
@@ -106,9 +112,21 @@ function ReelItem({
       },
       { threshold: 0.6 },
     );
+    nearIo.observe(el);
     io.observe(el);
-    return () => io.disconnect();
+    return () => { io.disconnect(); nearIo.disconnect(); };
   }, [reel.id, onNear]);
+
+  const onTap = () => {
+    if (tapTimer.current) {
+      clearTimeout(tapTimer.current);
+      tapTimer.current = null;
+      setHeart((h) => h + 1);
+      if (vote !== 1) void doVote(1);
+      return;
+    }
+    tapTimer.current = setTimeout(() => { tapTimer.current = null; onToggleMute(); }, 260);
+  };
 
   const doVote = async (value: 1 | -1) => {
     if (!user) { toast("Sign in to like or dislike reels", { action: { label: "Sign in", onClick: () => (window.location.href = "/auth") } }); return; }
@@ -148,14 +166,21 @@ function ReelItem({
     <div ref={ref} className="relative h-full w-full snap-start snap-always overflow-hidden bg-ink">
       <video
         ref={video}
-        src={reel.videoUrl}
+        src={near ? reel.videoUrl : undefined}
         muted={muted}
         loop
         playsInline
-        preload="metadata"
-        onClick={onToggleMute}
+        preload={near ? "auto" : "none"}
+        onClick={onTap}
+        onWaiting={() => setLoadingVid(true)}
+        onPlaying={() => setLoadingVid(false)}
+        onCanPlay={() => setLoadingVid(false)}
         className="h-full w-full object-contain"
       />
+      {loadingVid && <div className="zk-reel-loading pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-accent" />}
+      {heart > 0 && (
+        <ThumbsUp key={heart} className="zk-reel-heart pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 fill-accent text-accent" />
+      )}
       <button onClick={onToggleMute} aria-label={muted ? "Unmute" : "Mute"} className="absolute left-3 top-3 grid h-9 w-9 place-items-center bg-black/50 text-white">
         {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
       </button>
