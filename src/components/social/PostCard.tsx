@@ -134,19 +134,24 @@ export const ReelTileView = memo(function ReelTileView({ reel }: { reel: ReelTil
   const box = useRef<HTMLDivElement>(null);
   const vid = useRef<HTMLVideoElement>(null);
   const [near, setNear] = useState(false);
+  const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = box.current; if (!el) return;
     const io = new IntersectionObserver(([e]) => {
-      setNear(!!e?.isIntersecting);
-      if (e?.isIntersecting && e.intersectionRatio > 0.6) void vid.current?.play().catch(() => {}); else vid.current?.pause();
-    }, { threshold: [0, 0.6] });
+      if (e?.isIntersecting) setNear(true);
+      setInView(!!e?.isIntersecting && e.intersectionRatio >= 0.5);
+    }, { threshold: [0, 0.5, 0.8] });
     io.observe(el); return () => io.disconnect();
   }, []);
+  useEffect(() => {
+    const v = vid.current; if (!v || !near) return;
+    if (inView) { v.muted = true; void v.play().catch(() => {}); } else v.pause();
+  }, [inView, near]);
   return (
     <article ref={box} className="border-b border-border pb-3">
       <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} />
       <Link to="/reels/$id" params={{ id: reel.id }} className="relative block aspect-[4/5] overflow-hidden bg-ink">
-        <video ref={vid} src={near ? reel.videoUrl : undefined} muted loop playsInline preload="none" className="h-full w-full object-cover" />
+        <video ref={vid} src={near ? reel.videoUrl : undefined} muted autoPlay={inView} loop playsInline preload={near ? "auto" : "none"} onLoadedData={(e) => { if (inView) void e.currentTarget.play().catch(() => {}); }} className="h-full w-full object-cover" />
         <span className="zk-label absolute right-2 top-2 flex items-center gap-1 bg-ink/70 px-2 py-1 text-[9px] text-white"><Clapperboard className="h-3 w-3" /> Reel</span>
       </Link>
       <div className="flex items-center px-3 pt-2">
