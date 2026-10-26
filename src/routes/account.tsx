@@ -8,6 +8,7 @@ import { SignInPanel } from "@/components/SignInPanel";
 import { signOut, useAuth } from "@/hooks/useAuth";
 import { deleteMyAddress, getMyAddresses, getMyOrders } from "@/lib/account.functions";
 import { formatMoney } from "@/lib/catalog";
+import { AccountNotice } from "@/components/ProfileEditor";
 
 export const Route = createFileRoute("/account")({
   ssr: false,
@@ -57,6 +58,7 @@ function Account() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6 sm:py-10">
+      <AccountNotice />
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground text-sm font-semibold uppercase text-background">
