@@ -101,7 +101,7 @@ function Chat() {
           <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[78%] ${m.mine ? "bg-accent text-accent-foreground" : "bg-muted"} ${m.image ? "p-1" : "px-3 py-2"} rounded-2xl text-sm`}>
               {m.image && <img src={m.image} alt="" loading="lazy" className="max-h-72 rounded-xl" />}
-              {m.shared && <Link to={m.shared.href} className="block underline">{m.shared.title}</Link>}
+              {m.shared && <a href={m.shared.href} className="block underline">{m.shared.title}</a>}
               {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
             </div>
             {m.mine && i === msgs.length - 1 && <span className="ml-1 self-end text-[10px] text-muted-foreground">{m.read ? "Seen" : timeAgo(m.createdAt)}</span>}
