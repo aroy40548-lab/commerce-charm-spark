@@ -14,7 +14,7 @@ const assertActive = async (sb: Db, id: string) => (await import("./account.serv
 
 export interface ProductChip { id: string; handle: string; title: string; price: number; image: string | null }
 export interface PostCard {
-  id: string; creatorId: string; username: string | null; name: string; avatarUrl: string | null; creatorCode: string | null;
+  id: string; creatorId: string; username: string | null; name: string; avatarUrl: string | null; verified: boolean; creatorCode: string | null;
   following: boolean; caption: string; createdAt: string;
   media: Array<{ url: string; thumb: string; w: number; h: number }>;
   likes: number; liked: boolean; saved: boolean; comments: number; products: ProductChip[];
@@ -60,7 +60,7 @@ async function toPosts(sb: Db, rows: PostRow[], me: string | null): Promise<Post
   return rows.map((r) => {
     const p = ppl.get(r.user_id);
     return {
-      id: r.id, creatorId: r.user_id, username: p?.username ?? null, name: p?.name ?? "ZANKYO member", avatarUrl: p?.avatarUrl ?? null,
+      id: r.id, creatorId: r.user_id, username: p?.username ?? null, name: p?.name ?? "ZANKYO member", avatarUrl: p?.avatarUrl ?? null, verified: !!p?.verified,
       creatorCode: code.get(r.user_id) ?? null, following: fol.has(r.user_id), caption: r.caption, createdAt: r.created_at,
       media: [...r.post_media].sort((a, b) => a.position - b.position).map((m) => ({ url: urls.get(m.path) ?? "", thumb: urls.get(m.thumb_path) ?? "", w: m.width, h: m.height })),
       likes: count(likes.data, r.id), liked: liked.has(r.id), saved: saved.has(r.id), comments: count(comments.data, r.id),
@@ -236,7 +236,7 @@ export const listPostComments = createServerFn({ method: "POST" })
     const { data: rows } = await sb.from("post_comments").select("id, user_id, body, created_at, parent_id").eq("post_id", data.id).eq("hidden", false).order("created_at").limit(300);
     const blocked = await (await import("./account.server")).hiddenCreators(sb);
     const ppl = await (await helpers()).people(sb, (rows ?? []).map((r) => r.user_id));
-    return (rows ?? []).filter((r) => !blocked.has(r.user_id)).map((r) => ({ id: r.id, userId: r.user_id, body: r.body, createdAt: r.created_at, parentId: r.parent_id as string | null, name: ppl.get(r.user_id)?.name ?? "ZANKYO member", username: ppl.get(r.user_id)?.username ?? null, avatarUrl: ppl.get(r.user_id)?.avatarUrl ?? null }));
+    return (rows ?? []).filter((r) => !blocked.has(r.user_id)).map((r) => ({ id: r.id, userId: r.user_id, body: r.body, createdAt: r.created_at, parentId: r.parent_id as string | null, name: ppl.get(r.user_id)?.name ?? "ZANKYO member", username: ppl.get(r.user_id)?.username ?? null, avatarUrl: ppl.get(r.user_id)?.avatarUrl ?? null, verified: !!ppl.get(r.user_id)?.verified }));
   });
 
 export const addPostComment = createServerFn({ method: "POST" })
@@ -389,7 +389,7 @@ export const listConversations = createServerFn({ method: "POST" })
       if (!last) return [];
       const unread = all.filter((m) => m.conversation_id === c.id && m.sender_id !== me && !m.read_at).length;
       const preview = last.body || (last.image_path ? "Photo" : last.shared ? "Shared a post" : "");
-      return [{ id: c.id, other: ppl.get(others[i]!) ?? { id: others[i]!, name: "ZANKYO member", username: null, avatarUrl: null }, preview: (last.sender_id === me ? "You: " : "") + preview, at: last.created_at, unread }];
+      return [{ id: c.id, other: ppl.get(others[i]!) ?? { id: others[i]!, name: "ZANKYO member", username: null, avatarUrl: null, verified: false }, preview: (last.sender_id === me ? "You: " : "") + preview, at: last.created_at, unread }];
     });
   });
 
@@ -425,7 +425,7 @@ export const getConversation = createServerFn({ method: "POST" })
     const urls = await h.signed(sb, "posts", msgs.flatMap((m) => (m.image_path ? [m.image_path] : [])));
     return {
       id: c.id,
-      other: ppl.get(c.other) ?? { id: c.other, name: "ZANKYO member", username: null, avatarUrl: null },
+      other: ppl.get(c.other) ?? { id: c.other, name: "ZANKYO member", username: null, avatarUrl: null, verified: false },
       iBlocked: !!blocks.data,
       more: (rows ?? []).length === 40,
       messages: msgs.map((m) => ({ id: m.id, mine: m.sender_id === context.userId, body: m.body, image: m.image_path ? urls.get(m.image_path) ?? null : null, shared: m.shared as SharedItem | null, read: !!m.read_at, createdAt: m.created_at })),

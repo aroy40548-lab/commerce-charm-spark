@@ -255,3 +255,9 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
 }
+
+/* Verified badge: red glow tick + glowing ring on profile photos */
+.zk-verified { color: oklch(0.58 0.22 22); filter: drop-shadow(0 0 4px oklch(0.6 0.24 22 / 0.85)); }
+.zk-verified-ring { border-radius: 9999px; padding: 3px; background: conic-gradient(from 0deg, oklch(0.62 0.24 22), oklch(0.42 0.17 15), oklch(0.62 0.24 22)); box-shadow: 0 0 14px 2px oklch(0.6 0.24 22 / 0.6); animation: zk-verified-pulse 2.6s ease-in-out infinite; }
+@keyframes zk-verified-pulse { 50% { box-shadow: 0 0 22px 5px oklch(0.6 0.24 22 / 0.8); } }
+@media (prefers-reduced-motion: reduce) { .zk-verified-ring { animation: none; } }
