@@ -19,6 +19,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -103,6 +104,11 @@ const OrderSuccessRoute = OrderSuccessRouteImport.update({
 const ReturnsRoute = ReturnsRouteImport.update({
   id: '/returns',
   path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -293,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/collections': typeof CollectionsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
+  '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/collections': typeof CollectionsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
+  '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -387,6 +395,7 @@ export interface FileRoutesById {
   '/collections': typeof CollectionsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
+  '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/order-success'
     | '/returns'
+    | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
@@ -482,6 +492,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/order-success'
     | '/returns'
+    | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
@@ -529,6 +540,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/order-success'
     | '/returns'
+    | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
@@ -577,6 +589,7 @@ export interface RootRouteChildren {
   CollectionsRoute: typeof CollectionsRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   ReturnsRoute: typeof ReturnsRoute
+  SearchRoute: typeof SearchRoute
   ShopRoute: typeof ShopRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -664,6 +677,13 @@ declare module '@tanstack/react-router' {
       path: '/returns'
       fullPath: '/returns'
       preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -973,6 +993,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsRoute: CollectionsRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   ReturnsRoute: ReturnsRoute,
+  SearchRoute: SearchRoute,
   ShopRoute: ShopRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,

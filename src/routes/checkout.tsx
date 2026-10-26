@@ -112,7 +112,7 @@ function Checkout() {
     setBusy(true);
     try {
       const res = await placeOrder({
-        data: { lines, code, giftCard: gift, shipping, payment, address: finalAddress, note: note || null, affiliateCode: readReferral(), affiliateProducts: readReferralFull()?.products ?? [], affiliateReel: readReferralFull()?.reelId ?? null, saveAddress: !chosen },
+        data: { lines, code, giftCard: gift, shipping, payment, address: finalAddress, note: note || null, affiliateCode: readReferral(), affiliateProducts: readReferralFull()?.products ?? [], affiliateReel: readReferralFull()?.reelId ?? null, affiliateAt: readReferralFull()?.at ?? null, saveAddress: !chosen },
       });
       if (res.kind === "done") {
         clearCart();

@@ -52,6 +52,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       affiliateCode: z.string().max(40).optional().nullable(),
       affiliateProducts: z.array(z.string().max(255)).max(20).default([]),
       affiliateReel: z.string().uuid().optional().nullable(),
+      affiliateAt: z.number().optional().nullable(),
       saveAddress: z.boolean().default(true),
     }).parse(d),
   )
@@ -70,7 +71,10 @@ export const placeOrder = createServerFn({ method: "POST" })
     let affiliateId: string | null = null;
     let affiliateProductIds: string[] = [];
     let reelId: string | null = null;
-    if (data.affiliateCode) {
+    const { getSettings } = await import("./store.server");
+    const windowDays = (await getSettings()).affiliate_cookie_days || 365;
+    const fresh = !data.affiliateAt || Date.now() - data.affiliateAt <= windowDays * 86_400_000;
+    if (data.affiliateCode && fresh) {
       const { data: a } = await db.from("affiliates").select("id, user_id").eq("code", data.affiliateCode.toUpperCase()).eq("status", "active").maybeSingle();
       if (a && a.user_id !== context.userId) {
         affiliateId = a.id;

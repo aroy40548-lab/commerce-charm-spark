@@ -20,6 +20,7 @@ import { BottomTabBar } from "@/components/BottomTabBar";
 import { observeDecartLauncher } from "@/lib/decart";
 import { useWishlistSync } from "@/hooks/useWishlistSync";
 import { captureReferral } from "@/lib/referral";
+import { getAffiliateProgram } from "@/lib/affiliate.functions";
 import { ProfileSetupGate } from "@/components/ProfileEditor";
 
 function NotFoundComponent() {
@@ -135,7 +136,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function AppShell() {
   const { pathname } = useLocation();
   useEffect(() => observeDecartLauncher(), []);
-  useEffect(() => captureReferral(), []);
+  useEffect(() => { getAffiliateProgram().then((p) => captureReferral(p.cookieDays || 365)).catch(() => captureReferral()); }, []);
   useWishlistSync();
 
   const isReels = pathname === "/reels" || pathname.startsWith("/reels/") && pathname !== "/reels/studio";
