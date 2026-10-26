@@ -67,14 +67,14 @@ function AffiliatePage() {
         ) : program.data && !program.data.enabled ? (
           <p className="text-sm text-muted-foreground">The affiliate program is paused right now. Check back soon.</p>
         ) : (
-          <Dashboard />
+          <Dashboard rate={rate} />
         )}
       </div>
     </div>
   );
 }
 
-function Dashboard() {
+function Dashboard({ rate }: { rate: number }) {
   const qc = useQueryClient();
   const me = useQuery({ queryKey: ["my-affiliate"], queryFn: () => getMyAffiliate() });
   const [busy, setBusy] = useState(false);
@@ -112,14 +112,15 @@ function Dashboard() {
   return (
     <div className="space-y-5">
       {a.status !== "active" && <p className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">Your affiliate account is paused. Contact help@zankyo.in.</p>}
-      <ProductLinks code={a.code} clicks={a.clicks} />
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <Stat label="Link visits" value={String(a.clicks)} />
         <Stat label="Orders" value={String(totals.orders)} />
         <Stat label="Waiting approval" value={formatMoney(totals.pending)} />
         <Stat label="Approved" value={formatMoney(totals.approved)} />
         <Stat label="Paid out" value={formatMoney(totals.paid)} />
       </div>
+
+      <ProductLinks code={a.code} clicks={a.clicks} rate={rate} />
 
       <div className="rounded-2xl border border-border p-4 sm:p-5">
         <p className="zk-label text-[11px] text-muted-foreground">Payout UPI ID</p>
@@ -160,7 +161,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ProductLinks({ code, clicks }: { code: string; clicks: number }) {
+function ProductLinks({ code, clicks, rate }: { code: string; clicks: number; rate: number }) {
   const products = useProducts();
   const [q, setQ] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
@@ -168,30 +169,45 @@ function ProductLinks({ code, clicks }: { code: string; clicks: number }) {
   const copy = async (handle: string) => {
     const link = productAffiliateLink(window.location.origin, handle, code);
     try {
-      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) { await navigator.share({ title: "ZANKYO", url: link }); return; }
       await navigator.clipboard.writeText(link);
       setCopied(handle);
+      toast.success("Link copied");
       setTimeout(() => setCopied(null), 2000);
-    } catch { /* cancelled */ }
+    } catch { toast.error("Couldn't copy — long-press to copy instead"); }
+  };
+  const whatsapp = (handle: string, title: string) => {
+    const link = productAffiliateLink(window.location.origin, handle, code);
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${title} on ZANKYO — ${link}`)}`, "_blank", "noopener,noreferrer");
   };
   return (
-    <div className="rounded-2xl border border-border p-4 sm:p-5">
+    <div className="border border-border p-4 sm:p-5">
       <p className="zk-label text-[11px] text-muted-foreground">Your product links</p>
       <p className="mt-1 text-xs text-muted-foreground">
         Code {code} · {clicks} link visits · You earn on the product your link points to, for orders within 30 days.
         Want more reach? <Link to="/reels/studio" className="underline">Post a reel</Link> — tagged products credit you too.
       </p>
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" aria-label="Search products" className="mt-3 min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base sm:text-sm" />
-      <ul className="mt-2 max-h-80 divide-y divide-border overflow-y-auto rounded-lg border border-border">
-        {list.map((p) => (
-          <li key={p.id} className="flex items-center gap-3 p-2">
-            <div className="h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">{p.images.edges[0] && <img src={p.images.edges[0].node.url} alt="" loading="lazy" className="h-full w-full object-cover" />}</div>
-            <span className="min-w-0 flex-1 truncate text-sm">{p.title}</span>
-            <button onClick={() => copy(p.handle)} className="zk-label flex min-h-10 shrink-0 items-center gap-1 rounded-lg bg-foreground px-3 text-[10px] text-background">
-              {copied === p.handle ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied === p.handle ? "Copied" : "Copy link"}
-            </button>
-          </li>
-        ))}
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" aria-label="Search products" className="mt-3 min-h-11 w-full border border-border bg-background px-3 text-base sm:text-sm" />
+      <ul className="mt-3 grid max-h-[32rem] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
+        {list.map((p) => {
+          const price = Number(p.priceRange.minVariantPrice.amount);
+          return (
+            <li key={p.id} className="flex min-w-0 flex-col border border-border">
+              <div className="aspect-[4/5] overflow-hidden bg-muted">{p.images.edges[0] && <img src={p.images.edges[0].node.url} alt="" loading="lazy" className="h-full w-full object-cover" />}</div>
+              <div className="flex flex-1 flex-col gap-1 p-2">
+                <span className="truncate text-sm font-semibold">{p.title}</span>
+                <span className="text-xs text-muted-foreground">{formatMoney(price)} · <span className="font-semibold text-foreground">earn {formatMoney(Math.round(price * rate) / 100)}</span></span>
+                <div className="mt-auto grid grid-cols-2 gap-1 pt-1">
+                  <button onClick={() => copy(p.handle)} className="zk-label flex min-h-10 items-center justify-center gap-1 bg-foreground text-[10px] text-background">
+                    {copied === p.handle ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied === p.handle ? "Copied" : "Copy"}
+                  </button>
+                  <button onClick={() => whatsapp(p.handle, p.title)} aria-label={`Share ${p.title} on WhatsApp`} className="zk-label flex min-h-10 items-center justify-center gap-1 border border-foreground text-[10px]">
+                    <Share2 className="h-3.5 w-3.5" /> WhatsApp
+                  </button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
