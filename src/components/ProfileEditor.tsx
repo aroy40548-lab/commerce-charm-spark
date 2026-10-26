@@ -62,7 +62,8 @@ export function ProfileForm({ required, onSaved, onCancel }: { required?: boolea
     setBusy(true);
     try {
       const r = await saveMyProfile({ data: { fullName: name, username, bio, ...(avatar ? { avatarPath: avatar.path } : {}) } });
-      await qc.invalidateQueries({ queryKey: ["my-profile"] });
+      qc.setQueriesData({ queryKey: ["my-profile"] }, (old: unknown) => (old && typeof old === "object" ? { ...old, fullName: r.fullName, username: r.username, bio: r.bio, complete: true } : old));
+      void qc.invalidateQueries({ queryKey: ["my-profile"] });
       qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Profile saved");
       onSaved?.(r.username);
