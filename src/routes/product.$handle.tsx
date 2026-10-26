@@ -8,6 +8,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
 import { ProductReviews } from "@/components/ProductReviews";
+import { AffiliateLinkButton } from "@/components/AffiliateLinkButton";
 
 export const Route = createFileRoute("/product/$handle")({
   head: ({ params }) => {
@@ -228,6 +229,8 @@ function ProductDetail() {
           >
             {cartLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : selected?.availableForSale ? "Add to cart" : "Sold out"}
           </button>
+
+          <AffiliateLinkButton handle={node.handle} />
 
           <button
             onClick={handleTryOn}

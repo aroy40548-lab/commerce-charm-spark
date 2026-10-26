@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { OPEN_BAG_EVENT } from "@/components/BottomTabBar";
 import { useNavigate } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShoppingBag, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
@@ -9,6 +10,11 @@ export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
   const { items, updateQuantity, removeItem } = useCartStore();
   const navigate = useNavigate();
+  useEffect(() => {
+    const open = () => setIsOpen(true);
+    window.addEventListener(OPEN_BAG_EVENT, open);
+    return () => window.removeEventListener(OPEN_BAG_EVENT, open);
+  }, []);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + parseFloat(i.price.amount) * i.quantity, 0);

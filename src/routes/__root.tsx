@@ -16,6 +16,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { BottomTabBar } from "@/components/BottomTabBar";
 import { observeDecartLauncher } from "@/lib/decart";
 import { useWishlistSync } from "@/hooks/useWishlistSync";
 import { captureReferral } from "@/lib/referral";
@@ -136,6 +137,7 @@ function AppShell() {
   useEffect(() => captureReferral(), []);
   useWishlistSync();
 
+  const isReels = pathname === "/reels" || pathname.startsWith("/reels/") && pathname !== "/reels/studio";
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     return (
       <>
@@ -146,14 +148,18 @@ function AppShell() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
+    <div className="flex min-h-screen flex-col bg-background pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+      {/* Reels fill the phone screen, so the top menu only shows there on laptops. */}
+      <div className={isReels ? "sticky top-0 z-50 hidden lg:block" : "contents"}>
+        <Navbar />
+      </div>
       <main className="flex-1">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </main>
-      <Footer />
-      <Toaster position="bottom-center" mobileOffset={16} />
+      {!isReels && <Footer />}
+      {!pathname.startsWith("/checkout") && <BottomTabBar />}
+      <Toaster position="bottom-center" mobileOffset={72} />
     </div>
   );
 }
