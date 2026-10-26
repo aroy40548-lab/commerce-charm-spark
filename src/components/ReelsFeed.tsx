@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Plus, Share2, ThumbsDown, ThumbsUp, Volume2, VolumeX, Loader2, Trash2, Send, Clapperboard } from "lucide-react";
+import { RefreshCw, Search, MessageCircle, Plus, Share2, ThumbsDown, ThumbsUp, Volume2, VolumeX, Loader2, Trash2, Send, Clapperboard } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +30,15 @@ export function ReelsFeed({ startId }: { startId?: string | undefined }) {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
+  const scroller = useRef<HTMLDivElement>(null);
+  const pull = useRef<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    scroller.current?.scrollTo({ top: 0 });
+    try { await feed.refetch(); } finally { setRefreshing(false); }
+  };
   const reels = feed.data?.pages.flatMap((p) => p.reels) ?? [];
   const ids = reels.map((r) => r.id);
   const votes = useQuery({
@@ -58,7 +67,12 @@ export function ReelsFeed({ startId }: { startId?: string | undefined }) {
 
   return (
     <>
-      <div className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none]">
+      <div
+        ref={scroller}
+        onTouchStart={(e) => { pull.current = scroller.current?.scrollTop === 0 ? e.touches[0]!.clientY : null; }}
+        onTouchEnd={(e) => { if (pull.current !== null && e.changedTouches[0]!.clientY - pull.current > 90) void refresh(); pull.current = null; }}
+        className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none]"
+      >
         {reels.map((r, i) => (
           <ReelItem
             key={r.id}
@@ -71,6 +85,12 @@ export function ReelsFeed({ startId }: { startId?: string | undefined }) {
             onNear={i >= reels.length - 3 && feed.hasNextPage && !feed.isFetchingNextPage ? () => feed.fetchNextPage() : undefined}
           />
         ))}
+      </div>
+      <div className="absolute right-16 top-3 z-20 flex gap-2">
+        <Link to="/search" aria-label="Find people" className="grid h-11 w-11 place-items-center bg-black/60 text-white"><Search className="h-5 w-5" /></Link>
+        <button onClick={() => void refresh()} aria-label="Refresh reels" className="grid h-11 w-11 place-items-center bg-black/60 text-white">
+          <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
+        </button>
       </div>
       <Link
         to="/reels/studio"

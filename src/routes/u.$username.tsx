@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Avatar } from "@/components/ReelsFeed";
 import { ProfileForm } from "@/components/ProfileEditor";
 import { useAuth } from "@/hooks/useAuth";
-import { getPublicProfile, setFollow } from "@/lib/profile.functions";
+import { getPublicProfile, listFollows, setFollow } from "@/lib/profile.functions";
+import { PeopleList } from "@/components/PeopleList";
 
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
@@ -29,6 +30,8 @@ function ProfilePage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const [list, setList] = useState<"followers" | "following" | null>(null);
+  const people = useQuery({ queryKey: ["follows", username, list], enabled: !!list, queryFn: () => listFollows({ data: { username, kind: list! } }) });
   const q = useQuery({ queryKey: ["profile", username, user?.id ?? null], queryFn: () => getPublicProfile({ data: { username } }) });
 
   if (q.isLoading) return <div className="grid min-h-[60vh] place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -53,8 +56,8 @@ function ProfilePage() {
           <p className="text-sm text-muted-foreground">@{p.username}</p>
           <div className="mt-2 flex gap-5 text-sm">
             <span><b>{p.reels.length}</b> reels</span>
-            <span><b>{p.followers}</b> followers</span>
-            <span><b>{p.following}</b> following</span>
+            <button onClick={() => setList("followers")} className="underline-offset-4 hover:underline"><b>{p.followers}</b> followers</button>
+            <button onClick={() => setList("following")} className="underline-offset-4 hover:underline"><b>{p.following}</b> following</button>
           </div>
         </div>
       </div>
@@ -77,6 +80,13 @@ function ProfilePage() {
         ))}
       </div>
       {!p.reels.length && <p className="mt-6 text-center text-sm text-muted-foreground">No reels yet.</p>}
+      <Dialog open={!!list} onOpenChange={(o) => !o && setList(null)}>
+        <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
+          <DialogTitle className="zk-display text-3xl">{list === "followers" ? "Followers" : "Following"}</DialogTitle>
+          <DialogDescription className="sr-only">People connected to @{p.username}</DialogDescription>
+          {people.isLoading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : <PeopleList people={people.data ?? []} onPick={() => setList(null)} empty="No one here yet." />}
+        </DialogContent>
+      </Dialog>
       <Dialog open={editing} onOpenChange={setEditing}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
           <DialogTitle className="zk-display text-3xl">Edit profile</DialogTitle>
