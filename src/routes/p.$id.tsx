@@ -1,5 +1,5 @@
 import { toThreads } from "@/lib/commentThreads";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Send, Trash2 } from "lucide-react";
