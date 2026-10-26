@@ -95,7 +95,7 @@ function Shell({ me }: { me: StaffSession }) {
   const [dark, toggleTheme] = useAdminTheme();
   const storeUrl = typeof window !== "undefined" && window.location.hostname.startsWith("admin.") ? "https://zankyo.in" : "/";
   return (
-    <div className={`zk-hide-vton flex min-h-screen bg-muted/40 text-foreground ${dark ? "dark" : ""}`}>
+    <div className={`zk-hide-vton flex min-h-screen text-foreground ${dark ? "dark bg-background" : "bg-muted/40"}`}>
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-border bg-background lg:block">
         <Sidebar me={me} storeUrl={storeUrl} theme={<ThemeButton dark={dark} onToggle={toggleTheme} />} />
       </aside>
