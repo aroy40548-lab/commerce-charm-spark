@@ -97,9 +97,9 @@ export function PostCardView({ post, eager = false }: { post: Post; eager?: bool
         </div>
         {post.media.length > 1 && (
           <>
-            <span className="absolute right-2 top-2 bg-ink/70 px-2 py-0.5 text-[11px] font-semibold text-paper">{idx + 1}/{post.media.length}</span>
+            <span className="absolute right-2 top-2 bg-ink/70 px-2 py-0.5 text-[11px] font-semibold text-white">{idx + 1}/{post.media.length}</span>
             <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center gap-1">
-              {post.media.map((_, i) => <span key={i} className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-accent" : "bg-paper/60"}`} />)}
+              {post.media.map((_, i) => <span key={i} className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-accent" : "bg-white/60"}`} />)}
             </div>
           </>
         )}
@@ -136,7 +136,7 @@ export function ReelTileView({ reel }: { reel: ReelTile }) {
       <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} />
       <Link to="/reels/$id" params={{ id: reel.id }} className="relative block aspect-[4/5] bg-ink">
         <video ref={vid} src={near ? reel.videoUrl : undefined} muted loop playsInline preload="none" className="h-full w-full object-cover" />
-        <span className="zk-label absolute right-2 top-2 flex items-center gap-1 bg-ink/70 px-2 py-1 text-[9px] text-paper"><Clapperboard className="h-3 w-3" /> Reel</span>
+        <span className="zk-label absolute right-2 top-2 flex items-center gap-1 bg-ink/70 px-2 py-1 text-[9px] text-white"><Clapperboard className="h-3 w-3" /> Reel</span>
       </Link>
       <p className="px-3 pt-2 text-sm font-semibold">{reel.likes} likes · {reel.views} views</p>
       {reel.caption && <p className="px-3 text-sm"><b>{reel.username ?? reel.name}</b> {reel.caption}</p>}
