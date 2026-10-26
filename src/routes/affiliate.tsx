@@ -7,6 +7,9 @@ import { SignInPanel } from "@/components/SignInPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { getAffiliateProgram, getMyAffiliate, joinAffiliate, updateMyPayout } from "@/lib/affiliate.functions";
 import { formatMoney } from "@/lib/catalog";
+import { Link } from "@tanstack/react-router";
+import { useProducts } from "@/hooks/useProducts";
+import { productAffiliateLink } from "@/lib/reels";
 
 export const Route = createFileRoute("/affiliate")({
   head: () => ({
@@ -32,15 +35,15 @@ function AffiliatePage() {
       <p className="zk-label text-[11px] text-muted-foreground">ZANKYO affiliates</p>
       <h1 className="zk-display mt-2 text-4xl sm:text-5xl">Share the drop. Earn {rate}%.</h1>
       <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-        Get your own link. When someone buys through it, you earn {rate}% of their order value (after discounts, before shipping).
+        Share a link to any product (or post a Reel). When someone buys that product through your link, you earn {rate}% of its price (after discounts, before shipping).
         Commissions are approved by the ZANKYO team once the order is confirmed, then paid to your UPI.
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         {[
-          [Link2, "Get your link", "One tap, it's yours."],
+          [Link2, "Pick a product", "Every product has your own link."],
           [Share2, "Share it", "Stories, groups, DMs — anywhere."],
-          [Wallet, "Get paid", `${rate}% of every order, straight to UPI.`],
+          [Wallet, "Get paid", `${rate}% of linked products, straight to UPI.`],
         ].map(([Icon, t, d]) => {
           const I = Icon as typeof Link2;
           return (
@@ -75,7 +78,6 @@ function Dashboard() {
   const qc = useQueryClient();
   const me = useQuery({ queryKey: ["my-affiliate"], queryFn: () => getMyAffiliate() });
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [upi, setUpi] = useState<string | null>(null);
 
   if (me.isLoading) return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
@@ -101,17 +103,6 @@ function Dashboard() {
   }
 
   const { affiliate: a, totals, commissions } = me.data;
-  const link = `${typeof window !== "undefined" ? window.location.origin : "https://zankyo.in"}/?ref=${a.code}`;
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Copy failed — long-press the link to copy it.");
-    }
-  };
-  const share = () => navigator.share?.({ title: "ZANKYO", text: "Check out ZANKYO streetwear", url: link }).catch(() => {});
   const savePayout = async () => {
     await updateMyPayout({ data: { upi: upi ?? "" } });
     toast.success("Payout details saved");
@@ -121,19 +112,7 @@ function Dashboard() {
   return (
     <div className="space-y-5">
       {a.status !== "active" && <p className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">Your affiliate account is paused. Contact help@zankyo.in.</p>}
-      <div className="rounded-2xl border border-border p-4 sm:p-5">
-        <p className="zk-label text-[11px] text-muted-foreground">Your link</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <code className="min-w-0 flex-1 break-all rounded-lg bg-muted px-3 py-3 text-sm">{link}</code>
-          <button onClick={copy} className="zk-label flex min-h-11 items-center gap-2 rounded-lg bg-foreground px-4 text-[11px] text-background">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied ? "Copied" : "Copy"}
-          </button>
-          {typeof navigator !== "undefined" && "share" in navigator && (
-            <button onClick={share} className="zk-label flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 text-[11px]"><Share2 className="h-4 w-4" /> Share</button>
-          )}
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">Code {a.code} · {a.clicks} link visits · Orders within 30 days of a visit count.</p>
-      </div>
+      <ProductLinks code={a.code} clicks={a.clicks} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Orders" value={String(totals.orders)} />
@@ -160,7 +139,7 @@ function Dashboard() {
               <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                 <span className="min-w-0">
                   <span className="block font-semibold">{c.order} · {formatMoney(c.amount)}</span>
-                  <span className="text-xs text-muted-foreground">{c.rate}% of {formatMoney(c.orderAmount)} · {new Date(c.createdAt).toLocaleDateString("en-IN")}</span>
+                  <span className="text-xs text-muted-foreground">{c.products.length ? `${c.products.join(", ")}${c.fromReel ? " (reel)" : ""} · ` : ""}{c.rate}% of {formatMoney(c.orderAmount)} · {new Date(c.createdAt).toLocaleDateString("en-IN")}</span>
                 </span>
                 <span className={`zk-label shrink-0 rounded-full px-2 py-1 text-[9px] ${c.status === "paid" || c.status === "approved" ? "bg-foreground text-background" : "bg-muted text-muted-foreground"}`}>{STATUS[c.status] ?? c.status}</span>
               </li>
@@ -177,6 +156,43 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="rounded-2xl bg-muted/60 p-3">
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-1 text-lg font-bold">{value}</p>
+    </div>
+  );
+}
+
+function ProductLinks({ code, clicks }: { code: string; clicks: number }) {
+  const products = useProducts();
+  const [q, setQ] = useState("");
+  const [copied, setCopied] = useState<string | null>(null);
+  const list = (products.data ?? []).map((p) => p.node).filter((p) => p.title.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 40);
+  const copy = async (handle: string) => {
+    const link = productAffiliateLink(window.location.origin, handle, code);
+    try {
+      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) { await navigator.share({ title: "ZANKYO", url: link }); return; }
+      await navigator.clipboard.writeText(link);
+      setCopied(handle);
+      setTimeout(() => setCopied(null), 2000);
+    } catch { /* cancelled */ }
+  };
+  return (
+    <div className="rounded-2xl border border-border p-4 sm:p-5">
+      <p className="zk-label text-[11px] text-muted-foreground">Your product links</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Code {code} · {clicks} link visits · You earn on the product your link points to, for orders within 30 days.
+        Want more reach? <Link to="/reels/studio" className="underline">Post a reel</Link> — tagged products credit you too.
+      </p>
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" aria-label="Search products" className="mt-3 min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base sm:text-sm" />
+      <ul className="mt-2 max-h-80 divide-y divide-border overflow-y-auto rounded-lg border border-border">
+        {list.map((p) => (
+          <li key={p.id} className="flex items-center gap-3 p-2">
+            <div className="h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">{p.images.edges[0] && <img src={p.images.edges[0].node.url} alt="" loading="lazy" className="h-full w-full object-cover" />}</div>
+            <span className="min-w-0 flex-1 truncate text-sm">{p.title}</span>
+            <button onClick={() => copy(p.handle)} className="zk-label flex min-h-10 shrink-0 items-center gap-1 rounded-lg bg-foreground px-3 text-[10px] text-background">
+              {copied === p.handle ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied === p.handle ? "Copied" : "Copy link"}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

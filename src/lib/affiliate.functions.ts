@@ -30,16 +30,19 @@ export const getMyAffiliate = createServerFn({ method: "POST" })
     if (!a) return null;
     const { data: rows } = await sb
       .from("affiliate_commissions")
-      .select("id, amount, order_amount, rate, status, created_at, orders(order_number)")
+      .select("id, amount, order_amount, rate, status, created_at, product_ids, reel_id, orders(order_number)")
       .eq("affiliate_id", a.id)
       .order("created_at", { ascending: false })
       .limit(200);
     const list = rows ?? [];
+    const pids = [...new Set(list.flatMap((r) => r.product_ids ?? []))];
+    const titles = new Map<string, string>();
+    if (pids.length) (await sb.from("products").select("id, title").in("id", pids)).data?.forEach((p) => titles.set(p.id, p.title));
     const sum = (s: string) => list.filter((r) => r.status === s).reduce((t, r) => t + Number(r.amount), 0);
     return {
       affiliate: a,
       totals: { pending: sum("pending"), approved: sum("approved"), paid: sum("paid"), orders: list.filter((r) => r.status !== "rejected").length },
-      commissions: list.map((r) => ({ id: r.id, amount: Number(r.amount), orderAmount: Number(r.order_amount), rate: Number(r.rate), status: r.status, createdAt: r.created_at, order: r.orders ? `ZK${r.orders.order_number}` : "" })),
+      commissions: list.map((r) => ({ id: r.id, amount: Number(r.amount), orderAmount: Number(r.order_amount), rate: Number(r.rate), status: r.status, createdAt: r.created_at, order: r.orders ? `ZK${r.orders.order_number}` : "", products: (r.product_ids ?? []).map((id) => titles.get(id) ?? "Product"), fromReel: !!r.reel_id })),
     };
   });
 
