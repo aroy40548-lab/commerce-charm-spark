@@ -34,7 +34,7 @@ const NAV: NavItem[] = [
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/content", label: "Content", icon: FileText, children: [{ to: "/admin/blog", label: "Blog posts" }] },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/admin/marketing", label: "Marketing", icon: Megaphone, children: [{ to: "/admin/marketing", label: "Affiliates" }] },
+  { to: "/admin/marketing", label: "Marketing", icon: Megaphone, children: [{ to: "/admin/marketing", label: "Affiliate Partners" }] },
   { to: "/admin/discounts", label: "Discounts", icon: Percent },
   { to: "/admin/reviews", label: "Reviews", icon: MessageSquareQuote },
   { to: "/admin/reels", label: "Reels", icon: Clapperboard },

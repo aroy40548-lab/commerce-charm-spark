@@ -14,9 +14,9 @@ import { productAffiliateLink } from "@/lib/reels";
 export const Route = createFileRoute("/affiliate")({
   head: () => ({
     meta: [
-      { title: "Affiliate program — ZANKYO" },
+      { title: "Affiliate Partner program — ZANKYO" },
       { name: "description", content: "Share your ZANKYO link and earn commission on every order your friends place." },
-      { property: "og:title", content: "Earn with ZANKYO" },
+      { property: "og:title", content: "Become a ZANKYO Affiliate Partner" },
       { property: "og:description", content: "Share your link, earn commission on every order." },
     ],
   }),
@@ -32,7 +32,7 @@ function AffiliatePage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 sm:py-12">
-      <p className="zk-label text-[11px] text-muted-foreground">ZANKYO affiliates</p>
+      <p className="zk-label text-[11px] text-muted-foreground">ZANKYO Affiliate Partners</p>
       <h1 className="zk-display mt-2 text-4xl sm:text-5xl">Share the drop. Earn {rate}%.</h1>
       <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
         Share a link to any product (or post a Reel). When someone buys that product through your link, you earn {rate}% of its price (after discounts, before shipping).
@@ -97,7 +97,7 @@ function Dashboard({ rate }: { rate: number }) {
     };
     return (
       <button onClick={join} disabled={busy} className="zk-label flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background disabled:opacity-60 sm:w-auto sm:px-10">
-        {busy && <Loader2 className="h-4 w-4 animate-spin" />} Get my affiliate link
+        {busy && <Loader2 className="h-4 w-4 animate-spin" />} Become a partner — get my link
       </button>
     );
   }
@@ -183,7 +183,7 @@ function ProductLinks({ code, clicks, rate }: { code: string; clicks: number; ra
     <div className="border border-border p-4 sm:p-5">
       <p className="zk-label text-[11px] text-muted-foreground">Your product links</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Code {code} · {clicks} link visits · You earn on the product your link points to, for orders within 30 days.
+        Code {code} · {clicks} link visits · Your link credits you for 365 days after each click, on the product it points to.
         Want more reach? <Link to="/reels/studio" className="underline">Post a reel</Link> — tagged products credit you too.
       </p>
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" aria-label="Search products" className="mt-3 min-h-11 w-full border border-border bg-background px-3 text-base sm:text-sm" />

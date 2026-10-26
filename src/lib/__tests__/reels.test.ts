@@ -43,3 +43,14 @@ describe("feed weights", () => {
   });
   it("hidden never shows", () => expect(feedWeight({ ...base, creatorPriority: 0, followed: true })).toBe(0));
 });
+
+import { mergeReferral as mr } from "../referral";
+import { describe as d2, it as i2, expect as e2 } from "vitest";
+d2("referral window", () => {
+  i2("expires after the configured days", () => {
+    const until = Date.now() + 365 * 86_400_000;
+    const r = mr(null, "ABC123", { product: "tee", reel: null }, until);
+    e2(r.until - Date.now()).toBeGreaterThan(364 * 86_400_000);
+    e2(r.until - Date.now()).toBeLessThanOrEqual(365 * 86_400_000);
+  });
+});
