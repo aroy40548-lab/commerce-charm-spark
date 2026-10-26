@@ -1,3 +1,4 @@
+import { VerifiedTick } from "@/components/social/Verified";
 import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,13 +14,13 @@ function needSignIn(what: string) {
   toast(`Sign in to ${what}`, { action: { label: "Sign in", onClick: () => (window.location.href = "/auth") } });
 }
 
-export function CreatorRow({ username, name, avatarUrl, at }: { username: string | null; name: string; avatarUrl: string | null; at: string }) {
+export function CreatorRow({ username, name, avatarUrl, at, verified = false }: { username: string | null; name: string; avatarUrl: string | null; at: string; verified?: boolean }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2">
       {username ? (
         <Link to="/u/$username" params={{ username }} className="flex min-w-0 items-center gap-2">
-          <span className="rounded-full bg-gradient-to-tr from-accent to-primary p-[2px]"><span className="block rounded-full bg-background p-[2px]"><Avatar url={avatarUrl} label={username} /></span></span>
-          <span className="truncate text-sm font-semibold">{username}</span>
+          <span className={verified ? "zk-verified-ring !p-[2px]" : "rounded-full bg-gradient-to-tr from-accent to-primary p-[2px]"}><span className="block rounded-full bg-background p-[2px]"><Avatar url={avatarUrl} label={username} /></span></span>
+          <span className="truncate text-sm font-semibold">{username}</span>{verified && <VerifiedTick className="h-3.5 w-3.5" />}
         </Link>
       ) : (
         <span className="flex items-center gap-2"><Avatar url={avatarUrl} label={name} /><span className="text-sm font-semibold">{name}</span></span>
@@ -84,7 +85,7 @@ export const PostCardView = memo(function PostCardView({ post, eager = false }: 
 
   return (
     <article className="zk-feed-card pb-5">
-      <CreatorRow username={post.username} name={post.name} avatarUrl={post.avatarUrl} at={post.createdAt} />
+      <CreatorRow username={post.username} name={post.name} avatarUrl={post.avatarUrl} at={post.createdAt} verified={post.verified} />
       <div className="relative bg-muted" style={{ aspectRatio: `1 / ${ratio}` }} onClick={tap}>
         <div
           ref={strip}
@@ -149,7 +150,7 @@ export const ReelTileView = memo(function ReelTileView({ reel }: { reel: ReelTil
   }, [inView, near]);
   return (
     <article ref={box} className="border-b border-border pb-3">
-      <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} />
+      <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} verified={reel.verified} />
       <Link to="/reels/$id" params={{ id: reel.id }} className="relative block aspect-[4/5] overflow-hidden bg-ink">
         <video ref={vid} src={near ? reel.videoUrl : undefined} muted autoPlay={inView} loop playsInline preload={near ? "auto" : "none"} onLoadedData={(e) => { if (inView) void e.currentTarget.play().catch(() => {}); }} className="h-full w-full object-cover" />
         <span className="zk-label absolute right-2 top-2 flex items-center gap-1 bg-ink/70 px-2 py-1 text-[9px] text-white"><Clapperboard className="h-3 w-3" /> Reel</span>

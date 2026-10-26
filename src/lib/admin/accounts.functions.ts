@@ -12,7 +12,7 @@ export const adminGetAccountStatus = createServerFn({ method: "POST" })
     const g = await import("./guard.server");
     await g.requireStaff(context as never);
     const [{ data: p }, { data: history }] = await Promise.all([
-      g.db.from("profiles").select("account_status, status_reason, status_changed_at, status_changed_by").eq("id", data.userId).maybeSingle(),
+      g.db.from("profiles").select("account_status, status_reason, status_changed_at, status_changed_by, verified").eq("id", data.userId).maybeSingle(),
       g.db.from("account_actions").select("id, status, reason, actor, created_at").eq("user_id", data.userId).order("created_at", { ascending: false }).limit(20),
     ]);
     return {
@@ -20,6 +20,7 @@ export const adminGetAccountStatus = createServerFn({ method: "POST" })
       reason: p?.status_reason ?? null,
       changedAt: p?.status_changed_at ?? null,
       changedBy: p?.status_changed_by ?? null,
+      verified: !!p?.verified,
       history: history ?? [],
     };
   });
@@ -41,5 +42,18 @@ export const adminSetAccountStatus = createServerFn({ method: "POST" })
     }).eq("id", data.userId);
     if (error) throw new Error("Couldn't update the account");
     await g.db.from("account_actions").insert({ user_id: data.userId, status: data.status, reason: data.reason, actor: me.email });
+    return { ok: true };
+  });
+
+export const adminSetVerified = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ userId: z.string().uuid(), verified: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const g = await import("./guard.server");
+    const me = await g.requireStaff(context as never);
+    const { canRestrictAccounts } = await import("./permissions");
+    if (!canRestrictAccounts(me)) throw new Error("You need the Customers or Social Manager power to verify accounts.");
+    const { error } = await g.db.from("profiles").update({ verified: data.verified, verified_at: data.verified ? new Date().toISOString() : null }).eq("id", data.userId);
+    if (error) throw new Error("Couldn't update the badge");
     return { ok: true };
   });

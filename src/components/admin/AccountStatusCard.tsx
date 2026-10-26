@@ -1,8 +1,9 @@
+import { VerifiedTick } from "@/components/social/Verified";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { ACCOUNT_STATUSES, type AccountStatus } from "@/lib/accountStatus";
-import { adminGetAccountStatus, adminSetAccountStatus } from "@/lib/admin/accounts.functions";
+import { adminGetAccountStatus, adminSetAccountStatus, adminSetVerified } from "@/lib/admin/accounts.functions";
 import { Card, Field, btn, dateTime, inputCls, useAction, useCanEdit, useCanRestrictAccounts } from "@/components/admin/ui";
 
 export function AccountStatusCard({ userId }: { userId: string }) {
@@ -21,6 +22,15 @@ export function AccountStatusCard({ userId }: { userId: string }) {
         Now: <b className={q.data.status === "active" ? "" : "text-destructive"}>{current?.label ?? q.data.status}</b>
         {q.data.reason && <span className="text-muted-foreground"> — {q.data.reason}</span>}
       </p>
+      <div className="mt-3 flex items-center justify-between gap-3 border-y border-border py-3">
+        <p className="flex items-center gap-2 text-sm"><VerifiedTick className="h-5 w-5" /> Verified badge: <b>{q.data.verified ? "On" : "Off"}</b></p>
+        {canEdit && (
+          <button type="button" disabled={!!busy} className={btn}
+            onClick={() => void run("verify", () => adminSetVerified({ data: { userId, verified: !q.data.verified } }), q.data.verified ? "Badge removed" : "Account verified", ["admin-account-status"])}>
+            {busy === "verify" && <Loader2 className="h-4 w-4 animate-spin" />} {q.data.verified ? "Remove badge" : "Give verified badge"}
+          </button>
+        )}
+      </div>
       <form className="mt-3 space-y-3" onSubmit={(e) => {
         e.preventDefault();
         void run("status", () => adminSetAccountStatus({ data: { userId, status, reason } }), "Account updated", ["admin-account-status", "admin-reels-dash"]).then(() => setReason(""));

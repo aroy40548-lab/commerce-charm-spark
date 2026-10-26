@@ -237,3 +237,27 @@
 .zk-feed-card { content-visibility: auto; contain-intrinsic-size: auto 720px; }
 @keyframes zk-pop { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }
 .zk-pop { animation: zk-pop 0.35s ease-out; }
+
+/* ZANKYO Social "Navy" look (default) */
+.zk-social.social-navy {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+}
+
+/* Verified badge: red glow tick + glowing ring on profile photos */
+.zk-verified { color: oklch(0.58 0.22 22); filter: drop-shadow(0 0 4px oklch(0.6 0.24 22 / 0.85)); }
+.zk-verified-ring { border-radius: 9999px; padding: 3px; background: conic-gradient(from 0deg, oklch(0.62 0.24 22), oklch(0.42 0.17 15), oklch(0.62 0.24 22)); box-shadow: 0 0 14px 2px oklch(0.6 0.24 22 / 0.6); animation: zk-verified-pulse 2.6s ease-in-out infinite; }
+@keyframes zk-verified-pulse { 50% { box-shadow: 0 0 22px 5px oklch(0.6 0.24 22 / 0.8); } }
+@media (prefers-reduced-motion: reduce) { .zk-verified-ring { animation: none; } }

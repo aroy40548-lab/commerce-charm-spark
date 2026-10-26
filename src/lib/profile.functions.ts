@@ -86,7 +86,7 @@ export const getPublicProfile = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const sb = await db();
     const u = normalizeUsername(data.username);
-    const { data: p } = await sb.from("profiles").select("id, full_name, username, bio, avatar_path, account_status").ilike("username", u).maybeSingle();
+    const { data: p } = await sb.from("profiles").select("id, full_name, username, bio, avatar_path, account_status, verified").ilike("username", u).maybeSingle();
     if (!p || !p.username) return null;
     const me = await (await helpers()).viewerId(sb);
     if (p.account_status !== "active" && me !== p.id) return null;
@@ -106,6 +106,7 @@ export const getPublicProfile = createServerFn({ method: "POST" })
       name: p.full_name ?? p.username,
       username: p.username,
       bio: p.bio,
+      verified: !!p.verified,
       avatarUrl: p.avatar_path ? urls.get(p.avatar_path) ?? null : null,
       followers: followers.count ?? 0,
       following: following.count ?? 0,

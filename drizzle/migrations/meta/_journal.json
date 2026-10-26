@@ -99,6 +99,13 @@
       "when": 1793050629091,
       "tag": "0013_social_perf_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793052539696,
+      "tag": "0014_comment_replies_verified_badge",
+      "breakpoints": true
     }
   ]
 }

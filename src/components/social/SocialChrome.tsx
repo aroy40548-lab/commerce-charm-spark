@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Clapperboard, Heart, Home, MessageCircle, Plus, Search, UserRound } from "lucide-react";
+import { ArrowLeft, Clapperboard, Moon, Sparkles, Sun, Heart, Home, MessageCircle, Plus, Search, UserRound } from "lucide-react";
 import { BrandIcon } from "@/components/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,14 +44,56 @@ export function SocialRealtime() {
 const Dot = ({ n }: { n: number | undefined }) =>
   n ? <span className="absolute -right-2 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] font-bold text-accent-foreground">{n > 9 ? "9+" : n}</span> : null;
 
+export type SocialTheme = "navy" | "black" | "white";
+const THEME_KEY = "zk-social-theme";
+const ORDER: SocialTheme[] = ["navy", "black", "white"];
+const THEME_EVENT = "zk-social-theme";
+
+/** Social look for this device (Navy by default); read after hydration. */
+export function useSocialTheme() {
+  const [theme, setTheme] = useState<SocialTheme>("navy");
+  useEffect(() => {
+    const read = () => { try { const v = localStorage.getItem(THEME_KEY) as SocialTheme | null; setTheme(v && ORDER.includes(v) ? v : "navy"); } catch { /* private mode */ } };
+    read();
+    window.addEventListener(THEME_EVENT, read);
+    return () => window.removeEventListener(THEME_EVENT, read);
+  }, []);
+  const cycle = () => {
+    const next = ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length] ?? "navy";
+    try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode */ }
+    setTheme(next);
+    window.dispatchEvent(new Event(THEME_EVENT));
+  };
+  return { theme, cycle };
+}
+
+export function socialThemeClass(t: SocialTheme) {
+  return t === "navy" ? "dark social-navy" : t === "black" ? "dark" : "";
+}
+
+const THEME_LABEL: Record<SocialTheme, string> = { navy: "Navy", black: "Black", white: "White" };
+export function SocialThemeButton({ withLabel = false }: { withLabel?: boolean }) {
+  const { theme, cycle } = useSocialTheme();
+  const Icon = theme === "navy" ? Sparkles : theme === "black" ? Moon : Sun;
+  return (
+    <button type="button" onClick={cycle} aria-label={`Theme: ${THEME_LABEL[theme]}. Tap to change`} title="Change theme"
+      className={withLabel ? "flex items-center gap-2 hover:text-accent" : "grid h-10 w-10 place-items-center rounded-full active:bg-muted"}>
+      <Icon className={withLabel ? "h-4 w-4" : "h-5 w-5"} />{withLabel && THEME_LABEL[theme]}
+    </button>
+  );
+}
+
 /** Phone top bar inside Social (hidden on the full-screen reel viewer). */
 export function SocialTopBar() {
   const badges = useSocialBadges();
+  const { pathname } = useLocation();
+  const home = pathname === "/social";
   return (
     <header className="sticky top-0 z-40 flex h-12 items-center gap-2 border-b border-border/60 bg-background/90 px-2 backdrop-blur-xl lg:hidden">
-      <Link to="/" aria-label="Back to shop" className="grid h-10 w-10 place-items-center rounded-full active:bg-muted"><ArrowLeft className="h-5 w-5" /></Link>
+      <Link to={home ? "/" : "/social"} aria-label={home ? "Back to shop" : "Back to feed"} className="grid h-10 w-10 place-items-center rounded-full active:bg-muted"><ArrowLeft className="h-5 w-5" /></Link>
       <Link to="/social" aria-label="ZANKYO Social home" className="grid h-10 w-10 place-items-center"><BrandIcon className="h-8 w-8" /></Link>
       <div className="ml-auto flex items-center">
+        <SocialThemeButton />
         <Link to="/search" aria-label="Search people" className="grid h-10 w-10 place-items-center rounded-full active:bg-muted"><Search className="h-5 w-5" /></Link>
         <Link to="/social/notifications" aria-label="Notifications" className="grid h-10 w-10 place-items-center rounded-full active:bg-muted"><span className="relative"><Heart className="h-5 w-5" /><Dot n={badges.data?.notifications} /></span></Link>
         <Link to="/social/inbox" aria-label="Messages" className="grid h-10 w-10 place-items-center rounded-full active:bg-muted"><span className="relative"><MessageCircle className="h-5 w-5" /><Dot n={badges.data?.chats} /></span></Link>
@@ -103,6 +145,7 @@ export function SocialDesktopBar() {
       <div className="mx-auto flex h-12 max-w-5xl items-center gap-6 px-4">
         <Link to="/social" aria-label="ZANKYO Social home"><BrandIcon className="h-8 w-8" /></Link>
         <div className="ml-auto flex items-center gap-5 text-sm">
+          <SocialThemeButton withLabel />
           <Link to="/search" className="flex items-center gap-2 hover:text-accent"><Search className="h-4 w-4" /> Search</Link>
           <Link to="/social/notifications" className="flex items-center gap-2 hover:text-accent"><span className="relative"><Heart className="h-4 w-4" /><Dot n={badges.data?.notifications} /></span> Notifications</Link>
           <Link to="/social/inbox" className="flex items-center gap-2 hover:text-accent"><span className="relative"><MessageCircle className="h-4 w-4" /><Dot n={badges.data?.chats} /></span> Messages</Link>

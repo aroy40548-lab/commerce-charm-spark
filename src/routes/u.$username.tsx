@@ -1,3 +1,4 @@
+import { VerifiedTick } from "@/components/social/Verified";
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -62,9 +63,9 @@ function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex items-center gap-5">
-        <Avatar url={p.avatarUrl} label={p.username} size="h-20 w-20 sm:h-24 sm:w-24 text-2xl" />
+        <span className={p.verified ? "zk-verified-ring shrink-0" : "shrink-0"}><span className={p.verified ? "block rounded-full bg-background p-[2px]" : "block"}><Avatar url={p.avatarUrl} label={p.username} size="h-20 w-20 sm:h-24 sm:w-24 text-2xl" /></span></span>
         <div className="min-w-0 flex-1">
-          <h1 className="zk-display truncate text-3xl sm:text-4xl">{p.name}</h1>
+          <h1 className="zk-display flex items-center gap-2 text-3xl sm:text-4xl"><span className="truncate">{p.name}</span>{p.verified && <VerifiedTick className="h-6 w-6 sm:h-7 sm:w-7" />}</h1>
           <p className="text-sm text-muted-foreground">@{p.username}</p>
           <div className="mt-2 flex gap-5 text-sm">
             <span><b>{(counts.data?.posts ?? 0) + p.reels.length}</b> posts</span>
