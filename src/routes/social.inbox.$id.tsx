@@ -48,7 +48,7 @@ function Chat() {
     if (!user) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const ch = supabase.channel(`typing:${id}`).on("broadcast", { event: "typing" }, (p) => {
-      if ((p.payload as { from?: string }).from === user.id) return;
+      if ((p["payload"] as { from?: string }).from === user.id) return;
       setTyping(true); clearTimeout(timer); timer = setTimeout(() => setTyping(false), 3000);
     }).subscribe();
     channel.current = ch;

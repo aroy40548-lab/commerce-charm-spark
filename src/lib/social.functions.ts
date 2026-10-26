@@ -128,7 +128,7 @@ export const listSocialFeed = createServerFn({ method: "POST" })
     ]);
     const pc = new Map((await toPosts(sb, (pf.data ?? []) as unknown as PostRow[], me)).map((p) => [p.id, p]));
     const rc = new Map((await toReels(sb, (rf.data ?? []) as unknown as ReelRow[])).map((r) => [r.id, r]));
-    const items: Array<FeedItem & { key: string }> = pick.flatMap((k) => {
+    const items = pick.flatMap((k): Array<FeedItem & { key: string }> => {
       const id = k.slice(2);
       if (k.startsWith("p:")) { const post = pc.get(id); return post ? [{ type: "post" as const, post, key: k }] : []; }
       const reel = rc.get(id); return reel ? [{ type: "reel" as const, reel, key: k }] : [];
