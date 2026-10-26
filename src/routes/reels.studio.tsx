@@ -102,11 +102,11 @@ function Uploader() {
 
   const pick = async (f: File | undefined) => {
     if (!f) return;
-    if (!(REEL_TYPES as readonly string[]).includes(f.type)) return toast.error("Use an MP4, MOV or WebM video");
-    if (f.size > MAX_REEL_BYTES) return toast.error("Video is too large (max 50MB)");
+    if (!(REEL_TYPES as readonly string[]).includes(f.type)) { toast.error("Use an MP4, MOV or WebM video"); return; }
+    if (f.size > MAX_REEL_BYTES) { toast.error("Video is too large (max 50MB)"); return; }
     try {
       const d = await readVideoDuration(f);
-      if (!reelLengthOk(d)) return toast.error(`Reels must be ${MAX_REEL_SECONDS} seconds or shorter (this one is ${Math.round(d)}s)`);
+      if (!reelLengthOk(d)) { toast.error(`Reels must be ${MAX_REEL_SECONDS} seconds or shorter (this one is ${Math.round(d)}s)`); return; }
       setDuration(d);
       setFile(f);
       setPreview(URL.createObjectURL(f));

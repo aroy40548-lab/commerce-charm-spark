@@ -205,7 +205,7 @@ export const publishReel = createServerFn({ method: "POST" })
     const sb = await db();
     if (!data.path.startsWith(`${context.userId}/`) || data.path.includes("..")) throw new Error("Upload not found");
     const [folder, file] = data.path.split("/");
-    const { data: files } = await sb.storage.from("reels").list(folder, { search: file });
+    const { data: files } = await sb.storage.from("reels").list(folder, { search: file ?? "" });
     const obj = files?.find((f) => f.name === file);
     const size = Number((obj?.metadata as { size?: number } | undefined)?.size ?? 0);
     if (!obj) throw new Error("Upload not found — please try again");
@@ -237,7 +237,7 @@ export const listMyReels = createServerFn({ method: "POST" })
       const { data: com } = await sb.from("affiliate_commissions").select("reel_id, amount, status").eq("affiliate_id", aff.id).in("reel_id", list.map((r) => r.id));
       com?.forEach((c) => c.reel_id && c.status !== "rejected" && earned.set(c.reel_id, (earned.get(c.reel_id) ?? 0) + Number(c.amount)));
     }
-    const status = new Map((rows ?? []).map((r) => [r.id, (r as unknown as { status?: string }).status]));
+    const status = new Map(((rows ?? []) as unknown as Array<{ id: string; status: string }>).map((r) => [r.id, r.status]));
     return cards.map((c) => ({ ...c, earned: earned.get(c.id) ?? 0, hidden: status.get(c.id) === "hidden" }));
   });
 

@@ -11,7 +11,7 @@ import {
   addReelComment, deleteReelComment, getMyVotes, listReelComments, listReels, viewReel, voteReel, type ReelCard,
 } from "@/lib/reels.functions";
 
-export function ReelsFeed({ startId }: { startId?: string }) {
+export function ReelsFeed({ startId }: { startId?: string | undefined }) {
   const { user } = useAuth();
   const [muted, setMuted] = useState(true);
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export function ReelsFeed({ startId }: { startId?: string }) {
 function ReelItem({
   reel, muted, onToggleMute, myVote, onComments, onNear,
 }: {
-  reel: ReelCard; muted: boolean; onToggleMute: () => void; myVote: number; onComments: () => void; onNear?: () => void;
+  reel: ReelCard; muted: boolean; onToggleMute: () => void; myVote: number; onComments: () => void; onNear?: (() => void) | undefined;
 }) {
   const { user } = useAuth();
   const qc = useQueryClient();
