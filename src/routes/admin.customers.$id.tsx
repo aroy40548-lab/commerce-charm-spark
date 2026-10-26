@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { adminGetCustomer, adminSaveCustomerNote } from "@/lib/admin/customers.functions";
+import { AccountStatusCard } from "@/components/admin/AccountStatusCard";
 import { Card, Field, PageHeader, Spinner, Stat, StatusBadge, btn, dateOnly, dateTime, inputCls, inr, useAction, useCanEdit } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin/customers/$id")({ component: Customer });
@@ -64,6 +65,7 @@ function Customer() {
               {c.affiliate && <p className="pt-1 text-muted-foreground">Affiliate code <b className="text-foreground">{c.affiliate.code}</b> · {c.affiliate.clicks} clicks</p>}
             </div>
           </Card>
+          <AccountStatusCard userId={id} />
           <Card title="Addresses">
             {c.addresses.length === 0 ? <p className="text-sm text-muted-foreground">None saved.</p> : c.addresses.map((a) => (
               <p key={a.id} className="mb-2 text-sm text-muted-foreground">{a.full_name}, {[a.address1, a.address2, a.city, a.state, a.pincode].filter(Boolean).join(", ")} · {a.phone}</p>
