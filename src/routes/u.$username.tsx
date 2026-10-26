@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, Loader2, Pencil } from "lucide-react";
+import { Loader2, MessageCircle, Pencil, Share2 } from "lucide-react";
+import { ProfileGrid } from "@/components/social/ProfileGrid";
+import { openConversation, profileCounts } from "@/lib/social.functions";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Avatar } from "@/components/ReelsFeed";
@@ -13,7 +15,7 @@ import { PeopleList } from "@/components/PeopleList";
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
     meta: [
-      { title: `@${params.username} — ZANKYO Reels` },
+      { title: `@${params.username} — ZANKYO Social` },
       { name: "description", content: `Watch @${params.username}'s ZANKYO streetwear reels and shop their fits.` },
       { property: "og:title", content: `@${params.username} on ZANKYO` },
       { property: "og:description", content: `ZANKYO reels by @${params.username}.` },
@@ -34,10 +36,20 @@ function ProfilePage() {
   const people = useQuery({ queryKey: ["follows", username, list], enabled: !!list, queryFn: () => listFollows({ data: { username, kind: list! } }) });
   const q = useQuery({ queryKey: ["profile", username, user?.id ?? null], queryFn: () => getPublicProfile({ data: { username } }) });
 
+  const counts = useQuery({ queryKey: ["profile-counts", q.data?.id], enabled: !!q.data?.id, queryFn: () => profileCounts({ data: { userId: q.data!.id } }) });
   if (q.isLoading) return <div className="grid min-h-[60vh] place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   const p = q.data;
   if (!p) return <div className="grid min-h-[60vh] place-items-center p-6 text-center"><div><p className="zk-display text-4xl">Not found</p><p className="mt-2 text-sm text-muted-foreground">No one has the username @{username}.</p></div></div>;
 
+  const shareProfile = async () => {
+    const url = `${window.location.origin}/u/${p.username}`;
+    try { if (navigator.share) { await navigator.share({ title: `@${p.username} on ZANKYO`, url }); return; } await navigator.clipboard.writeText(url); toast.success("Profile link copied"); } catch { /* cancelled */ }
+  };
+  const message = async () => {
+    if (!user) { navigate({ to: "/auth" }); return; }
+    try { const c = await openConversation({ data: { userId: p.id } }); navigate({ to: "/social/inbox/$id", params: { id: c.id } }); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't open chat"); }
+  };
   const follow = async () => {
     if (!user) { navigate({ to: "/auth" }); return; }
     try {
@@ -55,31 +67,29 @@ function ProfilePage() {
           <h1 className="zk-display truncate text-3xl sm:text-4xl">{p.name}</h1>
           <p className="text-sm text-muted-foreground">@{p.username}</p>
           <div className="mt-2 flex gap-5 text-sm">
-            <span><b>{p.reels.length}</b> reels</span>
+            <span><b>{(counts.data?.posts ?? 0) + p.reels.length}</b> posts</span>
             <button onClick={() => setList("followers")} className="underline-offset-4 hover:underline"><b>{p.followers}</b> followers</button>
             <button onClick={() => setList("following")} className="underline-offset-4 hover:underline"><b>{p.following}</b> following</button>
           </div>
         </div>
       </div>
       {p.bio && <p className="mt-4 whitespace-pre-line text-sm">{p.bio}</p>}
-      <div className="mt-5">
+      <div className="mt-5 flex gap-2">
         {p.isMe ? (
-          <button onClick={() => setEditing(true)} className="zk-label inline-flex min-h-11 w-full items-center justify-center gap-2 border border-foreground text-xs sm:w-auto sm:px-8"><Pencil className="h-4 w-4" /> Edit profile</button>
+          <>
+            <button onClick={() => setEditing(true)} className="zk-label inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-foreground text-xs sm:flex-none sm:px-8"><Pencil className="h-4 w-4" /> Edit profile</button>
+            <button onClick={shareProfile} className="zk-label inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-border text-xs sm:flex-none sm:px-8"><Share2 className="h-4 w-4" /> Share profile</button>
+          </>
         ) : (
-          <button onClick={follow} className={`zk-label min-h-11 w-full text-xs sm:w-auto sm:px-10 ${p.isFollowing ? "border border-foreground" : "bg-foreground text-background"}`}>
-            {p.isFollowing ? "Following" : "Follow"}
-          </button>
+          <>
+            <button onClick={follow} className={`zk-label min-h-10 flex-1 text-xs sm:flex-none sm:px-10 ${p.isFollowing ? "border border-foreground" : "bg-foreground text-background"}`}>
+              {p.isFollowing ? "Following" : "Follow"}
+            </button>
+            <button onClick={message} className="zk-label inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-border text-xs sm:flex-none sm:px-10"><MessageCircle className="h-4 w-4" /> Message</button>
+          </>
         )}
       </div>
-      <div className="mt-8 grid grid-cols-3 gap-1">
-        {p.reels.map((r) => (
-          <Link key={r.id} to="/reels/$id" params={{ id: r.id }} className="relative aspect-[9/16] overflow-hidden bg-ink">
-            <video src={r.videoUrl} muted playsInline preload="metadata" className="pointer-events-none h-full w-full object-cover" />
-            <span className="absolute bottom-1 left-1 flex items-center gap-1 text-[11px] font-semibold text-white drop-shadow"><Eye className="h-3 w-3" /> {r.views}</span>
-          </Link>
-        ))}
-      </div>
-      {!p.reels.length && <p className="mt-6 text-center text-sm text-muted-foreground">No reels yet.</p>}
+      <ProfileGrid userId={p.id} isMe={p.isMe} />
       <Dialog open={!!list} onOpenChange={(o) => !o && setList(null)}>
         <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
           <DialogTitle className="zk-display text-3xl">{list === "followers" ? "Followers" : "Following"}</DialogTitle>
