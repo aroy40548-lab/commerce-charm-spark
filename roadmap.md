@@ -20,3 +20,4 @@
 - [ ] Owner reviews products/prices/stock in /admin (data dates from before the Shopify switch)
 - [x] Bottom tab bar (Home/Reels/Bag), customer Reels with likes/dislikes/comments/share, creator studio, admin moderation
 - [x] Affiliate credit via unique product links and reels, only on linked products
+- [x] Reels: refresh feed while scrolling

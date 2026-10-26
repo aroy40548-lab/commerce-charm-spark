@@ -35,7 +35,7 @@ export function AffiliateLinkButton({ handle }: { handle: string }) {
       onClick={copy}
       className="zk-label mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-dashed border-border py-3 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
     >
-      {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />} {copied ? "Copied" : `Copy my affiliate link · ${code}`}
+      {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />} {copied ? "Copied" : `Copy my partner link · ${code}`}
     </button>
   );
 }

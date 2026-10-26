@@ -2,7 +2,7 @@ import { trackAffiliateClick } from "@/lib/affiliate.functions";
 
 const KEY = "zankyo-ref";
 
-export interface Referral { code: string; products: string[]; reelId: string | null; until: number }
+export interface Referral { code: string; products: string[]; reelId: string | null; until: number; at?: number }
 
 /** Reads where an affiliate link points: a product page or a reel. */
 export function referralTarget(pathname: string): { product: string | null; reel: string | null } {
@@ -16,11 +16,11 @@ export function mergeReferral(prev: Referral | null, code: string, target: { pro
   const same = prev && prev.code === code;
   const products = same ? [...prev.products] : [];
   if (target.product && !products.includes(target.product)) products.push(target.product);
-  return { code, products: products.slice(-20), reelId: target.reel ?? (same ? prev.reelId : null), until };
+  return { code, products: products.slice(-20), reelId: target.reel ?? (same ? prev.reelId : null), until, at: Date.now() };
 }
 
 /** Remembers `?ref=CODE` from an affiliate product/reel link so the next order credits that affiliate. */
-export function captureReferral(days = 30) {
+export function captureReferral(days = 365) {
   try {
     const url = new URL(window.location.href);
     const code = url.searchParams.get("ref")?.trim().toUpperCase();
@@ -40,7 +40,7 @@ export function readReferralFull(): Referral | null {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) ?? "null") as Partial<Referral> | null;
     if (!v || !v.code || !v.until || v.until <= Date.now()) return null;
-    return { code: v.code, products: Array.isArray(v.products) ? v.products : [], reelId: v.reelId ?? null, until: v.until };
+    return { code: v.code, products: Array.isArray(v.products) ? v.products : [], reelId: v.reelId ?? null, until: v.until, at: v.at ?? v.until - 30 * 86_400_000 };
   } catch {
     return null;
   }

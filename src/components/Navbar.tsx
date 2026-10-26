@@ -13,7 +13,7 @@ import { FirstPurchaseOffer } from "@/components/FirstPurchaseOffer";
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/shop", label: "Shop" },
-  { to: "/affiliate", label: "Affiliate" },
+  { to: "/affiliate", label: "Affiliate Partner" },
   { to: "/reels", label: "Reels" },
   { to: "/collections", label: "Collections" },
   { to: "/unboxing", label: "UNBOXING // 001" },
