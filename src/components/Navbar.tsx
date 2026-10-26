@@ -14,7 +14,7 @@ const NAV = [
   { to: "/", label: "Home" },
   { to: "/shop", label: "Shop" },
   { to: "/affiliate", label: "Affiliate Partner" },
-  { to: "/reels", label: "Reels" },
+  { to: "/social", label: "Social" },
   { to: "/collections", label: "Collections" },
   { to: "/unboxing", label: "UNBOXING // 001" },
   { to: "/about", label: "About" },

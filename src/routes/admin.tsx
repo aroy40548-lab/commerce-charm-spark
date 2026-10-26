@@ -37,7 +37,7 @@ const NAV: NavItem[] = [
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone, children: [{ to: "/admin/marketing", label: "Affiliate Partners" }] },
   { to: "/admin/discounts", label: "Discounts", icon: Percent },
   { to: "/admin/reviews", label: "Reviews", icon: MessageSquareQuote },
-  { to: "/admin/reels", label: "Reels", icon: Clapperboard },
+  { to: "/admin/reels", label: "Social", icon: Clapperboard },
 ];
 
 function AdminLayout() {

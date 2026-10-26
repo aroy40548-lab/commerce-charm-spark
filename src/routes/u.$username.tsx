@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, MessageCircle, Pencil, Share2 } from "lucide-react";
 import { ProfileGrid } from "@/components/social/ProfileGrid";

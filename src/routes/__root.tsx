@@ -17,6 +17,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BottomTabBar } from "@/components/BottomTabBar";
+import { SocialDesktopBar, SocialRealtime, SocialTabBar, SocialTopBar, isSocialPath } from "@/components/social/SocialChrome";
 import { observeDecartLauncher } from "@/lib/decart";
 import { useWishlistSync } from "@/hooks/useWishlistSync";
 import { captureReferral } from "@/lib/referral";
@@ -149,18 +150,22 @@ function AppShell() {
     );
   }
 
+  const social = isSocialPath(pathname);
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
-      {/* Reels fill the phone screen, so the top menu only shows there on laptops. */}
-      <div className={isReels ? "sticky top-0 z-50 hidden lg:block" : "contents"}>
+    <div className={`flex min-h-screen flex-col bg-background pb-[calc(3.5rem+env(safe-area-inset-bottom))] ${social ? "" : "lg:pb-0"}`}>
+      {/* Inside Social the store menu only shows on laptops; phones get the Social top bar. */}
+      <div className={social ? "sticky top-0 z-50 hidden lg:block" : "contents"}>
         <Navbar />
       </div>
+      {social && !isReels && <SocialTopBar />}
+      {social && !isReels && <SocialDesktopBar />}
       <main className="flex-1">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </main>
-      {!isReels && <Footer />}
-      {!pathname.startsWith("/checkout") && <BottomTabBar />}
+      {!social && <Footer />}
+      {social ? <SocialTabBar /> : !pathname.startsWith("/checkout") && <BottomTabBar />}
+      <SocialRealtime />
       <ProfileSetupGate />
       <Toaster position="bottom-center" mobileOffset={72} />
     </div>
