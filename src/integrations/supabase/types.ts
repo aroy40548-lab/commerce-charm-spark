@@ -308,6 +308,24 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: []
+      }
       gift_cards: {
         Row: {
           active: boolean
@@ -787,27 +805,39 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_path: string | null
+          bio: string
           created_at: string
           email: string | null
+          feed_priority: number
           first_name: string | null
+          full_name: string | null
           id: string
           last_name: string | null
           phone: string | null
           username: string | null
         }
         Insert: {
+          avatar_path?: string | null
+          bio?: string
           created_at?: string
           email?: string | null
+          feed_priority?: number
           first_name?: string | null
+          full_name?: string | null
           id: string
           last_name?: string | null
           phone?: string | null
           username?: string | null
         }
         Update: {
+          avatar_path?: string | null
+          bio?: string
           created_at?: string
           email?: string | null
+          feed_priority?: number
           first_name?: string | null
+          full_name?: string | null
           id?: string
           last_name?: string | null
           phone?: string | null
@@ -918,6 +948,7 @@ export type Database = {
           created_at: string
           duration: number
           id: string
+          priority: number
           status: string
           user_id: string
           video_path: string
@@ -928,6 +959,7 @@ export type Database = {
           created_at?: string
           duration?: number
           id?: string
+          priority?: number
           status?: string
           user_id: string
           video_path: string
@@ -938,6 +970,7 @@ export type Database = {
           created_at?: string
           duration?: number
           id?: string
+          priority?: number
           status?: string
           user_id?: string
           video_path?: string

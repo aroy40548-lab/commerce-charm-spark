@@ -64,6 +64,13 @@
       "when": 1793043511424,
       "tag": "0008_reels_and_product_affiliates",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793045498736,
+      "tag": "0009_profiles_follows_feed_priority",
+      "breakpoints": true
     }
   ]
 }
