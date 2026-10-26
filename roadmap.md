@@ -22,4 +22,4 @@
 - [x] Affiliate credit via unique product links and reels, only on linked products
 - [x] Reels: refresh feed while scrolling
 - [x] ZANKYO Social: photo posts (max 10 photos, unlimited posts), feed, Instagram-style profile + Saved, notifications, real-time messages, admin Social dashboard
-- [ ] Share button on every profile (own + others)
+- [x] Share button on every profile (own + others)

@@ -92,6 +92,13 @@
       "when": 1793049474962,
       "tag": "0012_social_posts_notifications_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793050629091,
+      "tag": "0013_social_perf_indexes",
+      "breakpoints": true
     }
   ]
 }
