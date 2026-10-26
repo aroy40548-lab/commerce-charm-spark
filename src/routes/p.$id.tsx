@@ -1,3 +1,4 @@
+import { toThreads } from "@/lib/commentThreads";
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,8 @@ function PostPage() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const post = useQuery({ queryKey: ["post", id, user?.id ?? null], queryFn: () => getPost({ data: { id } }) });
   const comments = useQuery({ queryKey: ["post-comments", id], queryFn: () => listPostComments({ data: { id } }) });
 
@@ -41,7 +44,7 @@ function PostPage() {
   const send = async () => {
     if (!text.trim()) return;
     setBusy(true);
-    try { await addPostComment({ data: { id, body: text } }); setText(""); await qc.invalidateQueries({ queryKey: ["post-comments", id] }); }
+    try { await addPostComment({ data: { id, body: text, parentId: replyTo?.id ?? null } }); setText(""); setReplyTo(null); await qc.invalidateQueries({ queryKey: ["post-comments", id] }); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't post"); }
     finally { setBusy(false); }
   };
@@ -57,21 +60,27 @@ function PostPage() {
       <section className="space-y-4 px-3 pt-4">
         <h2 className="zk-label text-xs text-muted-foreground">Comments</h2>
         {comments.data?.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
-        {comments.data?.map((c) => (
-          <div key={c.id} className="flex gap-3">
-            <Avatar url={c.avatarUrl} label={c.name} />
-            <div className="min-w-0 flex-1">
-              <p className="text-xs"><b>{c.name}</b> <span className="text-muted-foreground">· {timeAgo(c.createdAt)}</span></p>
-              <p className="break-words text-sm">{c.body}</p>
-            </div>
-            {(user?.id === c.userId || mine) && (
-              <button onClick={async () => { await deletePostComment({ data: { id: c.id } }); qc.invalidateQueries({ queryKey: ["post-comments", id] }); }} aria-label="Delete comment" className="grid h-9 w-9 place-items-center text-muted-foreground"><Trash2 className="h-4 w-4" /></button>
-            )}
+        {toThreads(comments.data ?? []).map((t) => (
+          <div key={t.id} className="space-y-3">
+            {[t, ...t.replies].map((c, i) => (
+              <div key={c.id} className={`flex gap-3 ${i ? "ml-11" : ""}`}>
+                <Avatar url={c.avatarUrl} label={c.name} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs"><b>{c.name}</b> <span className="text-muted-foreground">· {timeAgo(c.createdAt)}</span></p>
+                  <p className="break-words text-sm">{c.body}</p>
+                  {user && <button onClick={() => { const who = c.username ?? c.name; setReplyTo({ id: t.id, name: who }); setText(i ? `@${who} ` : ""); inputRef.current?.focus(); }} className="mt-0.5 text-xs font-semibold text-muted-foreground">Reply</button>}
+                </div>
+                {(user?.id === c.userId || mine) && (
+                  <button onClick={async () => { await deletePostComment({ data: { id: c.id } }); qc.invalidateQueries({ queryKey: ["post-comments", id] }); }} aria-label="Delete comment" className="grid h-9 w-9 place-items-center text-muted-foreground"><Trash2 className="h-4 w-4" /></button>
+                )}
+              </div>
+            ))}
           </div>
         ))}
         {user ? (
-          <form onSubmit={(e) => { e.preventDefault(); void send(); }} className="flex gap-2">
-            <input value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder="Add a comment" aria-label="Add a comment" className="min-h-11 min-w-0 flex-1 border border-border bg-background px-3 text-base sm:text-sm" />
+          <form onSubmit={(e) => { e.preventDefault(); void send(); }} className="flex flex-wrap gap-2">
+            {replyTo && <p className="flex w-full items-center justify-between text-xs text-muted-foreground">Replying to {replyTo.name}<button type="button" onClick={() => { setReplyTo(null); setText(""); }} className="px-2 font-semibold">Cancel</button></p>}
+            <input ref={inputRef} value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder="Add a comment" aria-label="Add a comment" className="min-h-11 min-w-0 flex-1 border border-border bg-background px-3 text-base sm:text-sm" />
             <button disabled={busy || !text.trim()} aria-label="Post comment" className="grid h-11 w-11 place-items-center bg-foreground text-background disabled:opacity-40">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</button>
           </form>
         ) : (

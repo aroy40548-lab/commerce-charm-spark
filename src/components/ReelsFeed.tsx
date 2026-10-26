@@ -1,3 +1,4 @@
+import { toThreads } from "@/lib/commentThreads";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -289,14 +290,16 @@ function CommentsSheet({ reelId, onClose }: { reelId: string | null; onClose: ()
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const list = useQuery({ queryKey: ["reel-comments", reelId], enabled: !!reelId, queryFn: () => listReelComments({ data: { id: reelId! } }) });
 
   const post = async () => {
     if (!reelId || !text.trim()) return;
     setBusy(true);
     try {
-      await addReelComment({ data: { id: reelId, body: text } });
-      setText("");
+      await addReelComment({ data: { id: reelId, body: text, parentId: replyTo?.id ?? null } });
+      setText(""); setReplyTo(null);
       await qc.invalidateQueries({ queryKey: ["reel-comments", reelId] });
     } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't post"); }
     finally { setBusy(false); }
@@ -316,22 +319,28 @@ function CommentsSheet({ reelId, onClose }: { reelId: string | null; onClose: ()
         <div className="mt-3 flex-1 space-y-4 overflow-y-auto">
           {list.isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
           {list.data?.length === 0 && <p className="text-sm text-muted-foreground">No comments yet. Say something.</p>}
-          {list.data?.map((c) => (
-            <div key={c.id} className="flex gap-3">
-              <div className="grid h-8 w-8 shrink-0 place-items-center bg-muted text-xs font-bold uppercase">{c.name[0]}</div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold">{c.name} <span className="font-normal text-muted-foreground">· {new Date(c.createdAt).toLocaleDateString("en-IN")}</span></p>
-                <p className="break-words text-sm">{c.body}</p>
-              </div>
-              {user?.id === c.userId && (
-                <button onClick={() => remove(c.id)} aria-label="Delete comment" className="grid h-9 w-9 shrink-0 place-items-center text-muted-foreground"><Trash2 className="h-4 w-4" /></button>
-              )}
+          {toThreads(list.data ?? [], true).map((t) => (
+            <div key={t.id} className="space-y-3">
+              {[t, ...t.replies].map((c, i) => (
+                <div key={c.id} className={`flex gap-3 ${i ? "ml-11" : ""}`}>
+                  <div className={`grid shrink-0 place-items-center bg-muted text-xs font-bold uppercase ${i ? "h-6 w-6" : "h-8 w-8"}`}>{c.name[0]}</div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold">{c.name} <span className="font-normal text-muted-foreground">· {new Date(c.createdAt).toLocaleDateString("en-IN")}</span></p>
+                    <p className="break-words text-sm">{c.body}</p>
+                    {user && <button onClick={() => { setReplyTo({ id: t.id, name: c.name }); setText(i ? `@${c.name} ` : ""); inputRef.current?.focus(); }} className="mt-0.5 text-xs font-semibold text-muted-foreground">Reply</button>}
+                  </div>
+                  {user?.id === c.userId && (
+                    <button onClick={() => remove(c.id)} aria-label="Delete comment" className="grid h-9 w-9 shrink-0 place-items-center text-muted-foreground"><Trash2 className="h-4 w-4" /></button>
+                  )}
+                </div>
+              ))}
             </div>
           ))}
         </div>
         {user ? (
-          <form onSubmit={(e) => { e.preventDefault(); void post(); }} className="mt-3 flex gap-2">
-            <input value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder="Add a comment" aria-label="Add a comment" className="min-h-11 min-w-0 flex-1 border border-border bg-background px-3 text-base sm:text-sm" />
+          <form onSubmit={(e) => { e.preventDefault(); void post(); }} className="mt-3 flex flex-wrap gap-2">
+            {replyTo && <p className="flex w-full items-center justify-between text-xs text-muted-foreground">Replying to {replyTo.name}<button type="button" onClick={() => { setReplyTo(null); setText(""); }} aria-label="Cancel reply" className="px-2 font-semibold">Cancel</button></p>}
+            <input ref={inputRef} value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder={replyTo ? "Add a reply" : "Add a comment"} aria-label="Add a comment" className="min-h-11 min-w-0 flex-1 border border-border bg-background px-3 text-base sm:text-sm" />
             <button disabled={busy || !text.trim()} aria-label="Post comment" className="grid h-11 w-11 place-items-center bg-foreground text-background disabled:opacity-40">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
