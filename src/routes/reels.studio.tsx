@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SignInPanel } from "@/components/SignInPanel";
 import { useAuth } from "@/hooks/useAuth";
+import { useMyProfile } from "@/components/ProfileEditor";
 import { useProducts } from "@/hooks/useProducts";
 import { formatMoney } from "@/lib/catalog";
 import { MAX_REEL_BYTES, MAX_REEL_SECONDS, REEL_TYPES, readVideoDuration, reelLengthOk, reelLink } from "@/lib/reels";
@@ -34,13 +35,14 @@ function Studio() {
       <Link to="/reels" className="zk-label inline-flex min-h-10 items-center gap-2 text-[11px] text-muted-foreground"><ArrowLeft className="h-4 w-4" /> Back to reels</Link>
       <h1 className="zk-display mt-2 text-4xl sm:text-5xl">Reel studio</h1>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-        Post your ZANKYO fit (max {MAX_REEL_SECONDS} seconds), tag the pieces you're wearing, and earn commission when someone buys through your reel. Only your name is shown — never your email.
+        Post your ZANKYO fit (max {MAX_REEL_SECONDS} seconds), tag the pieces you're wearing, and earn commission when someone buys through your reel. Your @username is shown — never your email.
       </p>
       <div className="mt-6">
         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : !user ? (
           <div className="max-w-md border border-border p-5"><p className="mb-4 text-sm font-semibold">Sign in to post reels</p><SignInPanel /></div>
         ) : (
           <>
+            <MyProfileLink />
             <Uploader />
             <MyReels />
           </>
@@ -227,5 +229,15 @@ function MyReels() {
         ))}
       </ul>
     </section>
+  );
+}
+
+function MyProfileLink() {
+  const me = useMyProfile();
+  if (!me.data?.username) return null;
+  return (
+    <Link to="/u/$username" params={{ username: me.data.username }} className="zk-label mb-5 inline-flex min-h-11 items-center gap-2 border border-foreground px-5 text-xs">
+      My profile · @{me.data.username}
+    </Link>
   );
 }

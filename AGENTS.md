@@ -18,5 +18,6 @@
 - Virtual try-on uses Decart Anywear; the custom button opens the widget and isolates its internal image handoff in `src/lib/decart.ts`. Why: preload the current product photo while failing safely if the third-party widget changes.
 - Brand surfaces use the supplied ZANKYO kanji artwork through CDN asset pointers, with separate light/dark variants and a local optimized favicon. Why: preserve exact brand artwork while keeping theme contrast and tab clarity.
 - Categories = the `categories` table (admin → Collections); product pages show all product photos in order.
+- Customers must set a full name + unique username (popup gate); reels show @username, comments show full name; follows table; feed is a weighted shuffle (followed x3, admin push Boost x2/Top x4) via `feedWeight`.
 - Customer Reels (≤59s) live in the private `reels` bucket; uploads go browser → signed upload URL, playback via signed URLs; public names come from `profiles` via `publicName`, never email. Why: big videos shouldn't pass through server functions, and privacy.
 - Phones get a bottom tab bar (Home/Reels/Bag) from `__root.tsx`; the bag opens via a window event so one CartDrawer stays the source of truth.
