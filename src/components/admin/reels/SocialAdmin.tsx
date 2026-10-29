@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card, Empty, ReadOnlyNote, Spinner, Stat, StatusBadge, useCanEdit } from "@/components/admin/ui";
 import {
-  adminBroadcast, adminListPosts, adminModeratePosts, adminReportedChat, adminReports, adminResolveReport, adminSocialOverview,
+  adminAnnouncementAction, adminAnnouncements, adminBroadcast, adminListPosts, adminModeratePosts, adminReportedChat, adminReports, adminResolveReport, adminSocialOverview,
 } from "@/lib/social.functions";
 
 const PUSH: Array<[string, string]> = [["p1", "Normal"], ["p2", "Boost"], ["p4", "Top"], ["p0", "Hide from feed"]];
@@ -132,22 +132,52 @@ export function ReportsAdmin() {
 
 export function BroadcastAdmin() {
   const can = useCanEdit("community");
+  const qc = useQueryClient();
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
+  const list = useQuery({ queryKey: ["admin-announcements"], queryFn: () => adminAnnouncements() });
+  const act = async (id: string, action: "delete" | "restore" | "purge") => {
+    if (action === "purge" && !confirm("Delete forever? This can't be undone.")) return;
+    try { await adminAnnouncementAction({ data: { id, action } }); qc.invalidateQueries({ queryKey: ["admin-announcements"] }); }
+    catch { toast.error("Couldn't update"); }
+  };
+  const live = (list.data ?? []).filter((a) => !a.deletedAt);
+  const bin = (list.data ?? []).filter((a) => a.deletedAt);
   return (
+    <div className="space-y-4">
     <Card title="Send an announcement">
       {!can && <ReadOnlyNote section="community" />}
-      <p className="text-sm text-muted-foreground">Appears in every member's notifications (heart icon) instantly.</p>
+      <p className="text-sm text-muted-foreground">Appears in every member's notifications (heart icon) instantly. Sent announcements can't be edited — only deleted.</p>
       <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={200} rows={3} placeholder="e.g. New drop goes live tonight at 8 PM" className="mt-3 w-full border border-border bg-background p-3 text-sm" />
       <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{body.length}/200</span>
         <button disabled={!can || busy || body.trim().length < 3} onClick={async () => {
           if (!confirm("Send this to everyone?")) return;
           setBusy(true);
-          try { const r = await adminBroadcast({ data: { body } }); toast.success(`Sent to ${r.sent} members`); setBody(""); }
+          try { const r = await adminBroadcast({ data: { body } }); toast.success(`Sent to ${r.sent} members`); setBody(""); qc.invalidateQueries({ queryKey: ["admin-announcements"] }); }
           catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't send"); } finally { setBusy(false); }
         }} className="zk-label min-h-10 bg-accent px-5 text-xs text-accent-foreground disabled:opacity-40">{busy ? "Sending…" : "Send to everyone"}</button>
       </div>
     </Card>
+    <Card title="Sent announcements">
+      {!list.data ? <Spinner /> : !live.length ? <Empty>Nothing sent yet.</Empty> : live.map((a) => (
+        <div key={a.id} className="flex items-start gap-3 border-b border-border py-2 text-sm last:border-0">
+          <div className="flex-1"><p>{a.body}</p><p className="text-xs text-muted-foreground">{new Date(a.createdAt).toLocaleString("en-IN")} · {a.sent} members</p></div>
+          {can && <button onClick={() => act(a.id, "delete")} className="border border-border px-3 py-1 text-xs">Delete</button>}
+        </div>
+      ))}
+    </Card>
+    <Card title="Bin (auto-deletes after 30 days)">
+      {!bin.length ? <Empty>Bin is empty.</Empty> : bin.map((a) => (
+        <div key={a.id} className="flex flex-wrap items-start gap-3 border-b border-border py-2 text-sm last:border-0">
+          <div className="flex-1"><p className="text-muted-foreground line-through">{a.body}</p><p className="text-xs text-accent">Expires in {a.daysLeft} days</p></div>
+          {can && <div className="flex gap-2">
+            <button onClick={() => act(a.id, "restore")} className="bg-foreground px-3 py-1 text-xs text-background">Restore</button>
+            <button onClick={() => act(a.id, "purge")} className="border border-border px-3 py-1 text-xs">Delete forever</button>
+          </div>}
+        </div>
+      ))}
+    </Card>
+    </div>
   );
 }

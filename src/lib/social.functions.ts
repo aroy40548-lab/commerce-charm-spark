@@ -651,9 +651,47 @@ export const adminBroadcast = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await staff(context, true);
     const sb = await db();
-    const { data: n, error } = await sb.rpc("broadcast_notification", { _body: data.body });
+    const { data: a, error: e1 } = await sb.from("announcements").insert({ body: data.body, sent_by: context.userId }).select("id").single();
+    if (e1 || !a) throw new Error("Couldn't send");
+    const { data: n, error } = await sb.rpc("send_announcement", { _id: a.id });
     if (error) throw new Error("Couldn't send");
     return { sent: n ?? 0 };
+  });
+
+const BIN_DAYS = 30;
+
+/** Past announcements + bin. Items in the bin longer than 30 days are purged here. */
+export const adminAnnouncements = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await staff(context, false);
+    const sb = await db();
+    const cutoff = new Date(Date.now() - BIN_DAYS * 864e5).toISOString();
+    await sb.from("announcements").delete().lt("deleted_at", cutoff);
+    const { data } = await sb.from("announcements").select("id, body, sent_count, created_at, deleted_at").order("created_at", { ascending: false }).limit(200);
+    return (data ?? []).map((a) => ({
+      id: a.id, body: a.body, sent: a.sent_count, createdAt: a.created_at, deletedAt: a.deleted_at,
+      daysLeft: a.deleted_at ? Math.max(0, BIN_DAYS - Math.floor((Date.now() - new Date(a.deleted_at).getTime()) / 864e5)) : null,
+    }));
+  });
+
+export const adminAnnouncementAction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid(), action: z.enum(["delete", "restore", "purge"]) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await staff(context, true);
+    const sb = await db();
+    if (data.action === "delete") {
+      await sb.from("notifications").delete().eq("announcement_id", data.id);
+      await sb.from("announcements").update({ deleted_at: new Date().toISOString() }).eq("id", data.id);
+    } else if (data.action === "restore") {
+      await sb.from("announcements").update({ deleted_at: null }).eq("id", data.id);
+      await sb.rpc("send_announcement", { _id: data.id });
+    } else {
+      await sb.from("notifications").delete().eq("announcement_id", data.id);
+      await sb.from("announcements").delete().eq("id", data.id).not("deleted_at", "is", null);
+    }
+    return { ok: true };
   });
 
 /** Followed people who posted in the last 3 days, newest first. */
