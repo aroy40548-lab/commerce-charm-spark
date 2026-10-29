@@ -80,6 +80,7 @@ export function Footer() {
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
             <span>WhatsApp Community</span>
           </a>
+          <AndroidButton />
         </div>
       </div>
       <div className="border-t border-background/10 px-4 py-5 text-center text-xs text-background/40 sm:px-6">
