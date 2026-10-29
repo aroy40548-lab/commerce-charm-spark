@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Category, Product } from "@/lib/catalog";
+import { parseSizeChart, type SizeChart } from "@/lib/sizeChart";
 
 const PRODUCT_SELECT =
   "id, handle, title, description, price, compare_at_price, option_name, tags, product_type, created_at, " +
@@ -84,7 +85,7 @@ export const getProductExtras = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const sb = await db();
     const { data: p } = await sb.from("products").select("size_chart, paired_product_ids").eq("handle", data.handle).eq("status", "active").maybeSingle();
-    if (!p) return { sizeChart: null, paired: [] as Product[] };
+    if (!p) return { sizeChart: null as SizeChart | null, paired: [] as Product[] };
     const ids = (p.paired_product_ids ?? []).slice(0, 8);
     let paired: Product[] = [];
     if (ids.length) {
@@ -92,5 +93,5 @@ export const getProductExtras = createServerFn({ method: "GET" })
       const list = ((rows ?? []) as unknown as Row[]).map(toProduct);
       paired = ids.map((id) => list.find((x) => x.node.id === id)).filter((x): x is Product => !!x);
     }
-    return { sizeChart: (p.size_chart ?? null) as string | number | boolean | null | Record<string, unknown>, paired };
+    return { sizeChart: parseSizeChart(p.size_chart), paired };
   });
