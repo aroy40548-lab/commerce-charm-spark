@@ -296,3 +296,24 @@ export const adminSaveGiftCard = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message.includes("unique") ? "That code already exists" : error.message);
     return { ok: true, code };
   });
+
+// ---------- Size chart + Complete the Fit ----------
+export const adminSaveProductExtras = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    id: uuid,
+    paired_product_ids: z.array(uuid).max(8),
+    size_chart: z.object({
+      unit: z.enum(["in", "cm"]),
+      columns: z.array(z.string().trim().min(1).max(30)).min(1).max(8),
+      rows: z.array(z.object({ size: z.string().trim().min(1).max(20), values: z.array(z.number().min(0).max(1000).nullable()).max(8) })).min(1).max(20),
+      note: z.string().max(500).default(""),
+    }).nullable(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { db } = await guard(context, "products");
+    const paired = data.paired_product_ids.filter((x) => x !== data.id);
+    const { error } = await db.from("products").update({ size_chart: data.size_chart, paired_product_ids: paired }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

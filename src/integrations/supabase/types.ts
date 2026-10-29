@@ -1098,10 +1098,12 @@ export type Database = {
           handle: string
           id: string
           option_name: string
+          paired_product_ids: string[]
           price: number
           product_type: string
           seo_description: string | null
           seo_title: string | null
+          size_chart: Json | null
           status: string
           tags: string[]
           title: string
@@ -1116,10 +1118,12 @@ export type Database = {
           handle: string
           id?: string
           option_name?: string
+          paired_product_ids?: string[]
           price?: number
           product_type?: string
           seo_description?: string | null
           seo_title?: string | null
+          size_chart?: Json | null
           status?: string
           tags?: string[]
           title: string
@@ -1134,10 +1138,12 @@ export type Database = {
           handle?: string
           id?: string
           option_name?: string
+          paired_product_ids?: string[]
           price?: number
           product_type?: string
           seo_description?: string | null
           seo_title?: string | null
+          size_chart?: Json | null
           status?: string
           tags?: string[]
           title?: string
