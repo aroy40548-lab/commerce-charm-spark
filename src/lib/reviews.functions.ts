@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const BUCKET = "review-photos";
 const handleSchema = z.string().min(1).max(255).regex(/^[a-z0-9-]+$/);
 // Orders that went through; reviews unlock once the money/COD order is confirmed.
-const BOUGHT = ["paid", "confirmed", "shipped", "delivered"];
+const BOUGHT = ["delivered"];
 
 async function admin() {
   return (await import("@/integrations/supabase/client.server")).supabaseAdmin;
@@ -35,16 +35,22 @@ async function purchase(userId: string, email: string, handle: string) {
   return { productId: product.id, bought: (rows?.length ?? 0) > 0, name: p?.last_name ? `${first} ${p.last_name.charAt(0)}.` : first };
 }
 
+export interface ReviewReply { id: string; body: string; createdAt: string; userId: string; name: string; username: string | null; verified: boolean }
 export interface PublicReview {
   id: string;
   rating: number;
   title: string | null;
   body: string;
   name: string;
+  username: string | null;
+  userVerified: boolean;
+  authorId: string;
   verified: boolean;
   createdAt: string;
   pictures: string[];
   reply: string | null;
+  likes: number;
+  replies: ReviewReply[];
 }
 
 export const getProductReviews = createServerFn({ method: "GET" })
@@ -53,7 +59,7 @@ export const getProductReviews = createServerFn({ method: "GET" })
     const sb = await admin();
     const { data: rows, error } = await sb
       .from("product_reviews")
-      .select("id, rating, title, body, customer_name, created_at, photo_paths, admin_reply")
+      .select("id, rating, title, body, customer_name, customer_id, created_at, photo_paths, admin_reply")
       .eq("product_handle", data.handle)
       .eq("hidden", false)
       .order("created_at", { ascending: false })
@@ -62,14 +68,81 @@ export const getProductReviews = createServerFn({ method: "GET" })
       console.error(error);
       return { average: 0, count: 0, reviews: [] as PublicReview[] };
     }
+    const ids = (rows ?? []).map((r) => r.id);
+    const [{ data: reps }, { data: likes }] = await Promise.all([
+      ids.length ? sb.from("review_replies").select("id, review_id, user_id, body, created_at").in("review_id", ids).order("created_at").limit(1000) : Promise.resolve({ data: [] as never[] }),
+      ids.length ? sb.from("review_likes").select("review_id").in("review_id", ids).limit(10000) : Promise.resolve({ data: [] as never[] }),
+    ]);
+    const { people } = await import("./social.server");
+    const ppl = await people(sb, [...(rows ?? []).map((r) => r.customer_id), ...(reps ?? []).map((r) => r.user_id)]);
+    const likeCount = new Map<string, number>();
+    (likes ?? []).forEach((l) => likeCount.set(l.review_id, (likeCount.get(l.review_id) ?? 0) + 1));
     const reviews: PublicReview[] = await Promise.all(
-      (rows ?? []).map(async (r) => ({
-        id: r.id, rating: r.rating, title: r.title, body: r.body, name: r.customer_name,
-        verified: true, createdAt: r.created_at, pictures: await signPhotos(r.photo_paths ?? []), reply: r.admin_reply,
-      })),
+      (rows ?? []).map(async (r) => {
+        const p = ppl.get(r.customer_id);
+        return {
+          id: r.id, rating: r.rating, title: r.title, body: r.body, name: p?.name ?? r.customer_name,
+          username: p?.username ?? null, userVerified: !!p?.verified, authorId: r.customer_id,
+          verified: true, createdAt: r.created_at, pictures: await signPhotos(r.photo_paths ?? []), reply: r.admin_reply,
+          likes: likeCount.get(r.id) ?? 0,
+          replies: (reps ?? []).filter((x) => x.review_id === r.id).map((x) => {
+            const q = ppl.get(x.user_id);
+            return { id: x.id, body: x.body, createdAt: x.created_at, userId: x.user_id, name: q?.name ?? "Member", username: q?.username ?? null, verified: !!q?.verified };
+          }),
+        };
+      }),
     );
     const average = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
     return { average, count: reviews.length, reviews };
+  });
+
+/** Which of this product's reviews the viewer has liked. */
+export const myReviewLikes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ ids: z.array(z.string().uuid()).max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (!data.ids.length) return [] as string[];
+    const sb = await admin();
+    const { data: rows } = await sb.from("review_likes").select("review_id").eq("user_id", context.userId).in("review_id", data.ids);
+    return (rows ?? []).map((r) => r.review_id);
+  });
+
+export const toggleReviewLike = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid(), like: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = await admin();
+    if (data.like) await sb.from("review_likes").upsert({ review_id: data.id, user_id: context.userId }, { onConflict: "review_id,user_id", ignoreDuplicates: true });
+    else await sb.from("review_likes").delete().eq("review_id", data.id).eq("user_id", context.userId);
+    return { ok: true };
+  });
+
+export const replyToReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(500) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = await admin();
+    await (await import("./account.server")).assertCanUseReels(sb, context.userId);
+    const { data: rev } = await sb.from("product_reviews").select("id, customer_id, product_handle, hidden").eq("id", data.id).maybeSingle();
+    if (!rev || rev.hidden) throw new Error("Review not found");
+    const { error } = await sb.from("review_replies").insert({ review_id: rev.id, user_id: context.userId, body: data.body });
+    if (error) throw new Error("Couldn't post reply");
+    if (rev.customer_id !== context.userId) {
+      await sb.from("notifications").insert({
+        user_id: rev.customer_id, actor_id: context.userId, kind: "review_reply",
+        body: data.body.slice(0, 200), link: `/product/${rev.product_handle}#review-${rev.id}`,
+      });
+    }
+    return { ok: true };
+  });
+
+export const deleteReviewReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = await admin();
+    await sb.from("review_replies").delete().eq("id", data.id).eq("user_id", context.userId);
+    return { ok: true };
   });
 
 export const getReviewEligibility = createServerFn({ method: "POST" })

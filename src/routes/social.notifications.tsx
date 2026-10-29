@@ -69,6 +69,7 @@ function Notifications() {
               : n.reelId ? <Link to="/reels/$id" params={{ id: n.reelId }}>{row}</Link>
               : n.kind === "follow" && n.actor?.username ? <Link to="/u/$username" params={{ username: n.actor.username }}>{row}</Link>
               : n.kind === "partner" ? <Link to="/affiliate">{row}</Link>
+              : n.link?.startsWith("/product/") ? <a href={n.link}>{row}</a>
               : row}
           </div>
         );
