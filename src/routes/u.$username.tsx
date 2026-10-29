@@ -34,6 +34,7 @@ function ProfilePage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const { theme: socialTheme } = useSocialTheme();
   const [list, setList] = useState<"followers" | "following" | null>(null);
   const people = useQuery({ queryKey: ["follows", username, list], enabled: !!list, queryFn: () => listFollows({ data: { username, kind: list! } }) });
   const q = useQuery({ queryKey: ["profile", username, user?.id ?? null], queryFn: () => getPublicProfile({ data: { username } }) });
