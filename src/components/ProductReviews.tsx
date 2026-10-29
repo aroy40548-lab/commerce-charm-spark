@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Star, BadgeCheck, Loader2, ImagePlus, X } from "lucide-react";
+import { Star, BadgeCheck, Loader2, ImagePlus, X, ArrowLeft, ChevronLeft, ChevronRight, ThumbsUp, MessageCircle, Pencil } from "lucide-react";
+import { VerifiedTick } from "@/components/social/Verified";
 import { toast } from "sonner";
-import { deleteMyReview, getProductReviews, getReviewEligibility, submitReview } from "@/lib/reviews.functions";
+import { deleteMyReview, deleteReviewReply, getProductReviews, getReviewEligibility, myReviewLikes, replyToReview, submitReview, toggleReviewLike, type PublicReview } from "@/lib/reviews.functions";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,6 +23,14 @@ export function ProductReviews({ handle }: { handle: string }) {
   const q = useQuery({ queryKey: ["reviews", handle], queryFn: () => fetchReviews({ data: { handle } }) });
   const signedIn = !!useAuth().user;
   const [open, setOpen] = useState(false);
+  const likesFn = useServerFn(myReviewLikes);
+  const ids = q.data?.reviews.map((r) => r.id) ?? [];
+  const likesQ = useQuery({ queryKey: ["review-likes", handle, ids.length], enabled: signedIn && ids.length > 0, queryFn: () => likesFn({ data: { ids } }) });
+  const liked = new Set(likesQ.data ?? []);
+  useEffect(() => {
+    if (!q.data || !window.location.hash.startsWith("#review-")) return;
+    document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [q.data]);
 
   const d = q.data;
   return (
@@ -53,40 +62,130 @@ export function ProductReviews({ handle }: { handle: string }) {
 
       <div className="mt-6 space-y-4">
         {q.isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-        {d && d.count === 0 && <p className="text-sm text-muted-foreground">No reviews yet. Bought this? Be the first.</p>}
-        {d?.reviews.map((r) => (
-          <article key={r.id} className="rounded-lg border border-border p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Stars value={r.rating} />
-              <span className="text-sm font-semibold">{r.name}</span>
-              {r.verified && (
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Verified buyer
-                </span>
-              )}
-              <span className="ml-auto text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString("en-IN")}</span>
-            </div>
-            {r.title && <h3 className="mt-2 text-sm font-semibold">{r.title}</h3>}
-            {r.body && <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{r.body}</p>}
-            {r.pictures.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {r.pictures.map((src) => (
-                  <a key={src} href={src} target="_blank" rel="noreferrer">
-                    <img src={src} alt="Customer photo" loading="lazy" className="h-20 w-20 rounded-md object-cover" />
-                  </a>
-                ))}
-              </div>
-            )}
-            {r.reply && (
-              <div className="mt-3 rounded-md bg-muted/70 px-3 py-2 text-sm">
-                <span className="zk-label text-[10px]">ZANKYO replied</span>
-                <p className="mt-1 whitespace-pre-line text-muted-foreground">{r.reply}</p>
-              </div>
-            )}
-          </article>
-        ))}
+        {d && d.count === 0 && <p className="text-sm text-muted-foreground">No reviews yet. Got your order delivered? Be the first.</p>}
+        {d?.reviews.map((r) => <ReviewCard key={r.id} r={r} handle={handle} liked={liked.has(r.id)} onEdit={() => { setOpen(true); document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth" }); }} />)}
       </div>
     </section>
+  );
+}
+
+function Lightbox({ pics, start, onClose }: { pics: string[]; start: number; onClose: () => void }) {
+  const [i, setI] = useState(start);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); if (e.key === "ArrowRight") setI((x) => Math.min(pics.length - 1, x + 1)); if (e.key === "ArrowLeft") setI((x) => Math.max(0, x - 1)); };
+    window.addEventListener("keydown", k);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", k); document.body.style.overflow = ""; };
+  }, [pics.length, onClose]);
+  let x0 = 0;
+  return (
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[100] flex flex-col bg-background">
+      <div className="flex items-center gap-3 border-b border-border px-3 py-2">
+        <button onClick={onClose} aria-label="Back" className="grid h-11 w-11 place-items-center"><ArrowLeft className="h-5 w-5" /></button>
+        <span className="text-sm text-muted-foreground">{i + 1} / {pics.length}</span>
+      </div>
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden"
+        onTouchStart={(e) => { x0 = e.touches[0]!.clientX; }}
+        onTouchEnd={(e) => { const dx = e.changedTouches[0]!.clientX - x0; if (dx < -40) setI((x) => Math.min(pics.length - 1, x + 1)); if (dx > 40) setI((x) => Math.max(0, x - 1)); }}>
+        <img src={pics[i]} alt="Customer photo" className="max-h-full max-w-full object-contain" />
+        {i > 0 && <button onClick={() => setI(i - 1)} aria-label="Previous" className="absolute left-2 grid h-11 w-11 place-items-center rounded-full bg-background/80"><ChevronLeft className="h-5 w-5" /></button>}
+        {i < pics.length - 1 && <button onClick={() => setI(i + 1)} aria-label="Next" className="absolute right-2 grid h-11 w-11 place-items-center rounded-full bg-background/80"><ChevronRight className="h-5 w-5" /></button>}
+      </div>
+      {pics.length > 1 && (
+        <div className="flex justify-center gap-2 overflow-x-auto p-3">
+          {pics.map((p, j) => <button key={p} onClick={() => setI(j)} className={`h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 ${j === i ? "border-accent" : "border-transparent"}`}><img src={p} alt="" className="h-full w-full object-cover" /></button>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReviewCard({ r, handle, liked, onEdit }: { r: PublicReview; handle: string; liked: boolean; onEdit: () => void }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const likeFn = useServerFn(toggleReviewLike);
+  const replyFn = useServerFn(replyToReview);
+  const delReplyFn = useServerFn(deleteReviewReply);
+  const [pic, setPic] = useState<number | null>(null);
+  const [replying, setReplying] = useState(false);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [like, setLike] = useState({ on: liked, n: r.likes });
+  useEffect(() => setLike({ on: liked, n: r.likes }), [liked, r.likes]);
+  const mine = user?.id === r.authorId;
+  const refresh = () => qc.invalidateQueries({ queryKey: ["reviews", handle] });
+
+  const toggle = async () => {
+    if (!user) { toast.error("Sign in to like reviews"); return; }
+    const on = !like.on;
+    setLike({ on, n: like.n + (on ? 1 : -1) });
+    try { await likeFn({ data: { id: r.id, like: on } }); qc.invalidateQueries({ queryKey: ["review-likes", handle] }); }
+    catch { setLike({ on: !on, n: like.n }); }
+  };
+  const send = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+    setBusy(true);
+    try { await replyFn({ data: { id: r.id, body: text } }); setText(""); setReplying(false); setShowAll(true); refresh(); }
+    catch (err) { toast.error(err instanceof Error ? err.message : "Couldn't reply"); }
+    finally { setBusy(false); }
+  };
+  const replies = showAll ? r.replies : r.replies.slice(0, 2);
+
+  return (
+    <article id={`review-${r.id}`} className="scroll-mt-24 rounded-lg border border-border p-4 target:border-accent">
+      <div className="flex flex-wrap items-center gap-2">
+        <Stars value={r.rating} />
+        {r.username ? <Link to="/u/$username" params={{ username: r.username }} className="text-sm font-semibold hover:underline">@{r.username}</Link> : <span className="text-sm font-semibold">{r.name}</span>}
+        {r.userVerified && <VerifiedTick className="h-4 w-4" />}
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><BadgeCheck className="h-3.5 w-3.5" /> Verified buyer</span>
+        <span className="ml-auto text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString("en-IN")}</span>
+      </div>
+      {r.title && <h3 className="mt-2 text-sm font-semibold">{r.title}</h3>}
+      {r.body && <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{r.body}</p>}
+      {r.pictures.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {r.pictures.map((src, i) => (
+            <button key={src} onClick={() => setPic(i)} aria-label="Open photo">
+              <img src={src} alt="Customer photo" loading="lazy" className="h-20 w-20 rounded-md object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+      {pic !== null && <Lightbox pics={r.pictures} start={pic} onClose={() => setPic(null)} />}
+      {r.reply && (
+        <div className="mt-3 rounded-md bg-muted/70 px-3 py-2 text-sm">
+          <span className="zk-label text-[10px]">ZANKYO replied</span>
+          <p className="mt-1 whitespace-pre-line text-muted-foreground">{r.reply}</p>
+        </div>
+      )}
+      <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+        <button onClick={toggle} className={`inline-flex min-h-9 items-center gap-1 ${like.on ? "text-accent" : ""}`}><ThumbsUp className={`h-4 w-4 ${like.on ? "fill-accent" : ""}`} /> Helpful{like.n ? ` (${like.n})` : ""}</button>
+        {user ? <button onClick={() => setReplying(!replying)} className="inline-flex min-h-9 items-center gap-1"><MessageCircle className="h-4 w-4" /> Reply</button>
+          : <Link to="/auth" search={{ next: `/product/${handle}#review-${r.id}` }} className="inline-flex min-h-9 items-center gap-1"><MessageCircle className="h-4 w-4" /> Reply</Link>}
+        {mine && <button onClick={onEdit} className="inline-flex min-h-9 items-center gap-1"><Pencil className="h-3.5 w-3.5" /> Edit / delete</button>}
+      </div>
+      {r.replies.length > 0 && (
+        <div className="mt-2 space-y-2 border-l-2 border-border pl-3">
+          {replies.map((x) => (
+            <div key={x.id} className="text-sm">
+              {x.username ? <Link to="/u/$username" params={{ username: x.username }} className="font-semibold">@{x.username}</Link> : <b>{x.name}</b>}
+              {x.verified && <VerifiedTick className="ml-1 h-3.5 w-3.5 align-[-2px]" />}
+              <span className="ml-1.5 whitespace-pre-line break-words text-muted-foreground">{x.body}</span>
+              {user?.id === x.userId && <button onClick={async () => { await delReplyFn({ data: { id: x.id } }); refresh(); }} className="ml-2 text-xs text-muted-foreground underline">Delete</button>}
+            </div>
+          ))}
+          {r.replies.length > 2 && !showAll && <button onClick={() => setShowAll(true)} className="text-xs text-muted-foreground">View all {r.replies.length} replies</button>}
+        </div>
+      )}
+      {replying && (
+        <form onSubmit={send} className="mt-2 flex gap-2">
+          <input autoFocus value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder="Write a reply…" className="min-h-10 flex-1 rounded-full border border-border bg-background px-4 text-sm" />
+          <button disabled={busy || !text.trim()} className="zk-label rounded-full bg-foreground px-4 text-xs text-background disabled:opacity-50">{busy ? "…" : "Send"}</button>
+        </form>
+      )}
+    </article>
   );
 }
 
@@ -182,7 +281,7 @@ function ReviewForm({ handle, onClose }: { handle: string; onClose: () => void }
   const existing = elig.data?.status === "eligible" ? elig.data.existing : null;
   if (status !== "eligible") {
     const msg =
-      status === "not_purchased" ? "Only customers who bought this can review it." :
+      status === "not_purchased" ? "You can review this once your order is delivered." :
       "Reviews aren't available for this product right now.";
     return (
       <div className={`${box} flex items-center justify-between gap-3`}>
