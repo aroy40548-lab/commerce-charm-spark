@@ -6,7 +6,7 @@ import { Bookmark, Clapperboard, Heart, MessageCircle, Send } from "lucide-react
 import { toast } from "sonner";
 import { Avatar } from "@/components/ReelsFeed";
 import { useAuth } from "@/hooks/useAuth";
-import { formatMoney } from "@/lib/catalog";
+import { ProductsTray, VideoSpinner } from "@/components/social/ProductsTray";
 import { timeAgo } from "@/lib/social";
 import { likePost, toggleSave, type PostCard as Post, type ProductChip, type ReelTile } from "@/lib/social.functions";
 
@@ -31,17 +31,17 @@ export function CreatorRow({ username, name, avatarUrl, at, verified = false }: 
 }
 
 export function ShopChip({ products }: { products: ProductChip[] }) {
-  const p = products[0];
-  if (!p) return null;
+  if (!products.length) return null;
+  return <div className="mx-3 mt-3"><ProductsTray products={products} /></div>;
+}
+
+function FeedVideo({ vid, near, inView, src }: { vid: React.RefObject<HTMLVideoElement | null>; near: boolean; inView: boolean; src: string }) {
+  const [loading, setLoading] = useState(true);
   return (
-    <Link to="/product/$handle" params={{ handle: p.handle }} className="mx-3 mt-3 flex items-center gap-3 rounded-xl border border-border/70 bg-muted/40 p-2 active:scale-[0.99] transition-transform">
-      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">{p.image && <img src={p.image} alt="" loading="lazy" className="h-full w-full object-cover" />}</div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{p.title}</p>
-        <p className="text-xs text-muted-foreground">{formatMoney(p.price)}{products.length > 1 ? ` · +${products.length - 1} more` : ""}</p>
-      </div>
-      <span className="zk-label rounded-full bg-accent px-3 py-1.5 text-[9px] text-accent-foreground">Shop</span>
-    </Link>
+    <>
+      <video ref={vid} src={near ? src : undefined} muted autoPlay={inView} loop playsInline preload={near ? "auto" : "none"} onWaiting={() => setLoading(true)} onPlaying={() => setLoading(false)} onLoadedData={(e) => { if (inView) void e.currentTarget.play().catch(() => {}); else setLoading(false); }} className="h-full w-full bg-ink object-cover" />
+      <VideoSpinner show={loading && inView} />
+    </>
   );
 }
 
@@ -152,7 +152,7 @@ export const ReelTileView = memo(function ReelTileView({ reel }: { reel: ReelTil
     <article ref={box} className="border-b border-border pb-3">
       <CreatorRow username={reel.username} name={reel.name} avatarUrl={reel.avatarUrl} at={reel.createdAt} verified={reel.verified} />
       <Link to="/reels/$id" params={{ id: reel.id }} className="relative block aspect-[4/5] overflow-hidden bg-ink">
-        <video ref={vid} src={near ? reel.videoUrl : undefined} muted autoPlay={inView} loop playsInline preload={near ? "auto" : "none"} onLoadedData={(e) => { if (inView) void e.currentTarget.play().catch(() => {}); }} className="h-full w-full object-cover" />
+        <FeedVideo vid={vid} near={near} inView={inView} src={reel.videoUrl} />
         <span className="zk-label absolute right-2 top-2 flex items-center gap-1 bg-ink/70 px-2 py-1 text-[9px] text-white"><Clapperboard className="h-3 w-3" /> Reel</span>
       </Link>
       <div className="flex items-center px-3 pt-2">

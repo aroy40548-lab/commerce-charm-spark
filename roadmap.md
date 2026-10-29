@@ -6,7 +6,7 @@
 - [x] Security: lock verified/account status/feed boost fields, strict avatar path, CSV formula guard, escaped cancel email
 - [x] Admin Live visitors (active now, page, bag, visits, orders) + personal on-screen messages
 ## Batch 2 (next)
-- [ ] Multi-product tray on reels/posts + Insta-style video loader
+- [x] Multi-product tray on reels/posts + Insta-style video loader
 - [ ] AI photo try-on fallback when Decart is busy + centered laptop widget
 - [ ] Video trim + "Use this sound"
 ## Batch 3
