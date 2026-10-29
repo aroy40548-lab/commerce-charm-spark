@@ -14,4 +14,5 @@
 - [ ] Custom partner commission % per creator; announcements 30-day bin
 ## Batch 4
 - [ ] Android APK download + admin manager; followers dialog theme fix
-- [ ] Fit of the Week, Complete the Fit, Drops & Vault, in-chat product buy
+- [x] Complete the Fit + Size chart (in/cm auto convert)
+- [ ] Fit of the Week, Drops & Vault, in-chat product buy
