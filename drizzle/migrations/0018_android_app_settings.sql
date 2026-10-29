@@ -1,0 +1,1 @@
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS android_apk_path text, ADD COLUMN IF NOT EXISTS android_apk_url text, ADD COLUMN IF NOT EXISTS android_version text, ADD COLUMN IF NOT EXISTS android_notes text;

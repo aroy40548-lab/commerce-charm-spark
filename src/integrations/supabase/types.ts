@@ -1533,6 +1533,10 @@ export type Database = {
           affiliate_cookie_days: number
           affiliate_rate: number
           affiliates_enabled: boolean
+          android_apk_path: string | null
+          android_apk_url: string | null
+          android_notes: string | null
+          android_version: string | null
           cod_enabled: boolean
           cod_fee: number
           express_enabled: boolean
@@ -1554,6 +1558,10 @@ export type Database = {
           affiliate_cookie_days?: number
           affiliate_rate?: number
           affiliates_enabled?: boolean
+          android_apk_path?: string | null
+          android_apk_url?: string | null
+          android_notes?: string | null
+          android_version?: string | null
           cod_enabled?: boolean
           cod_fee?: number
           express_enabled?: boolean
@@ -1575,6 +1583,10 @@ export type Database = {
           affiliate_cookie_days?: number
           affiliate_rate?: number
           affiliates_enabled?: boolean
+          android_apk_path?: string | null
+          android_apk_url?: string | null
+          android_notes?: string | null
+          android_version?: string | null
           cod_enabled?: boolean
           cod_fee?: number
           express_enabled?: boolean
