@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   adminDeleteProduct, adminDuplicateProduct, adminGetProduct, adminListCollections, adminSaveProduct, adminUpload,
 } from "@/lib/admin/products.functions";
+import { ProductExtras } from "@/components/admin/ProductExtras";
 import { Card, Field, PageHeader, ReadOnlyNote, Spinner, btn, btnDanger, btnGhost, fileToBase64, inputCls, useAction, useCanEdit } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin/products/$id")({ component: ProductPage });
@@ -174,6 +175,11 @@ function ProductPage() {
             {canEdit && <button type="button" onClick={() => set("variants", [...f.variants, { title: "", sku: "", price: "", compare_at_price: "", stock: 0 }])} className={`${btnGhost} mt-2`}><Plus className="h-4 w-4" /> Add variant</button>}
           </Card>
 
+          {!isNew && product.data && (
+            <ProductExtras id={id} canEdit={canEdit} sizes={f.variants.map((v) => v.title)}
+              initialChart={(product.data as { size_chart?: unknown }).size_chart ?? null}
+              initialPaired={(product.data as { paired_product_ids?: string[] }).paired_product_ids ?? []} />
+          )}
           <Card title="Search engine listing">
             <div className="space-y-3">
               <Field label="URL handle" hint={`zankyo.in/product/${f.handle || "(from title)"}`}><input value={f.handle} onChange={(e) => set("handle", e.target.value)} className={inputCls} /></Field>
