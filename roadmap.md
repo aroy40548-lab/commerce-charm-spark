@@ -13,6 +13,7 @@
 - [ ] Reviews upgrade (@username, delivered-only, edit/delete, lightbox, replies, likes, notifications)
 - [ ] Custom partner commission % per creator; announcements 30-day bin
 ## Batch 4
-- [ ] Android APK download + admin manager; followers dialog theme fix
+- [x] Followers dialog theme fix
+- [ ] Android APK download + admin manager
 - [x] Complete the Fit + Size chart (in/cm auto convert)
 - [ ] Fit of the Week, Drops & Vault, in-chat product buy
