@@ -134,6 +134,13 @@
       "when": 1793276488392,
       "tag": "0018_android_app_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793276813548,
+      "tag": "0019_reviews_v2",
+      "breakpoints": true
     }
   ]
 }
