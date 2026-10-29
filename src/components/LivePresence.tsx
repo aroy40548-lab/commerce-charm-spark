@@ -43,7 +43,7 @@ export function LivePresence() {
   }, [user]);
 
   // Ping right away on page changes so admins see the current page.
-  useEffect(() => { if (user) { const t = setTimeout(() => window.dispatchEvent(new Event("visibilitychange")), 400); return () => clearTimeout(t); } }, [pathname, user]);
+  useEffect(() => { if (!user) return undefined; const t = setTimeout(() => document.dispatchEvent(new Event("visibilitychange")), 400); return () => clearTimeout(t); }, [pathname, user]);
 
   if (!nudge) return null;
   const close = () => { void dismissNudge({ data: { id: nudge.id } }).catch(() => {}); setNudge(null); };
