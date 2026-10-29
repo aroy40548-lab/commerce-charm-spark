@@ -77,3 +77,20 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
     })
     .filter((c) => c.productIds.length > 0);
 });
+
+// Size chart + "Complete the Fit" picks for one product page.
+export const getProductExtras = createServerFn({ method: "GET" })
+  .inputValidator((d) => z.object({ handle: z.string().min(1).max(120) }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = await db();
+    const { data: p } = await sb.from("products").select("size_chart, paired_product_ids").eq("handle", data.handle).eq("status", "active").maybeSingle();
+    if (!p) return { sizeChart: null as unknown, paired: [] as Product[] };
+    const ids = (p.paired_product_ids ?? []).slice(0, 8);
+    let paired: Product[] = [];
+    if (ids.length) {
+      const { data: rows } = await sb.from("products").select(PRODUCT_SELECT).in("id", ids).eq("status", "active");
+      const list = ((rows ?? []) as unknown as Row[]).map(toProduct);
+      paired = ids.map((id) => list.find((x) => x.node.id === id)).filter((x): x is Product => !!x);
+    }
+    return { sizeChart: p.size_chart as unknown, paired };
+  });
