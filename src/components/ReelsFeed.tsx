@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { useAuth } from "@/hooks/useAuth";
 import { formatMoney } from "@/lib/catalog";
 import { reelLink } from "@/lib/reels";
+import { ProductsTray, VideoSpinner } from "@/components/social/ProductsTray";
 import { setFollow } from "@/lib/profile.functions";
 import { toggleSave } from "@/lib/social.functions";
 import {
@@ -218,9 +219,9 @@ function ReelItem({
         onWaiting={() => setLoadingVid(true)}
         onPlaying={() => setLoadingVid(false)}
         onCanPlay={() => setLoadingVid(false)}
-        className="h-full w-full object-contain"
+        className="h-full w-full bg-ink object-contain"
       />
-      {loadingVid && <div className="zk-reel-loading pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-accent" />}
+      <VideoSpinner show={loadingVid && near} />
       {heart > 0 && (
         <ThumbsUp key={heart} className="zk-reel-heart pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 fill-accent text-accent" />
       )}
@@ -264,22 +265,7 @@ function ReelItem({
           )}
         </div>
         {reel.caption && <p className="line-clamp-2 text-sm leading-5 text-white/90">{reel.caption}</p>}
-        {product && (
-          <Link
-            to="/product/$handle"
-            params={{ handle: product.handle }}
-            className="flex max-w-xs items-center gap-3 border border-white/20 bg-black/60 p-2 backdrop-blur-md active:opacity-80"
-          >
-            <div className="h-12 w-12 shrink-0 overflow-hidden bg-white/10">
-              {product.image && <img src={product.image} alt="" className="h-full w-full object-cover" />}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{product.title}</p>
-              <p className="text-xs text-white/80">{formatMoney(product.price)}{reel.products.length > 1 ? ` · +${reel.products.length - 1} more` : ""}</p>
-            </div>
-            <span className="zk-label ml-auto shrink-0 bg-accent px-2 py-1 text-[9px] text-accent-foreground">Shop</span>
-          </Link>
-        )}
+        {product && <ProductsTray products={reel.products} overlay />}
       </div>
     </div>
   );
