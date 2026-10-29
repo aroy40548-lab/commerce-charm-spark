@@ -50,11 +50,11 @@ export function LivePresence() {
   return (
     <div role="status" className="fixed inset-x-3 top-3 z-[100] mx-auto max-w-md animate-in fade-in slide-in-from-top-4 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xl">
       <div className="flex items-start gap-3">
-        <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
+        <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Message from ZANKYO</p>
           <p className="mt-1 whitespace-pre-wrap break-words text-sm">{nudge.body}</p>
-          {nudge.link && <Link to={nudge.link} onClick={close} className="mt-3 inline-flex rounded-full bg-foreground px-4 py-1.5 text-xs font-semibold text-background">Open</Link>}
+          {nudge.link && <Link to={nudge.link as "/"} onClick={close} className="mt-3 inline-flex rounded-full bg-foreground px-4 py-1.5 text-xs font-semibold text-background">Open</Link>}
         </div>
         <button onClick={close} aria-label="Close message" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-muted"><X className="h-4 w-4" /></button>
       </div>
