@@ -1,9 +1,28 @@
-import { Instagram, MessageCircle } from "lucide-react";
+import { Instagram, MessageCircle, Smartphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import fullDarkLogo from "@/assets/zankyo-full-dark.png.asset.json";
+import { getAndroidApp } from "@/lib/app.functions";
 
 const INSTAGRAM_URL = "https://www.instagram.com/wearzankyo?stkn=Zmx2ZjA3YmtqbQ%3D%3D&utm_source=qr";
 const WHATSAPP_URL = "https://chat.whatsapp.com/JGEqcXoZEsi5NYc9hVBRqI";
+
+function AndroidButton() {
+  const q = useQuery({ queryKey: ["android-app"], queryFn: () => getAndroidApp(), staleTime: 10 * 60_000 });
+  if (!q.data?.url) return null;
+  return (
+    <a
+      href={q.data.url}
+      download
+      rel="noopener noreferrer"
+      title={q.data.notes ?? undefined}
+      className="flex min-h-11 items-center gap-2 rounded-full bg-accent px-5 py-2 text-sm text-accent-foreground transition-opacity hover:opacity-90"
+    >
+      <Smartphone className="h-4 w-4" aria-hidden="true" />
+      <span>Download Android app{q.data.version ? ` · v${q.data.version}` : ""}</span>
+    </a>
+  );
+}
 
 export function Footer() {
   return (

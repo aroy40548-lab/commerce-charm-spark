@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Crown, Loader2, Pencil, Plus, Trash2, XCircle } from "lucide-react";
 import { adminDeleteRole, adminGetSettings, adminInviteStaff, adminListStaff, adminSaveRole, adminSaveSettings, adminUpdateStaff } from "@/lib/admin/settings.functions";
+import { AndroidAppCard } from "@/components/admin/AndroidAppCard";
 import { SECTIONS, type Section } from "@/lib/admin/permissions";
 import { Card, Field, PageHeader, ReadOnlyNote, Spinner, StatusBadge, Tabs, Toggle, btn, btnGhost, dateTime, inputCls, useAction, useCanEdit, useStaff } from "@/components/admin/ui";
 
@@ -23,6 +24,7 @@ function Settings() {
       <Tabs value={tab} onChange={(t) => navigate({ search: { tab: t === "store" ? undefined : t } })}
         options={[["store", "Store details"], ["shipping", "Shipping & payments"], ["affiliates", "Affiliate program"], ["staff", "Staff & roles"], ["integrations", "Connections"]]} />
       {tab === "staff" ? <Staff /> : <StoreSettings tab={tab} />}
+      {tab === "store" && <div className="mt-6"><AndroidAppCard /></div>}
     </div>
   );
 }
