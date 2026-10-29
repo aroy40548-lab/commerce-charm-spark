@@ -29,6 +29,7 @@ export function notificationText(kind: string, onReel: boolean, body: string) {
   if (kind === "comment") return `commented: ${body}`;
   if (kind === "reply") return `replied to your comment: ${body}`;
   if (kind === "follow") return "started following you.";
+  if (kind === "review_reply") return `replied to your review: ${body}`;
   return body;
 }
 

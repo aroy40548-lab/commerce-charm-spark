@@ -330,12 +330,12 @@ export const listNotifications = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ before: z.string().datetime({ offset: true }).optional().nullable() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = await db();
-    let q = sb.from("notifications").select("id, actor_id, kind, post_id, reel_id, body, read_at, created_at").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(30);
+    let q = sb.from("notifications").select("id, actor_id, kind, post_id, reel_id, body, link, read_at, created_at").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(30);
     if (data.before) q = q.lt("created_at", data.before);
     const { data: rows } = await q;
     const ppl = await (await helpers()).people(sb, (rows ?? []).map((r) => r.actor_id));
     return {
-      items: (rows ?? []).map((r) => ({ id: r.id, kind: r.kind, postId: r.post_id, reelId: r.reel_id, body: r.body, read: !!r.read_at, createdAt: r.created_at, actor: r.actor_id ? ppl.get(r.actor_id) ?? null : null })),
+      items: (rows ?? []).map((r) => ({ id: r.id, kind: r.kind, postId: r.post_id, reelId: r.reel_id, body: r.body, link: r.link, read: !!r.read_at, createdAt: r.created_at, actor: r.actor_id ? ppl.get(r.actor_id) ?? null : null })),
       more: (rows ?? []).length === 30,
     };
   });

@@ -580,6 +580,7 @@ export type Database = {
           created_at: string
           id: string
           kind: string
+          link: string | null
           post_id: string | null
           read_at: string | null
           reel_id: string | null
@@ -592,6 +593,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind: string
+          link?: string | null
           post_id?: string | null
           read_at?: string | null
           reel_id?: string | null
@@ -604,6 +606,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          link?: string | null
           post_id?: string | null
           read_at?: string | null
           reel_id?: string | null
@@ -1420,6 +1423,64 @@ export type Database = {
           views?: number
         }
         Relationships: []
+      }
+      review_likes: {
+        Row: {
+          created_at: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_likes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "product_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_replies: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_replies_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "product_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saves: {
         Row: {
