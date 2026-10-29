@@ -25,3 +25,5 @@
 - ZANKYO Social (/social, /reels, /u, /p, /social/inbox, /social/notifications) uses its own top/bottom bars from `src/components/social/SocialChrome.tsx`; server logic in `src/lib/social.functions.ts`, rules in `src/lib/social.ts`. Why: one place for social layout and rules.
 - `notifications`, `messages`, `conversations` have owner-only SELECT RLS policies solely so Realtime delivers rows to the right person; all writes still go through server functions. Notifications are created by SQL triggers. Why: live updates without opening write access.
 - Photo posts and chat photos live in the private `posts` bucket (browser-compressed WebP + thumbnail, signed upload/read URLs). Staff read chats only via a member's report. Why: speed and privacy.
+- Live visitor tracking: signed-in pages ping `presenceHeartbeat` every 30s (`user_presence`); admin messages (`user_nudges`) are delivered on that ping, not Realtime. Why: no client table access, cheap.
+- `profiles_guard` trigger freezes verified/account_status/feed_priority for non-service roles and enforces avatars/<uid>/ paths. Why: RLS update policy lets users edit their own row.
