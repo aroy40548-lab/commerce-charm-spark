@@ -26,7 +26,7 @@ export function AndroidAppCard() {
   if (!q.data) return <Spinner />;
 
   const upload = async (f: File) => {
-    if (!f.name.toLowerCase().endsWith(".apk")) return toast.error("Choose an .apk file");
+    if (!f.name.toLowerCase().endsWith(".apk")) { toast.error("Choose an .apk file"); return; }
     setBusy("Uploading…");
     try {
       const s = await adminAppUploadUrl();
