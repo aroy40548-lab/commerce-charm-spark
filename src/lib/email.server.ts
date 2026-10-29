@@ -21,9 +21,9 @@ export async function sendOrderEmail(orderId: string, kind: "confirmed" | "shipp
     }[kind];
     const intro = {
       confirmed: o.payment_method === "cod" ? "We've got your cash-on-delivery order and we're packing it now." : "Payment received. We're packing your order now.",
-      shipped: `Courier: ${o.courier_name ?? "our delivery partner"}${o.awb_code ? ` · Tracking no. ${o.awb_code}` : ""}.`,
+      shipped: `Courier: ${esc(o.courier_name ?? "our delivery partner")}${o.awb_code ? ` · Tracking no. ${esc(o.awb_code)}` : ""}.`,
       delivered: "Enjoy your fit! You can now leave a photo review on the product page.",
-      cancelled: o.cancel_reason ? `Reason: ${o.cancel_reason}. Any payment will be refunded to the original method.` : "Any payment will be refunded to the original method.",
+      cancelled: o.cancel_reason ? `Reason: ${esc(o.cancel_reason)}. Any payment will be refunded to the original method.` : "Any payment will be refunded to the original method.",
     }[kind];
     const rows = o.order_items
       .map((i) => `<tr><td style="padding:6px 0">${esc(i.title)}${i.variant_title ? ` (${esc(i.variant_title)})` : ""} × ${i.quantity}</td><td align="right">${inr(Number(i.price) * i.quantity)}</td></tr>`)

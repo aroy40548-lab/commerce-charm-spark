@@ -33,6 +33,7 @@ import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminDiscountsRouteImport } from './routes/admin.discounts'
 import { Route as AdminGiftCardsRouteImport } from './routes/admin.gift-cards'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
+import { Route as AdminLiveRouteImport } from './routes/admin.live'
 import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
 import { Route as AdminReelsRouteImport } from './routes/admin.reels'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
@@ -180,6 +181,11 @@ const AdminGiftCardsRoute = AdminGiftCardsRouteImport.update({
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLiveRoute = AdminLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
@@ -348,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/admin/discounts': typeof AdminDiscountsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/live': typeof AdminLiveRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -401,6 +408,7 @@ export interface FileRoutesByTo {
   '/admin/discounts': typeof AdminDiscountsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/live': typeof AdminLiveRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -456,6 +464,7 @@ export interface FileRoutesById {
   '/admin/discounts': typeof AdminDiscountsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/live': typeof AdminLiveRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -512,6 +521,7 @@ export interface FileRouteTypes {
     | '/admin/discounts'
     | '/admin/gift-cards'
     | '/admin/inventory'
+    | '/admin/live'
     | '/admin/marketing'
     | '/admin/reels'
     | '/admin/reviews'
@@ -565,6 +575,7 @@ export interface FileRouteTypes {
     | '/admin/discounts'
     | '/admin/gift-cards'
     | '/admin/inventory'
+    | '/admin/live'
     | '/admin/marketing'
     | '/admin/reels'
     | '/admin/reviews'
@@ -619,6 +630,7 @@ export interface FileRouteTypes {
     | '/admin/discounts'
     | '/admin/gift-cards'
     | '/admin/inventory'
+    | '/admin/live'
     | '/admin/marketing'
     | '/admin/reels'
     | '/admin/reviews'
@@ -855,6 +867,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInventoryRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/live': {
+      id: '/admin/live'
+      path: '/live'
+      fullPath: '/admin/live'
+      preLoaderRoute: typeof AdminLiveRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/marketing': {
       id: '/admin/marketing'
       path: '/marketing'
@@ -1063,6 +1082,7 @@ interface AdminRouteChildren {
   AdminDiscountsRoute: typeof AdminDiscountsRoute
   AdminGiftCardsRoute: typeof AdminGiftCardsRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
+  AdminLiveRoute: typeof AdminLiveRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminReelsRoute: typeof AdminReelsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
@@ -1086,6 +1106,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDiscountsRoute: AdminDiscountsRoute,
   AdminGiftCardsRoute: AdminGiftCardsRoute,
   AdminInventoryRoute: AdminInventoryRoute,
+  AdminLiveRoute: AdminLiveRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminReelsRoute: AdminReelsRoute,
   AdminReviewsRoute: AdminReviewsRoute,

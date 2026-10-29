@@ -83,6 +83,6 @@ export const adminExportCustomers = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { db } = await guard(context, true);
     const { data } = await db.from("profiles").select("email, first_name, last_name, phone, created_at").order("created_at");
-    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const esc = (v: unknown) => { let t = String(v ?? ""); if (/^[=+\-@\t\r]/.test(t)) t = `'${t}`; return `"${t.replace(/"/g, '""')}"`; };
     return ["email,first_name,last_name,phone,joined", ...(data ?? []).map((r) => [r.email, r.first_name, r.last_name, r.phone, r.created_at].map(esc).join(","))].join("\n");
   });

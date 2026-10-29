@@ -60,7 +60,7 @@ export const saveMyProfile = createServerFn({ method: "POST" })
     if (taken) throw new Error("That username is taken");
     const patch: { full_name: string; username: string; bio: string; avatar_path?: string | null } = { full_name: data.fullName, username: u, bio: data.bio };
     if (data.avatarPath !== undefined) {
-      if (data.avatarPath && !data.avatarPath.startsWith(`avatars/${context.userId}/`)) throw new Error("Bad photo");
+      if (data.avatarPath && !new RegExp(`^avatars/${context.userId}/[A-Za-z0-9._-]+$`).test(data.avatarPath)) throw new Error("Bad photo");
       patch.avatar_path = data.avatarPath ?? null;
     }
     const email = String((context.claims as { email?: string }).email ?? "") || null;
