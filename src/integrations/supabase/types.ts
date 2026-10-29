@@ -191,6 +191,33 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          sent_by: string | null
+          sent_count: number
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          sent_by?: string | null
+          sent_count?: number
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          sent_by?: string | null
+          sent_count?: number
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -548,6 +575,7 @@ export type Database = {
       notifications: {
         Row: {
           actor_id: string | null
+          announcement_id: string | null
           body: string
           created_at: string
           id: string
@@ -559,6 +587,7 @@ export type Database = {
         }
         Insert: {
           actor_id?: string | null
+          announcement_id?: string | null
           body?: string
           created_at?: string
           id?: string
@@ -570,6 +599,7 @@ export type Database = {
         }
         Update: {
           actor_id?: string | null
+          announcement_id?: string | null
           body?: string
           created_at?: string
           id?: string
@@ -1738,6 +1768,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      send_announcement: { Args: { _id: string }; Returns: number }
       track_affiliate_click: { Args: { _code: string }; Returns: undefined }
     }
     Enums: {
