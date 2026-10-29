@@ -8,6 +8,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
 import { ProductReviews } from "@/components/ProductReviews";
+import { CompleteTheFit, SizeChartButton, useProductExtras } from "@/components/ProductExtras";
 import { AffiliateLinkButton } from "@/components/AffiliateLinkButton";
 
 export const Route = createFileRoute("/product/$handle")({
@@ -45,6 +46,7 @@ function ProductDetail() {
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const [variantId, setVariantId] = useState<string | null>(null);
   const [imgIdx, setImgIdx] = useState(0);
+  const extras = useProductExtras(handle);
 
   const variants = product?.node.variants.edges.map((e) => e.node) ?? [];
   const selected = useMemo(
@@ -216,6 +218,7 @@ function ProductDetail() {
                   </button>
                 ))}
               </div>
+              <SizeChartButton raw={extras.data?.sizeChart} />
               <p className="mt-2 text-xs text-muted-foreground">
                 {selected?.availableForSale ? `${selected.title} is in stock` : "This size is sold out"}
               </p>
@@ -254,6 +257,7 @@ function ProductDetail() {
             <Heart className={`h-4 w-4 ${wished ? "fill-accent text-accent" : ""}`} />
             {wished ? "Saved to wishlist" : "Save to wishlist"}
           </button>
+          <CompleteTheFit products={extras.data?.paired ?? []} />
         </div>
       </div>
 
