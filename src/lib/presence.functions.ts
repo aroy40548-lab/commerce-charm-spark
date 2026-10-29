@@ -83,7 +83,7 @@ export const adminSendNudge = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({
     userIds: z.array(z.string().uuid()).min(1).max(200),
     body: z.string().trim().min(1).max(280),
-    link: z.string().max(200).regex(/^\/[^/\\]/, "Link must be a page on this site, like /shop").optional().or(z.literal("")),
+    link: z.string().max(200).regex(/^\/(?![/\\])/, "Link must be a page on this site, like /shop").optional().or(z.literal("")),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const g = await import("./admin/guard.server");
