@@ -25,7 +25,7 @@ export function AndroidAppCard() {
 
   if (!q.data) return <Spinner />;
 
-  const upload = async (f: File) => {
+  const upload = async (f: File): Promise<void> => {
     if (!f.name.toLowerCase().endsWith(".apk")) { toast.error("Choose an .apk file"); return; }
     setBusy("Uploading…");
     try {
