@@ -12,6 +12,7 @@ import { ProfileForm } from "@/components/ProfileEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { getPublicProfile, listFollows, setFollow } from "@/lib/profile.functions";
 import { PeopleList } from "@/components/PeopleList";
+import { socialThemeClass, useSocialTheme } from "@/components/social/SocialChrome";
 
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
@@ -93,14 +94,14 @@ function ProfilePage() {
       </div>
       <ProfileGrid userId={p.id} isMe={p.isMe} />
       <Dialog open={!!list} onOpenChange={(o) => !o && setList(null)}>
-        <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
+        <DialogContent className={`zk-social ${socialThemeClass(socialTheme)} max-h-[85dvh] overflow-y-auto bg-background text-foreground sm:max-w-md`}>
           <DialogTitle className="zk-display text-3xl">{list === "followers" ? "Followers" : "Following"}</DialogTitle>
           <DialogDescription className="sr-only">People connected to @{p.username}</DialogDescription>
           {people.isLoading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : <PeopleList people={people.data ?? []} onPick={() => setList(null)} empty="No one here yet." />}
         </DialogContent>
       </Dialog>
       <Dialog open={editing} onOpenChange={setEditing}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+        <DialogContent className={`zk-social ${socialThemeClass(socialTheme)} max-h-[90dvh] overflow-y-auto bg-background text-foreground sm:max-w-md`}>
           <DialogTitle className="zk-display text-3xl">Edit profile</DialogTitle>
           <DialogDescription className="sr-only">Change your photo, name, username and bio</DialogDescription>
           <ProfileForm onCancel={() => setEditing(false)} onSaved={(u) => { setEditing(false); if (u !== username) navigate({ to: "/u/$username", params: { username: u } }); }} />
