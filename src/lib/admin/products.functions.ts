@@ -307,7 +307,7 @@ export const adminSaveProductExtras = createServerFn({ method: "POST" })
       unit: z.enum(["in", "cm"]),
       columns: z.array(z.string().trim().min(1).max(30)).min(1).max(8),
       rows: z.array(z.object({ size: z.string().trim().min(1).max(20), values: z.array(z.number().min(0).max(1000).nullable()).max(8) })).min(1).max(20),
-      note: z.string().max(500).optional(),
+      note: z.string().max(500).default(""),
     }).nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {

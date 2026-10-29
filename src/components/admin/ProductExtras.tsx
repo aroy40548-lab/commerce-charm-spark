@@ -23,7 +23,7 @@ export function ProductExtras({ id, sizes, initialChart, initialPaired, canEdit 
   const setCell = (r: number, c: number, v: string) => chart && setChart({ ...chart, rows: chart.rows.map((row, i) => i !== r ? row : { ...row, values: chart.columns.map((_, j) => j === c ? (v === "" ? null : Number(v)) : row.values[j] ?? null) }) });
   const switchUnit = (u: "in" | "cm") => chart && chart.unit !== u && setChart({ ...chart, unit: u, rows: chart.rows.map((r) => ({ ...r, values: r.values.map((v) => v == null ? null : convert(v, chart.unit, u)) })) });
 
-  const save = () => run("extras", () => adminSaveProductExtras({ data: { id, paired_product_ids: paired, size_chart: chart ? { ...chart, rows: chart.rows.filter((r) => r.size.trim()), columns: chart.columns.map((c) => c.trim() || "Size") } : null } }), "Size chart & outfit saved", ["product-extras", "admin-product"]);
+  const save = () => run("extras", () => adminSaveProductExtras({ data: { id, paired_product_ids: paired, size_chart: chart ? { ...chart, note: chart.note ?? "", rows: chart.rows.filter((r) => r.size.trim()), columns: chart.columns.map((c) => c.trim() || "Size") } : null } }), "Size chart & outfit saved", ["product-extras", "admin-product"]);
   const others = (products.data ?? []).filter((p) => p.id !== id);
 
   return (

@@ -5,7 +5,7 @@ export type SizeChart = {
   unit: SizeUnit;
   columns: string[]; // e.g. ["Chest", "Length", "Shoulder"]
   rows: Array<{ size: string; values: Array<number | null> }>;
-  note?: string;
+  note?: string | undefined;
 };
 
 export const CM_PER_INCH = 2.54;
