@@ -1558,6 +1558,75 @@ export type Database = {
         }
         Relationships: []
       }
+      user_nudges: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          link: string | null
+          seen_at: string | null
+          sent_by: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          seen_at?: string | null
+          sent_by?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          seen_at?: string | null
+          sent_by?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          cart_count: number
+          cart_items: Json
+          cart_value: number
+          device: string
+          first_seen_at: string
+          last_seen_at: string
+          path: string
+          session_started_at: string
+          user_id: string
+          visits: number
+        }
+        Insert: {
+          cart_count?: number
+          cart_items?: Json
+          cart_value?: number
+          device?: string
+          first_seen_at?: string
+          last_seen_at?: string
+          path?: string
+          session_started_at?: string
+          user_id: string
+          visits?: number
+        }
+        Update: {
+          cart_count?: number
+          cart_items?: Json
+          cart_value?: number
+          device?: string
+          first_seen_at?: string
+          last_seen_at?: string
+          path?: string
+          session_started_at?: string
+          user_id?: string
+          visits?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
