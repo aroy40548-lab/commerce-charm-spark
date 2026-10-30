@@ -404,6 +404,42 @@ export type Database = {
         }
         Relationships: []
       }
+      drops: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          drop_at: string
+          id: string
+          image_url: string | null
+          product_handle: string | null
+          title: string
+          whatsapp_url: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          drop_at: string
+          id?: string
+          image_url?: string | null
+          product_handle?: string | null
+          title: string
+          whatsapp_url?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          drop_at?: string
+          id?: string
+          image_url?: string | null
+          product_handle?: string | null
+          title?: string
+          whatsapp_url?: string | null
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string

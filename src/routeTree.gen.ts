@@ -17,6 +17,7 @@ import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CollectionsRouteImport } from './routes/collections'
+import { Route as DropsRouteImport } from './routes/drops'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as SearchRouteImport } from './routes/search'
@@ -31,6 +32,7 @@ import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminCollectionsRouteImport } from './routes/admin.collections'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminDiscountsRouteImport } from './routes/admin.discounts'
+import { Route as AdminDropsRouteImport } from './routes/admin.drops'
 import { Route as AdminGiftCardsRouteImport } from './routes/admin.gift-cards'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminLiveRouteImport } from './routes/admin.live'
@@ -46,6 +48,7 @@ import { Route as ReelsIndexRouteImport } from './routes/reels.index'
 import { Route as ReelsIdRouteImport } from './routes/reels.$id'
 import { Route as ReelsStudioRouteImport } from './routes/reels.studio'
 import { Route as SocialIndexRouteImport } from './routes/social.index'
+import { Route as SocialFitOfTheWeekRouteImport } from './routes/social.fit-of-the-week'
 import { Route as SocialNewRouteImport } from './routes/social.new'
 import { Route as SocialNotificationsRouteImport } from './routes/social.notifications'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
@@ -101,6 +104,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const CollectionsRoute = CollectionsRouteImport.update({
   id: '/collections',
   path: '/collections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DropsRoute = DropsRouteImport.update({
+  id: '/drops',
+  path: '/drops',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrderSuccessRoute = OrderSuccessRouteImport.update({
@@ -171,6 +179,11 @@ const AdminContentRoute = AdminContentRouteImport.update({
 const AdminDiscountsRoute = AdminDiscountsRouteImport.update({
   id: '/discounts',
   path: '/discounts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDropsRoute = AdminDropsRouteImport.update({
+  id: '/drops',
+  path: '/drops',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminGiftCardsRoute = AdminGiftCardsRouteImport.update({
@@ -246,6 +259,11 @@ const ReelsStudioRoute = ReelsStudioRouteImport.update({
 const SocialIndexRoute = SocialIndexRouteImport.update({
   id: '/social/',
   path: '/social/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialFitOfTheWeekRoute = SocialFitOfTheWeekRouteImport.update({
+  id: '/social/fit-of-the-week',
+  path: '/social/fit-of-the-week',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialNewRoute = SocialNewRouteImport.update({
@@ -339,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
+  '/drops': typeof DropsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/search': typeof SearchRoute
@@ -352,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/admin/collections': typeof AdminCollectionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/drops': typeof AdminDropsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/live': typeof AdminLiveRoute
@@ -364,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/social/fit-of-the-week': typeof SocialFitOfTheWeekRoute
   '/social/new': typeof SocialNewRoute
   '/social/notifications': typeof SocialNotificationsRoute
   '/u/$username': typeof UUsernameRoute
@@ -393,6 +414,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
+  '/drops': typeof DropsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/search': typeof SearchRoute
@@ -406,6 +428,7 @@ export interface FileRoutesByTo {
   '/admin/collections': typeof AdminCollectionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/drops': typeof AdminDropsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/live': typeof AdminLiveRoute
@@ -418,6 +441,7 @@ export interface FileRoutesByTo {
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/social/fit-of-the-week': typeof SocialFitOfTheWeekRoute
   '/social/new': typeof SocialNewRoute
   '/social/notifications': typeof SocialNotificationsRoute
   '/u/$username': typeof UUsernameRoute
@@ -449,6 +473,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
+  '/drops': typeof DropsRoute
   '/order-success': typeof OrderSuccessRoute
   '/returns': typeof ReturnsRoute
   '/search': typeof SearchRoute
@@ -462,6 +487,7 @@ export interface FileRoutesById {
   '/admin/collections': typeof AdminCollectionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/drops': typeof AdminDropsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/live': typeof AdminLiveRoute
@@ -474,6 +500,7 @@ export interface FileRoutesById {
   '/product/$handle': typeof ProductHandleRoute
   '/reels/$id': typeof ReelsIdRoute
   '/reels/studio': typeof ReelsStudioRoute
+  '/social/fit-of-the-week': typeof SocialFitOfTheWeekRoute
   '/social/new': typeof SocialNewRoute
   '/social/notifications': typeof SocialNotificationsRoute
   '/u/$username': typeof UUsernameRoute
@@ -506,6 +533,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/collections'
+    | '/drops'
     | '/order-success'
     | '/returns'
     | '/search'
@@ -519,6 +547,7 @@ export interface FileRouteTypes {
     | '/admin/collections'
     | '/admin/content'
     | '/admin/discounts'
+    | '/admin/drops'
     | '/admin/gift-cards'
     | '/admin/inventory'
     | '/admin/live'
@@ -531,6 +560,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/social/fit-of-the-week'
     | '/social/new'
     | '/social/notifications'
     | '/u/$username'
@@ -560,6 +590,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/collections'
+    | '/drops'
     | '/order-success'
     | '/returns'
     | '/search'
@@ -573,6 +604,7 @@ export interface FileRouteTypes {
     | '/admin/collections'
     | '/admin/content'
     | '/admin/discounts'
+    | '/admin/drops'
     | '/admin/gift-cards'
     | '/admin/inventory'
     | '/admin/live'
@@ -585,6 +617,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/social/fit-of-the-week'
     | '/social/new'
     | '/social/notifications'
     | '/u/$username'
@@ -615,6 +648,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/collections'
+    | '/drops'
     | '/order-success'
     | '/returns'
     | '/search'
@@ -628,6 +662,7 @@ export interface FileRouteTypes {
     | '/admin/collections'
     | '/admin/content'
     | '/admin/discounts'
+    | '/admin/drops'
     | '/admin/gift-cards'
     | '/admin/inventory'
     | '/admin/live'
@@ -640,6 +675,7 @@ export interface FileRouteTypes {
     | '/product/$handle'
     | '/reels/$id'
     | '/reels/studio'
+    | '/social/fit-of-the-week'
     | '/social/new'
     | '/social/notifications'
     | '/u/$username'
@@ -671,6 +707,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
   CollectionsRoute: typeof CollectionsRoute
+  DropsRoute: typeof DropsRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
   ReturnsRoute: typeof ReturnsRoute
   SearchRoute: typeof SearchRoute
@@ -683,6 +720,7 @@ export interface RootRouteChildren {
   ProductHandleRoute: typeof ProductHandleRoute
   ReelsIdRoute: typeof ReelsIdRoute
   ReelsStudioRoute: typeof ReelsStudioRoute
+  SocialFitOfTheWeekRoute: typeof SocialFitOfTheWeekRoute
   SocialNewRoute: typeof SocialNewRoute
   SocialNotificationsRoute: typeof SocialNotificationsRoute
   UUsernameRoute: typeof UUsernameRoute
@@ -753,6 +791,13 @@ declare module '@tanstack/react-router' {
       path: '/collections'
       fullPath: '/collections'
       preLoaderRoute: typeof CollectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drops': {
+      id: '/drops'
+      path: '/drops'
+      fullPath: '/drops'
+      preLoaderRoute: typeof DropsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order-success': {
@@ -851,6 +896,13 @@ declare module '@tanstack/react-router' {
       path: '/discounts'
       fullPath: '/admin/discounts'
       preLoaderRoute: typeof AdminDiscountsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/drops': {
+      id: '/admin/drops'
+      path: '/drops'
+      fullPath: '/admin/drops'
+      preLoaderRoute: typeof AdminDropsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/gift-cards': {
@@ -956,6 +1008,13 @@ declare module '@tanstack/react-router' {
       path: '/social'
       fullPath: '/social/'
       preLoaderRoute: typeof SocialIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/fit-of-the-week': {
+      id: '/social/fit-of-the-week'
+      path: '/social/fit-of-the-week'
+      fullPath: '/social/fit-of-the-week'
+      preLoaderRoute: typeof SocialFitOfTheWeekRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/social/new': {
@@ -1080,6 +1139,7 @@ interface AdminRouteChildren {
   AdminCollectionsRoute: typeof AdminCollectionsRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminDiscountsRoute: typeof AdminDiscountsRoute
+  AdminDropsRoute: typeof AdminDropsRoute
   AdminGiftCardsRoute: typeof AdminGiftCardsRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLiveRoute: typeof AdminLiveRoute
@@ -1104,6 +1164,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCollectionsRoute: AdminCollectionsRoute,
   AdminContentRoute: AdminContentRoute,
   AdminDiscountsRoute: AdminDiscountsRoute,
+  AdminDropsRoute: AdminDropsRoute,
   AdminGiftCardsRoute: AdminGiftCardsRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLiveRoute: AdminLiveRoute,
@@ -1132,6 +1193,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
   CollectionsRoute: CollectionsRoute,
+  DropsRoute: DropsRoute,
   OrderSuccessRoute: OrderSuccessRoute,
   ReturnsRoute: ReturnsRoute,
   SearchRoute: SearchRoute,
@@ -1144,6 +1206,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductHandleRoute: ProductHandleRoute,
   ReelsIdRoute: ReelsIdRoute,
   ReelsStudioRoute: ReelsStudioRoute,
+  SocialFitOfTheWeekRoute: SocialFitOfTheWeekRoute,
   SocialNewRoute: SocialNewRoute,
   SocialNotificationsRoute: SocialNotificationsRoute,
   UUsernameRoute: UUsernameRoute,

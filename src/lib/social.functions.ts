@@ -720,3 +720,22 @@ export const listStories = createServerFn({ method: "POST" })
       return person?.username ? [{ ...it, username: person.username, avatarUrl: person.avatarUrl }] : [];
     });
   });
+
+// ---------- Fit of the Week: most-liked photo posts of the last 7 days ----------
+export const fitOfTheWeek = createServerFn({ method: "POST" }).handler(async () => {
+  const sb = await db();
+  const me = await viewer(sb);
+  const since = new Date(Date.now() - 7 * 864e5).toISOString();
+  const { data: posts } = await sb.from("posts").select("id, user_id").eq("status", "live").gte("created_at", since).limit(500);
+  const blocked = await (await import("./account.server")).hiddenCreators(sb);
+  const pool = (posts ?? []).filter((p) => !blocked.has(p.user_id));
+  if (!pool.length) return [];
+  const { data: likes } = await sb.from("post_likes").select("post_id").in("post_id", pool.map((p) => p.id));
+  const count = new Map<string, number>();
+  (likes ?? []).forEach((l) => count.set(l.post_id, (count.get(l.post_id) ?? 0) + 1));
+  const top = pool.map((p) => ({ id: p.id, n: count.get(p.id) ?? 0 })).filter((p) => p.n > 0).sort((a, b) => b.n - a.n).slice(0, 10);
+  if (!top.length) return [];
+  const { data: rows } = await sb.from("posts").select(POST_SELECT).in("id", top.map((t) => t.id));
+  const cards = new Map((await toPosts(sb, (rows ?? []) as unknown as PostRow[], me)).map((p) => [p.id, p]));
+  return top.flatMap((t) => { const p = cards.get(t.id); return p ? [p] : []; });
+});

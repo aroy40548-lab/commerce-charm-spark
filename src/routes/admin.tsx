@@ -31,7 +31,7 @@ type NavItem = { to: string; label: string; icon: typeof Home; exact?: boolean; 
 const NAV: NavItem[] = [
   { to: "/admin", label: "Home", icon: Home, exact: true },
   { to: "/admin/orders", label: "Orders", icon: Inbox, children: [{ to: "/admin/orders/new", label: "Create order" }, { to: "/admin/abandoned", label: "Abandoned checkouts" }] },
-  { to: "/admin/products", label: "Products", icon: Package, children: [{ to: "/admin/collections", label: "Collections" }, { to: "/admin/inventory", label: "Inventory" }, { to: "/admin/gift-cards", label: "Gift cards" }] },
+  { to: "/admin/products", label: "Products", icon: Package, children: [{ to: "/admin/collections", label: "Collections" }, { to: "/admin/drops", label: "Drops" }, { to: "/admin/inventory", label: "Inventory" }, { to: "/admin/gift-cards", label: "Gift cards" }] },
   { to: "/admin/customers", label: "Customers", icon: Users, children: [{ to: "/admin/live", label: "Live visitors" }] },
   { to: "/admin/content", label: "Content", icon: FileText, children: [{ to: "/admin/blog", label: "Blog posts" }] },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },

@@ -165,7 +165,7 @@ const fileInput = z.object({ type: z.string().max(100), base64: z.string().max(1
 
 export const adminUpload = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ folder: z.enum(["products", "collections", "files", "blog"]), file: fileInput }).parse(d))
+  .inputValidator((d) => z.object({ folder: z.enum(["products", "collections", "files", "blog", "drops"]), file: fileInput }).parse(d))
   .handler(async ({ data, context }) => {
     await guard(context, data.folder === "files" || data.folder === "blog" ? "content" : "products");
     const { uploadBase64 } = await import("@/lib/store.server");
