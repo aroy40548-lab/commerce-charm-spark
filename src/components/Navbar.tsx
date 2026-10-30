@@ -16,6 +16,7 @@ const NAV = [
   { to: "/affiliate", label: "Affiliate Partner" },
   { to: "/social", label: "Social" },
   { to: "/collections", label: "Collections" },
+  { to: "/drops", label: "Drops" },
   { to: "/unboxing", label: "UNBOXING // 001" },
   { to: "/about", label: "About" },
 ] as const;

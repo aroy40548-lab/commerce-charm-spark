@@ -43,6 +43,7 @@ function Feed() {
   return (
     <div className="mx-auto w-full max-w-xl pb-6">
       <Stories />
+      <Link to="/social/fit-of-the-week" className="mx-3 my-2 flex items-center justify-between border border-border px-4 py-3"><span><span className="zk-label block text-[10px] text-accent">Leaderboard</span><span className="zk-display text-xl">Fit of the Week</span></span><span className="zk-label text-xs">View →</span></Link>
       {feed.isLoading && <div className="grid min-h-[50vh] place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
       {feed.isError && <p className="p-6 text-center text-sm text-muted-foreground">Couldn't load the feed. Try again.</p>}
       {!feed.isLoading && !items.length && !feed.isError && (
