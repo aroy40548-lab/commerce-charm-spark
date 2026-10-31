@@ -245,7 +245,8 @@ function Checkout() {
 
           <dl className="space-y-1.5 border-t border-border pt-3 text-sm">
             <Row label="Subtotal" value={formatMoney(q?.subtotal ?? localSubtotal)} />
-            {!!q?.discount && <Row label={`Discount (${q.discountCode})`} value={`−${formatMoney(q.discount)}`} />}
+            {!!q?.bundleDiscount && <Row label="Bundle discount" value={`−${formatMoney(q.bundleDiscount)}`} />}
+            {!!q && q.discount - (q.bundleDiscount ?? 0) > 0 && <Row label={`Discount (${q.discountCode})`} value={`−${formatMoney(q.discount - (q.bundleDiscount ?? 0))}`} />}
             <Row label="Shipping" value={q ? (q.shipping ? formatMoney(q.shipping) : "Free") : "—"} />
             {!!q?.codFee && <Row label="COD fee" value={formatMoney(q.codFee)} />}
             {!!q?.giftCardAmount && <Row label="Gift card" value={`−${formatMoney(q.giftCardAmount)}`} />}
