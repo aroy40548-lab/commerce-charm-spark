@@ -217,7 +217,8 @@
 /* Decart injects Try-On pills over photos; hide them on the homepage banners. */
 .zk-hide-vton .vton-btn,
 .zk-social .vton-btn,
-.zk-social [class*="vton"] {
+.zk-social [class*="vton"],
+body[data-vton="off"] .vton-btn {
   display: none !important;
 }
 
