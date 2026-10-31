@@ -1160,6 +1160,7 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          bundle_discount_percent: number | null
           category_id: string | null
           compare_at_price: number | null
           created_at: string
@@ -1180,6 +1181,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          bundle_discount_percent?: number | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string
@@ -1200,6 +1202,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          bundle_discount_percent?: number | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string
@@ -1634,6 +1637,7 @@ export type Database = {
           android_apk_url: string | null
           android_notes: string | null
           android_version: string | null
+          bundle_discount_percent: number
           cod_enabled: boolean
           cod_fee: number
           express_enabled: boolean
@@ -1659,6 +1663,7 @@ export type Database = {
           android_apk_url?: string | null
           android_notes?: string | null
           android_version?: string | null
+          bundle_discount_percent?: number
           cod_enabled?: boolean
           cod_fee?: number
           express_enabled?: boolean
@@ -1684,6 +1689,7 @@ export type Database = {
           android_apk_url?: string | null
           android_notes?: string | null
           android_version?: string | null
+          bundle_discount_percent?: number
           cod_enabled?: boolean
           cod_fee?: number
           express_enabled?: boolean

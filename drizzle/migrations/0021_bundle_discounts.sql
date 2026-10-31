@@ -1,0 +1,2 @@
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS bundle_discount_percent numeric NOT NULL DEFAULT 0 CHECK (bundle_discount_percent >= 0 AND bundle_discount_percent <= 90);
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS bundle_discount_percent numeric CHECK (bundle_discount_percent IS NULL OR (bundle_discount_percent >= 0 AND bundle_discount_percent <= 90));
