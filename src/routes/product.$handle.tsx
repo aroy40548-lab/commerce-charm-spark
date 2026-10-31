@@ -257,7 +257,7 @@ function ProductDetail() {
             <Heart className={`h-4 w-4 ${wished ? "fill-accent text-accent" : ""}`} />
             {wished ? "Saved to wishlist" : "Save to wishlist"}
           </button>
-          <CompleteTheFit products={extras.data?.paired ?? []} />
+          <CompleteTheFit products={extras.data?.paired ?? []} current={product} bundlePct={extras.data?.bundlePct ?? 0} />
         </div>
       </div>
 

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Ruler } from "lucide-react";
+import { Ruler, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
+import { useCartStore } from "@/stores/cartStore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getProductExtras } from "@/lib/catalog.functions";
 import { formatMoney } from "@/lib/catalog";
@@ -50,22 +52,59 @@ export function SizeChartButton({ raw }: { raw: unknown }) {
   );
 }
 
-export function CompleteTheFit({ products }: { products: NonNullable<ReturnType<typeof useProductExtras>["data"]>["paired"] }) {
+type FitProduct = NonNullable<ReturnType<typeof useProductExtras>["data"]>["paired"][number];
+
+// Reels-style "pieces in this fit" tray with per-piece size + one-tap "Add entire fit".
+export function CompleteTheFit({ products, current, bundlePct = 0 }: { products: FitProduct[]; current?: FitProduct; bundlePct?: number }) {
+  const addItem = useCartStore((s) => s.addItem);
+  const [sizes, setSizes] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
   if (!products.length) return null;
+  const all = current ? [current, ...products] : products;
+  const variantsOf = (p: FitProduct) => p.node.variants.edges.map((e) => e.node).filter((v) => v.availableForSale && v.quantityAvailable > 0);
+  const addFit = async () => {
+    const picks = all.map((p) => ({ p, v: variantsOf(p).find((v) => v.id === sizes[p.node.id]) ?? (variantsOf(p).length === 1 ? variantsOf(p)[0] : undefined) }));
+    const missing = picks.filter((x) => !x.v && variantsOf(x.p).length);
+    if (missing.length) { toast.error(`Pick a size for ${missing[0].p.node.title}`, { position: "top-center" }); return; }
+    setBusy(true);
+    try {
+      for (const { p, v } of picks) if (v) await addItem({ product: p, variantId: v.id, variantTitle: v.title, price: v.price, quantity: 1, selectedOptions: v.selectedOptions || [] });
+      toast.success(bundlePct > 0 ? `Fit added — ${bundlePct}% bundle discount applies at checkout` : "Entire fit added to bag", { position: "top-center" });
+      window.dispatchEvent(new Event("zk:open-cart"));
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't add", { position: "top-center" }); }
+    finally { setBusy(false); }
+  };
   return (
-    <section className="mt-8 border-t border-border pt-6">
-      <h2 className="zk-label text-[11px] text-muted-foreground">Complete the fit</h2>
-      <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
-        {products.map((p) => (
-          <Link key={p.node.id} to="/product/$handle" params={{ handle: p.node.handle }} className="w-28 shrink-0">
-            <div className="overflow-hidden rounded-lg bg-card p-2">
-              {p.node.images.edges[0] && <img src={p.node.images.edges[0].node.url} alt={p.node.title} loading="lazy" className="aspect-square w-full object-contain" />}
-            </div>
-            <p className="mt-1.5 truncate text-xs">{p.node.title}</p>
-            <p className="text-xs font-semibold">{formatMoney(p.node.priceRange.minVariantPrice.amount, p.node.priceRange.minVariantPrice.currencyCode)}</p>
-          </Link>
-        ))}
+    <section className="zk-hide-vton mt-8 border-t border-border pt-6">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="zk-label text-[11px] text-muted-foreground">Complete the fit · {all.length} pieces</h2>
+        {bundlePct > 0 && <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-semibold text-accent-foreground">Bundle & save {bundlePct}%</span>}
       </div>
+      <div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2">
+        {all.map((p) => {
+          const vs = variantsOf(p);
+          return (
+            <div key={p.node.id} className="w-36 shrink-0 snap-start rounded-xl border border-border bg-card p-2">
+              <Link to="/product/$handle" params={{ handle: p.node.handle }}>
+                {p.node.images.edges[0] && <img src={p.node.images.edges[0].node.url} alt={p.node.title} loading="lazy" className="aspect-square w-full rounded-lg object-contain" />}
+                <p className="mt-1.5 truncate text-xs">{p === current ? "This piece" : p.node.title}</p>
+              </Link>
+              <p className="text-xs font-semibold">{formatMoney(p.node.priceRange.minVariantPrice.amount, p.node.priceRange.minVariantPrice.currencyCode)}</p>
+              {vs.length ? (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {vs.map((v) => (
+                    <button key={v.id} type="button" onClick={() => setSizes({ ...sizes, [p.node.id]: v.id })}
+                      className={`min-h-7 min-w-7 rounded-full border px-1.5 text-[10px] ${sizes[p.node.id] === v.id ? "border-foreground bg-foreground text-background" : "border-border"}`}>{v.title}</button>
+                  ))}
+                </div>
+              ) : <p className="mt-1.5 text-[10px] text-muted-foreground">Sold out</p>}
+            </div>
+          );
+        })}
+      </div>
+      <button type="button" onClick={addFit} disabled={busy} className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background disabled:opacity-60">
+        <ShoppingBag className="h-4 w-4" /> Add entire fit to bag
+      </button>
     </section>
   );
 }

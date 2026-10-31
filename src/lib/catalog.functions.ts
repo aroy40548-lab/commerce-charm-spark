@@ -84,8 +84,10 @@ export const getProductExtras = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ handle: z.string().min(1).max(120) }).parse(d))
   .handler(async ({ data }) => {
     const sb = await db();
-    const { data: p } = await sb.from("products").select("size_chart, paired_product_ids").eq("handle", data.handle).eq("status", "active").maybeSingle();
-    if (!p) return { sizeChart: null as SizeChart | null, paired: [] as Product[] };
+    const { data: p } = await sb.from("products").select("size_chart, paired_product_ids, bundle_discount_percent").eq("handle", data.handle).eq("status", "active").maybeSingle();
+    if (!p) return { sizeChart: null as SizeChart | null, paired: [] as Product[], bundlePct: 0 };
+    const { data: st } = await sb.from("store_settings").select("bundle_discount_percent").eq("id", 1).maybeSingle();
+    const bundlePct = p.bundle_discount_percent != null ? Number(p.bundle_discount_percent) : Number(st?.bundle_discount_percent ?? 0);
     const ids = (p.paired_product_ids ?? []).slice(0, 8);
     let paired: Product[] = [];
     if (ids.length) {
@@ -93,5 +95,5 @@ export const getProductExtras = createServerFn({ method: "GET" })
       const list = ((rows ?? []) as unknown as Row[]).map(toProduct);
       paired = ids.map((id) => list.find((x) => x.node.id === id)).filter((x): x is Product => !!x);
     }
-    return { sizeChart: parseSizeChart(p.size_chart), paired };
+    return { sizeChart: parseSizeChart(p.size_chart), paired, bundlePct };
   });
