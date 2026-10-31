@@ -10,20 +10,21 @@ const PRESETS: Record<string, string[]> = {
   "Jeans / Pants": ["Waist", "Hip", "Length", "Inseam", "Thigh"],
 };
 
-export function ProductExtras({ id, sizes, initialChart, initialPaired, canEdit }: {
-  id: string; sizes: string[]; initialChart: unknown; initialPaired: string[]; canEdit: boolean;
+export function ProductExtras({ id, sizes, initialChart, initialPaired, initialBundle = null, canEdit }: {
+  id: string; sizes: string[]; initialChart: unknown; initialPaired: string[]; initialBundle?: number | null; canEdit: boolean;
 }) {
   const { busy, run } = useAction();
   const products = useQuery({ queryKey: ["admin-products", "all", ""], queryFn: () => adminListProducts({ data: { status: "all", q: "" } }) });
   const [chart, setChart] = useState<SizeChart | null>(parseSizeChart(initialChart));
   const [paired, setPaired] = useState<string[]>(initialPaired);
+  const [bundle, setBundle] = useState<string>(initialBundle == null ? "" : String(initialBundle));
   useEffect(() => { setChart(parseSizeChart(initialChart)); setPaired(initialPaired); }, [initialChart, initialPaired]);
 
   const start = (cols: string[]) => setChart({ unit: "in", columns: cols, rows: (sizes.length ? sizes : ["S", "M", "L", "XL"]).map((s) => ({ size: s, values: cols.map(() => null) })) });
   const setCell = (r: number, c: number, v: string) => chart && setChart({ ...chart, rows: chart.rows.map((row, i) => i !== r ? row : { ...row, values: chart.columns.map((_, j) => j === c ? (v === "" ? null : Number(v)) : row.values[j] ?? null) }) });
   const switchUnit = (u: "in" | "cm") => chart && chart.unit !== u && setChart({ ...chart, unit: u, rows: chart.rows.map((r) => ({ ...r, values: r.values.map((v) => v == null ? null : convert(v, chart.unit, u)) })) });
 
-  const save = () => run("extras", () => adminSaveProductExtras({ data: { id, paired_product_ids: paired, size_chart: chart ? { ...chart, note: chart.note ?? "", rows: chart.rows.filter((r) => r.size.trim()), columns: chart.columns.map((c) => c.trim() || "Size") } : null } }), "Size chart & outfit saved", ["product-extras", "admin-product"]);
+  const save = () => run("extras", () => adminSaveProductExtras({ data: { id, paired_product_ids: paired, bundle_discount_percent: bundle === "" ? null : Number(bundle), size_chart: chart ? { ...chart, note: chart.note ?? "", rows: chart.rows.filter((r) => r.size.trim()), columns: chart.columns.map((c) => c.trim() || "Size") } : null } }), "Size chart & outfit saved", ["product-extras", "admin-product"]);
   const others = (products.data ?? []).filter((p) => p.id !== id);
 
   return (
@@ -75,7 +76,10 @@ export function ProductExtras({ id, sizes, initialChart, initialPaired, canEdit 
       </Card>
 
       <Card title="Complete the fit" action={<span className="text-xs text-muted-foreground">{paired.length}/8</span>}>
-        <p className="mb-2 text-xs text-muted-foreground">Pick pieces that go with this product. They show under it on the product page.</p>
+        <p className="mb-2 text-xs text-muted-foreground">Pick pieces that go with this product. They show under it on the product page and auto-link both ways (tee ⇄ jeans ⇄ cap).</p>
+        <label className="mb-3 block text-xs text-muted-foreground">Bundle discount for this fit (%) — leave empty to use the store-wide bundle %
+          <input type="number" min={0} max={90} value={bundle} disabled={!canEdit} onChange={(e) => setBundle(e.target.value)} placeholder="Store default" className={`${inputCls} mt-1`} />
+        </label>
         <div className="flex flex-wrap gap-2">
           {paired.map((pid) => { const p = others.find((x) => x.id === pid); return (
             <span key={pid} className="flex items-center gap-2 rounded-full border border-border py-1 pl-1 pr-2 text-xs">
