@@ -67,7 +67,7 @@ function StoreSettings({ tab }: { tab: Exclude<Tab, "staff"> }) {
     <form onSubmit={(e) => {
       e.preventDefault();
       const { id: _i, updated_at: _u, ...rest } = s;
-      void run("save", () => adminSaveSettings({ data: { ...rest, shipping_fee: Number(rest.shipping_fee), free_shipping_over: Number(rest.free_shipping_over), express_shipping_fee: Number(rest.express_shipping_fee), cod_fee: Number(rest.cod_fee), package_weight_kg: Number(rest.package_weight_kg), affiliate_rate: Number(rest.affiliate_rate) } }), "Settings saved", ["admin-settings", "checkout-config", "affiliate-program"]);
+      void run("save", () => adminSaveSettings({ data: { ...rest, shipping_fee: Number(rest.shipping_fee), free_shipping_over: Number(rest.free_shipping_over), express_shipping_fee: Number(rest.express_shipping_fee), cod_fee: Number(rest.cod_fee), package_weight_kg: Number(rest.package_weight_kg), affiliate_rate: Number(rest.affiliate_rate), bundle_discount_percent: Number(rest.bundle_discount_percent ?? 0) } }), "Settings saved", ["admin-settings", "checkout-config", "affiliate-program"]);
     }}>
       <ReadOnlyNote section="settings" />
       <fieldset disabled={!canEdit} className="space-y-4">
@@ -78,6 +78,11 @@ function StoreSettings({ tab }: { tab: Exclude<Tab, "staff"> }) {
               <Field label="Support email"><input type="email" value={s.support_email} onChange={(e) => set("support_email", e.target.value)} className={inputCls} /></Field>
               <Field label="Low-stock warning at" hint="Sizes at or below this count show as low stock"><input min={0} {...n("low_stock_threshold")} /></Field>
             </div>
+          </Card>
+        )}
+        {tab === "store" && (
+          <Card title="Bundle discount (Complete the fit)">
+            <Field label="Discount on all bundles (%)" hint="Auto-applies when a product and any of its fit pieces are in the bag. A product's own bundle % (set on the product page) replaces this."><input step="1" min={0} max={90} {...n("bundle_discount_percent")} /></Field>
           </Card>
         )}
         {tab === "shipping" && (

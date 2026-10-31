@@ -178,7 +178,8 @@ function ProductPage() {
           {!isNew && product.data && (
             <ProductExtras id={id} canEdit={canEdit} sizes={f.variants.map((v) => v.title)}
               initialChart={(product.data as { size_chart?: unknown }).size_chart ?? null}
-              initialPaired={(product.data as { paired_product_ids?: string[] }).paired_product_ids ?? []} />
+              initialPaired={(product.data as { paired_product_ids?: string[] }).paired_product_ids ?? []}
+              initialBundle={(product.data as { bundle_discount_percent?: number | null }).bundle_discount_percent ?? null} />
           )}
           <Card title="Search engine listing">
             <div className="space-y-3">

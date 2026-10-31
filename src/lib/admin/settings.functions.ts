@@ -45,6 +45,7 @@ export const adminSaveSettings = createServerFn({ method: "POST" })
     package_weight_kg: z.number().min(0.01).max(100),
     affiliates_enabled: z.boolean(),
     affiliate_rate: z.number().min(0).max(50),
+    bundle_discount_percent: z.number().min(0).max(90),
     affiliate_cookie_days: z.number().int().min(1).max(365),
     low_stock_threshold: z.number().int().min(0).max(1000),
   }).parse(d))

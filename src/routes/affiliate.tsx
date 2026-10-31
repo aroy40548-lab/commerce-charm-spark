@@ -31,7 +31,7 @@ function AffiliatePage() {
   const rate = program.data?.rate ?? 5;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 sm:py-12">
+    <div className="zk-hide-vton mx-auto w-full max-w-3xl px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 sm:py-12">
       <p className="zk-label text-[11px] text-muted-foreground">ZANKYO Affiliate Partners</p>
       <h1 className="zk-display mt-2 text-4xl sm:text-5xl">Share the drop. Earn {rate}%.</h1>
       <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
@@ -74,7 +74,7 @@ function AffiliatePage() {
   );
 }
 
-function Dashboard({ rate }: { rate: number }) {
+function Dashboard({ rate: defaultRate }: { rate: number }) {
   const qc = useQueryClient();
   const me = useQuery({ queryKey: ["my-affiliate"], queryFn: () => getMyAffiliate() });
   const [busy, setBusy] = useState(false);
@@ -103,6 +103,7 @@ function Dashboard({ rate }: { rate: number }) {
   }
 
   const { affiliate: a, totals, commissions } = me.data;
+  const rate = a.commission_rate != null ? Number(a.commission_rate) : defaultRate;
   const savePayout = async () => {
     await updateMyPayout({ data: { upi: upi ?? "" } });
     toast.success("Payout details saved");
@@ -110,7 +111,8 @@ function Dashboard({ rate }: { rate: number }) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="zk-hide-vton space-y-5">
+      {rate !== defaultRate && <p className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm"><span className="font-semibold">Your special rate: {rate}%</span> on every product you share.</p>}
       {a.status !== "active" && <p className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">Your affiliate account is paused. Contact help@zankyo.in.</p>}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         <Stat label="Link visits" value={String(a.clicks)} />

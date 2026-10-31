@@ -22,7 +22,7 @@ export async function priceCart(
   const [{ data: variants, error }, settings] = await Promise.all([
     supabaseAdmin
       .from("product_variants")
-      .select("id, title, sku, stock, price, products!inner(id, title, price, status, product_images(url, position))")
+      .select("id, title, sku, stock, price, products!inner(id, title, price, status, paired_product_ids, bundle_discount_percent, product_images(url, position))")
       .in("id", ids),
     getSettings(),
   ]);
@@ -49,6 +49,18 @@ export async function priceCart(
   });
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
 
+  // Complete-the-fit bundle: an item gets the bundle % when one of its paired pieces is also in the bag.
+  // A product's own bundle % replaces the store-wide one.
+  const inBag = new Set(items.map((i) => i.product_id));
+  let bundleDiscount = 0;
+  for (const i of items) {
+    const p = variants!.find((x) => x.id === i.variant_id)!.products;
+    if (!(p.paired_product_ids ?? []).some((x) => x !== i.product_id && inBag.has(x))) continue;
+    const pct = p.bundle_discount_percent != null ? Number(p.bundle_discount_percent) : Number(settings.bundle_discount_percent ?? 0);
+    if (pct > 0) bundleDiscount += Math.round((i.price * i.quantity * pct) / 100);
+  }
+  bundleDiscount = Math.min(bundleDiscount, subtotal);
+
   let discount = 0;
   let freeShipping = false;
   let discountCode: string | null = null;
@@ -72,12 +84,13 @@ export async function priceCart(
       }
       if (!discountError) {
         if (d.kind === "free_shipping") freeShipping = true;
-        else discount = d.kind === "percent" ? Math.round((subtotal * Number(d.value)) / 100) : Math.min(Number(d.value), subtotal);
+        else discount = d.kind === "percent" ? Math.round(((subtotal - bundleDiscount) * Number(d.value)) / 100) : Math.min(Number(d.value), subtotal - bundleDiscount);
         discountCode = d.code;
       }
     }
   }
 
+  discount += bundleDiscount;
   const afterDiscount = subtotal - discount;
   const method: ShippingMethod = opts.shipping === "express" && settings.express_enabled ? "express" : "standard";
   const freeOver = Number(settings.free_shipping_over);
@@ -107,6 +120,7 @@ export async function priceCart(
     items,
     subtotal,
     discount,
+    bundleDiscount,
     discountCode,
     discountError,
     shippingMethod: method,

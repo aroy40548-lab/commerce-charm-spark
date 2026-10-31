@@ -303,6 +303,7 @@ export const adminSaveProductExtras = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({
     id: uuid,
     paired_product_ids: z.array(uuid).max(8),
+    bundle_discount_percent: z.number().min(0).max(90).nullable().optional(),
     size_chart: z.object({
       unit: z.enum(["in", "cm"]),
       columns: z.array(z.string().trim().min(1).max(30)).min(1).max(8),
@@ -312,8 +313,23 @@ export const adminSaveProductExtras = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { db } = await guard(context, "products");
-    const paired = data.paired_product_ids.filter((x) => x !== data.id);
-    const { error } = await db.from("products").update({ size_chart: data.size_chart, paired_product_ids: paired }).eq("id", data.id);
+    const paired = [...new Set(data.paired_product_ids.filter((x) => x !== data.id))];
+    const { data: before } = await db.from("products").select("paired_product_ids").eq("id", data.id).maybeSingle();
+    const { error } = await db.from("products").update({ size_chart: data.size_chart, paired_product_ids: paired, bundle_discount_percent: data.bundle_discount_percent ?? null }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    // Auto-connect: whole fit links to each other (tee ⇄ jeans ⇄ cap). Removed pieces unlink both ways.
+    const removed = (before?.paired_product_ids ?? []).filter((x) => !paired.includes(x));
+    const touched = [...new Set([...paired, ...removed])];
+    if (touched.length) {
+      const { data: rows } = await db.from("products").select("id, paired_product_ids").in("id", touched);
+      for (const r of rows ?? []) {
+        const cur = new Set(r.paired_product_ids ?? []);
+        if (paired.includes(r.id)) { cur.add(data.id); paired.forEach((x) => x !== r.id && cur.add(x)); }
+        else cur.delete(data.id);
+        const next = [...cur].filter((x) => x !== r.id).slice(0, 8);
+        await db.from("products").update({ paired_product_ids: next }).eq("id", r.id);
+      }
+    }
     if (error) throw new Error(error.message);
     return { ok: true };
   });

@@ -148,6 +148,13 @@
       "when": 1793347675069,
       "tag": "0020_drops",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793458647081,
+      "tag": "0021_bundle_discounts",
+      "breakpoints": true
     }
   ]
 }
