@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Ban, Flag, ImagePlus, Loader2, Send } from "lucide-react";
+import { ArrowLeft, Ban, Flag, ImagePlus, Loader2, Send, ShoppingBag } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { listProducts } from "@/lib/catalog.functions";
+import { formatMoney } from "@/lib/catalog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar } from "@/components/ReelsFeed";
