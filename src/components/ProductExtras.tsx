@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Ruler, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/stores/cartStore";
+import { OPEN_BAG_EVENT } from "@/components/BottomTabBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getProductExtras } from "@/lib/catalog.functions";
 import { formatMoney } from "@/lib/catalog";
