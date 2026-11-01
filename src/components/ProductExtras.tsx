@@ -66,7 +66,7 @@ export function CompleteTheFit({ products, current, bundlePct = 0 }: { products:
   const addFit = async () => {
     const picks = all.map((p) => ({ p, v: variantsOf(p).find((v) => v.id === sizes[p.node.id]) ?? (variantsOf(p).length === 1 ? variantsOf(p)[0] : undefined) }));
     const missing = picks.filter((x) => !x.v && variantsOf(x.p).length);
-    if (missing.length) { toast.error(`Pick a size for ${missing[0].p.node.title}`, { position: "top-center" }); return; }
+    if (missing.length) { toast.error(`Pick a size for ${missing[0]?.p.node.title ?? "each piece"}`, { position: "top-center" }); return; }
     setBusy(true);
     try {
       for (const { p, v } of picks) if (v) await addItem({ product: p, variantId: v.id, variantTitle: v.title, price: v.price, quantity: 1, selectedOptions: v.selectedOptions || [] });
