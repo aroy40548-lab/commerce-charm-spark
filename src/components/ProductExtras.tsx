@@ -70,7 +70,7 @@ export function CompleteTheFit({ products, current, bundlePct = 0 }: { products:
     try {
       for (const { p, v } of picks) if (v) await addItem({ product: p, variantId: v.id, variantTitle: v.title, price: v.price, quantity: 1, selectedOptions: v.selectedOptions || [] });
       toast.success(bundlePct > 0 ? `Fit added — ${bundlePct}% bundle discount applies at checkout` : "Entire fit added to bag", { position: "top-center" });
-      window.dispatchEvent(new Event("zk:open-cart"));
+      window.dispatchEvent(new Event(OPEN_BAG_EVENT));
     } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't add", { position: "top-center" }); }
     finally { setBusy(false); }
   };
