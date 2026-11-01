@@ -75,7 +75,7 @@ function Chat() {
   };
   const [picker, setPicker] = useState(false);
   const [pq, setPq] = useState("");
-  const catalog = useQuery({ queryKey: ["products"], queryFn: () => listProducts(), enabled: picker, staleTime: 60_000 });
+  const catalog = useQuery({ queryKey: ["chat-products"], queryFn: () => listProducts(), enabled: picker, staleTime: 60_000 });
   const shareProduct = async (p: { node: { id: string; handle: string; title: string; images: { edges: { node: { url: string } }[] }; priceRange: { minVariantPrice: { amount: string; currencyCode: string } } } }) => {
     setPicker(false);
     setBusy(true);
