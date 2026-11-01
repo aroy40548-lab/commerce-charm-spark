@@ -17,3 +17,9 @@
 - [ ] Android APK download + admin manager
 - [x] Complete the Fit + Size chart (in/cm auto convert)
 - [ ] Fit of the Week, Drops & Vault, in-chat product buy
+## Batch 5
+- [x] Try-On only on home/collections/product pages (hidden in Social, chat, affiliate)
+- [x] Auto-connected fits + Add entire fit + bundle discount (store-wide + per-product override)
+- [x] Share products in chat (rich card)
+- [x] Partner sees their custom commission rate
+- [ ] AI photo try-on fallback; Video trim + "Use this sound"
