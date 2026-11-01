@@ -19,7 +19,7 @@ export const adminListProducts = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { db } = await guard(context);
     let q = db.from("products")
-      .select("id, handle, title, status, price, created_at, product_type, categories(name), product_images(url, position), product_variants(stock)")
+      .select("id, handle, title, status, price, created_at, product_type, paired_product_ids, bundle_discount_percent, categories(name), product_images(url, position), product_variants(stock)")
       .order("created_at", { ascending: false });
     if (data.status !== "all") q = q.eq("status", data.status);
     if (data.q?.trim()) q = q.ilike("title", `%${data.q.trim().replace(/[%,()]/g, "")}%`);
@@ -30,6 +30,7 @@ export const adminListProducts = createServerFn({ method: "POST" })
       category: p.categories?.name ?? p.product_type ?? "",
       image: [...p.product_images].sort((a, b) => a.position - b.position)[0]?.url ?? null,
       stock: p.product_variants.reduce((s, v) => s + v.stock, 0), variants: p.product_variants.length,
+      paired: p.paired_product_ids ?? [], bundle: p.bundle_discount_percent == null ? null : Number(p.bundle_discount_percent),
     }));
   });
 
