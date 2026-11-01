@@ -330,6 +330,5 @@ export const adminSaveProductExtras = createServerFn({ method: "POST" })
         await db.from("products").update({ paired_product_ids: next }).eq("id", r.id);
       }
     }
-    if (error) throw new Error(error.message);
     return { ok: true };
   });

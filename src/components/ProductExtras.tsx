@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Ruler, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/stores/cartStore";
+import { OPEN_BAG_EVENT } from "@/components/BottomTabBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getProductExtras } from "@/lib/catalog.functions";
 import { formatMoney } from "@/lib/catalog";
@@ -65,12 +66,12 @@ export function CompleteTheFit({ products, current, bundlePct = 0 }: { products:
   const addFit = async () => {
     const picks = all.map((p) => ({ p, v: variantsOf(p).find((v) => v.id === sizes[p.node.id]) ?? (variantsOf(p).length === 1 ? variantsOf(p)[0] : undefined) }));
     const missing = picks.filter((x) => !x.v && variantsOf(x.p).length);
-    if (missing.length) { toast.error(`Pick a size for ${missing[0].p.node.title}`, { position: "top-center" }); return; }
+    if (missing.length) { toast.error(`Pick a size for ${missing[0]?.p.node.title ?? "each piece"}`, { position: "top-center" }); return; }
     setBusy(true);
     try {
       for (const { p, v } of picks) if (v) await addItem({ product: p, variantId: v.id, variantTitle: v.title, price: v.price, quantity: 1, selectedOptions: v.selectedOptions || [] });
       toast.success(bundlePct > 0 ? `Fit added — ${bundlePct}% bundle discount applies at checkout` : "Entire fit added to bag", { position: "top-center" });
-      window.dispatchEvent(new Event("zk:open-cart"));
+      window.dispatchEvent(new Event(OPEN_BAG_EVENT));
     } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't add", { position: "top-center" }); }
     finally { setBusy(false); }
   };

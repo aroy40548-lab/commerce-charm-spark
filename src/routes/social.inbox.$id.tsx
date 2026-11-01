@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Ban, Flag, ImagePlus, Loader2, Send } from "lucide-react";
+import { ArrowLeft, Ban, Flag, ImagePlus, Loader2, Send, ShoppingBag } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { listProducts } from "@/lib/catalog.functions";
+import { formatMoney } from "@/lib/catalog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar } from "@/components/ReelsFeed";
@@ -70,6 +73,19 @@ function Chat() {
     } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't send"); }
     finally { setBusy(false); }
   };
+  const [picker, setPicker] = useState(false);
+  const [pq, setPq] = useState("");
+  const catalog = useQuery({ queryKey: ["chat-products"], queryFn: () => listProducts(), enabled: picker, staleTime: 60_000 });
+  const shareProduct = async (p: { node: { id: string; handle: string; title: string; images: { edges: { node: { url: string } }[] }; priceRange: { minVariantPrice: { amount: string; currencyCode: string } } } }) => {
+    setPicker(false);
+    setBusy(true);
+    try {
+      const price = formatMoney(p.node.priceRange.minVariantPrice.amount, p.node.priceRange.minVariantPrice.currencyCode);
+      await sendMessage({ data: { id, body: "", shared: { kind: "product", id: p.node.id, title: `${p.node.title} · ${price}`.slice(0, 200), href: `/product/${p.node.handle}`, image: p.node.images.edges[0]?.node.url ?? null } } });
+      await qc.invalidateQueries({ queryKey: ["chat", id] });
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't share"); }
+    finally { setBusy(false); }
+  };
   const sendPhoto = async (f: File | undefined) => {
     if (!f) return;
     setBusy(true);
@@ -101,7 +117,13 @@ function Chat() {
           <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[78%] ${m.mine ? "bg-accent text-accent-foreground" : "bg-muted"} ${m.image ? "p-1" : "px-3 py-2"} rounded-2xl text-sm`}>
               {m.image && <img src={m.image} alt="" loading="lazy" className="max-h-72 rounded-xl" />}
-              {m.shared && <a href={m.shared.href} className="block underline">{m.shared.title}</a>}
+              {m.shared && (m.shared.kind === "product" ? (
+                <a href={m.shared.href} className="zk-hide-vton block w-52 overflow-hidden rounded-xl bg-background text-foreground">
+                  {m.shared.image && <img src={m.shared.image} alt="" loading="lazy" className="aspect-square w-full object-contain" />}
+                  <span className="block px-2.5 pt-2 text-xs font-semibold">{m.shared.title}</span>
+                  <span className="zk-label m-2 flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-foreground text-[10px] text-background"><ShoppingBag className="h-3.5 w-3.5" /> View & buy</span>
+                </a>
+              ) : <a href={m.shared.href} className="block underline">{m.shared.title}</a>)}
               {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
             </div>
             {m.mine && i === msgs.length - 1 && <span className="ml-1 self-end text-[10px] text-muted-foreground">{m.read ? "Seen" : timeAgo(m.createdAt)}</span>}
@@ -118,10 +140,27 @@ function Chat() {
             <ImagePlus className="h-5 w-5" />
             <input type="file" accept="image/*" className="sr-only" onChange={(e) => { void sendPhoto(e.target.files?.[0]); e.target.value = ""; }} />
           </label>
+          <button type="button" aria-label="Share a product" onClick={() => setPicker(true)} className="grid h-11 w-11 place-items-center text-muted-foreground"><ShoppingBag className="h-5 w-5" /></button>
           <input value={text} onChange={(e) => onType(e.target.value)} maxLength={2000} placeholder="Message…" aria-label="Message" className="min-h-11 min-w-0 flex-1 rounded-full border border-border bg-background px-4 text-base sm:text-sm" />
           <button disabled={busy || !text.trim()} aria-label="Send" className="grid h-11 w-11 place-items-center rounded-full bg-foreground text-background disabled:opacity-40">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</button>
         </form>
       )}
+      <Sheet open={picker} onOpenChange={setPicker}>
+        <SheetContent side="bottom" className="zk-hide-vton max-h-[80dvh] overflow-y-auto">
+          <SheetHeader><SheetTitle>Share a product</SheetTitle></SheetHeader>
+          <input value={pq} onChange={(e) => setPq(e.target.value)} placeholder="Search products…" className="mt-3 min-h-11 w-full rounded-full border border-border bg-background px-4 text-base sm:text-sm" />
+          {catalog.isLoading && <Loader2 className="mx-auto mt-6 h-5 w-5 animate-spin text-muted-foreground" />}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {(catalog.data ?? []).filter((p) => p.node.title.toLowerCase().includes(pq.toLowerCase())).slice(0, 60).map((p) => (
+              <button key={p.node.id} type="button" onClick={() => void shareProduct(p)} className="text-left">
+                {p.node.images.edges[0] && <img src={p.node.images.edges[0].node.url} alt="" loading="lazy" className="aspect-square w-full rounded-lg bg-card object-contain" />}
+                <span className="mt-1 block truncate text-[11px]">{p.node.title}</span>
+                <span className="block text-[11px] font-semibold">{formatMoney(p.node.priceRange.minVariantPrice.amount, p.node.priceRange.minVariantPrice.currencyCode)}</span>
+              </button>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -141,7 +141,7 @@ function AppShell() {
   // Try-On only on the shop pages (home, collections, product); Decart badges elsewhere are hidden.
   useEffect(() => {
     const ok = pathname === "/" || pathname.startsWith("/collections") || pathname.startsWith("/product/");
-    document.body.dataset.vton = ok ? "on" : "off";
+    document.body.dataset["vton"] = ok ? "on" : "off";
   }, [pathname]);
   useEffect(() => { getAffiliateProgram().then((p) => captureReferral(p.cookieDays || 365)).catch(() => captureReferral()); }, []);
   useWishlistSync();
