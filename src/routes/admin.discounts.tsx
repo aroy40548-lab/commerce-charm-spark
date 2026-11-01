@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { adminDeleteDiscount, adminListDiscounts, adminSaveDiscount } from "@/lib/admin/marketing.functions";
+import { BundleManager } from "@/components/admin/BundleManager";
 import { Card, Empty, Field, PageHeader, ReadOnlyNote, Spinner, StatusBadge, Toggle, btn, btnGhost, dateOnly, inputCls, inr, useAction, useCanEdit } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin/discounts")({ component: Discounts });
@@ -19,6 +20,7 @@ function Discounts() {
   const canEdit = useCanEdit("discounts");
   const { busy, run } = useAction();
   const [d, setD] = useState<D | null>(null);
+  const [tab, setTab] = useState<"codes" | "bundles">("codes");
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +41,13 @@ function Discounts() {
 
   return (
     <div>
-      <PageHeader title="Discounts" action={canEdit && !d && <button onClick={() => setD(BLANK)} className={btn}><Plus className="h-4 w-4" /> Create discount</button>} />
+      <PageHeader title="Discounts" action={canEdit && !d && tab === "codes" && <button onClick={() => setD(BLANK)} className={btn}><Plus className="h-4 w-4" /> Create discount</button>} />
+      <div className="mb-4 flex gap-2">
+        {([["codes", "Discount codes"], ["bundles", "Bundle deals"]] as const).map(([k, l]) => (
+          <button key={k} onClick={() => setTab(k)} className={tab === k ? btn : btnGhost}>{l}</button>
+        ))}
+      </div>
+      {tab === "bundles" ? <BundleManager /> : <>
       <ReadOnlyNote section="discounts" />
       {d && (
         <Card className="mb-4" title={d.id ? `Edit ${d.code}` : "New discount code"}>
@@ -89,6 +97,7 @@ function Discounts() {
           })}
         </ul>
       )}
+      </>}
     </div>
   );
 }

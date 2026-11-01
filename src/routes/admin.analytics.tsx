@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getAnalytics } from "@/lib/admin/core.functions";
 import { Card, PageHeader, Spinner, Stat, Tabs, inr } from "@/components/admin/ui";
 import { SalesChart } from "@/components/admin/SalesChart";
+import { VisitorStats } from "@/components/admin/VisitorStats";
 
 export const Route = createFileRoute("/admin/analytics")({ component: Analytics });
 
@@ -38,6 +39,7 @@ function Analytics() {
   return (
     <div>
       <PageHeader title="Analytics" subtitle="Sales count paid and cash-on-delivery orders that weren't cancelled or refunded." />
+      <VisitorStats />
       <Tabs value={String(days)} onChange={(v) => setDays(Number(v))} options={[["7", "7 days"], ["30", "30 days"], ["90", "90 days"], ["365", "12 months"]]} />
       {!a ? <Spinner /> : (
         <div className="space-y-4">
