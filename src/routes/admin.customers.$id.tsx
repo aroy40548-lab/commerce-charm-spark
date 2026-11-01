@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { adminGetCustomer, adminSaveCustomerNote } from "@/lib/admin/customers.functions";
 import { AccountStatusCard } from "@/components/admin/AccountStatusCard";
+import { PersonalAnnouncement } from "@/components/admin/PersonalAnnouncement";
 import { Card, Field, PageHeader, Spinner, Stat, StatusBadge, btn, dateOnly, dateTime, inputCls, inr, useAction, useCanEdit } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin/customers/$id")({ component: Customer });
@@ -66,6 +67,7 @@ function Customer() {
             </div>
           </Card>
           <AccountStatusCard userId={id} />
+          {canEdit && <PersonalAnnouncement userIds={[id]} />}
           <Card title="Addresses">
             {c.addresses.length === 0 ? <p className="text-sm text-muted-foreground">None saved.</p> : c.addresses.map((a) => (
               <p key={a.id} className="mb-2 text-sm text-muted-foreground">{a.full_name}, {[a.address1, a.address2, a.city, a.state, a.pincode].filter(Boolean).join(", ")} · {a.phone}</p>

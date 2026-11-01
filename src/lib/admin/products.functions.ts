@@ -309,13 +309,13 @@ export const adminSaveProductExtras = createServerFn({ method: "POST" })
       columns: z.array(z.string().trim().min(1).max(30)).min(1).max(8),
       rows: z.array(z.object({ size: z.string().trim().min(1).max(20), values: z.array(z.number().min(0).max(1000).nullable()).max(8) })).min(1).max(20),
       note: z.string().max(500).default(""),
-    }).nullable(),
+    }).nullable().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { db } = await guard(context, "products");
     const paired = [...new Set(data.paired_product_ids.filter((x) => x !== data.id))];
     const { data: before } = await db.from("products").select("paired_product_ids").eq("id", data.id).maybeSingle();
-    const { error } = await db.from("products").update({ size_chart: data.size_chart, paired_product_ids: paired, bundle_discount_percent: data.bundle_discount_percent ?? null }).eq("id", data.id);
+    const { error } = await db.from("products").update({ ...(data.size_chart !== undefined ? { size_chart: data.size_chart } : {}), paired_product_ids: paired, bundle_discount_percent: data.bundle_discount_percent ?? null }).eq("id", data.id);
     if (error) throw new Error(error.message);
     // Auto-connect: whole fit links to each other (tee ⇄ jeans ⇄ cap). Removed pieces unlink both ways.
     const removed = (before?.paired_product_ids ?? []).filter((x) => !paired.includes(x));

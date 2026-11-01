@@ -3,7 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCartStore } from "@/stores/cartStore";
-import { dismissNudge, presenceHeartbeat } from "@/lib/presence.functions";
+import { dismissNudge, presenceHeartbeat, trackGuestVisit } from "@/lib/presence.functions";
 
 type Nudge = { id: string; body: string; link: string | null };
 
@@ -14,6 +14,22 @@ export function LivePresence() {
   const [nudge, setNudge] = useState<Nudge | null>(null);
   const pathRef = useRef(pathname);
   pathRef.current = pathname;
+
+  // Guests (no account): count one visit per day per browser.
+  useEffect(() => {
+    if (user) return;
+    const t = setTimeout(() => {
+      try {
+        const day = new Date().toDateString();
+        if (localStorage.getItem("zk_visit_day") === day) return;
+        let id = localStorage.getItem("zk_visitor");
+        if (!id) { id = crypto.randomUUID(); localStorage.setItem("zk_visitor", id); }
+        localStorage.setItem("zk_visit_day", day);
+        void trackGuestVisit({ data: { visitorId: id } }).catch(() => {});
+      } catch { /* storage blocked */ }
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;

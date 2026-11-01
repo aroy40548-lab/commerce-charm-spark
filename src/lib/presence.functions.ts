@@ -26,6 +26,7 @@ export const presenceHeartbeat = createServerFn({ method: "POST" })
       session_started_at: newVisit ? now.toISOString() : prev!.session_started_at,
       last_seen_at: now.toISOString(),
     });
+    await db.from("site_visits").upsert({ visitor_id: `u:${context.userId}`, day: new Date(Date.now() + 19_800_000).toISOString().slice(0, 10), user_id: context.userId, last_at: now.toISOString() });
     const { data: nudges } = await db.from("user_nudges").select("id, body, link, created_at").eq("user_id", context.userId).is("seen_at", null).order("created_at").limit(3);
     return { nudges: nudges ?? [] };
   });
@@ -90,5 +91,46 @@ export const adminSendNudge = createServerFn({ method: "POST" })
     const me = await g.requireStaff(context as never, "customers");
     const { error } = await g.db.from("user_nudges").insert(data.userIds.map((id) => ({ user_id: id, body: data.body, link: data.link || null, sent_by: me.name })));
     if (error) throw new Error(error.message);
+    return { sent: data.userIds.length };
+  });
+
+const istDay = () => new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
+
+/** Counts a guest (no account) visit once per day per browser. */
+export const trackGuestVisit = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ visitorId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    await db.from("site_visits").upsert({ visitor_id: `g:${data.visitorId}`, day: istDay(), last_at: new Date().toISOString() });
+    return { ok: true };
+  });
+
+export const adminVisitorStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const g = await import("./admin/guard.server");
+    await g.requireStaff(context as never);
+    const { data, error } = await g.db.rpc("visitor_stats");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({ period: r.period, accounts: Number(r.accounts), guests: Number(r.guests) }));
+  });
+
+/** Personal announcement: pops up on their screen and stays in their notifications. */
+export const adminPersonalAnnouncement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    userIds: z.array(z.string().uuid()).min(1).max(200),
+    body: z.string().trim().min(1).max(280),
+    link: z.string().max(200).regex(/^\/(?![/\\])/, "Link must be a page on this site, like /shop").optional().or(z.literal("")),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const g = await import("./admin/guard.server");
+    const me = await g.requireStaff(context as never, "customers");
+    const link = data.link || null;
+    const [a, b] = await Promise.all([
+      g.db.from("user_nudges").insert(data.userIds.map((id) => ({ user_id: id, body: data.body, link, sent_by: me.name }))),
+      g.db.from("notifications").insert(data.userIds.map((id) => ({ user_id: id, kind: "announcement", body: data.body.slice(0, 200), link }))),
+    ]);
+    if (a.error || b.error) throw new Error((a.error ?? b.error)!.message);
     return { sent: data.userIds.length };
   });

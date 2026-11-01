@@ -1560,6 +1560,27 @@ export type Database = {
         }
         Relationships: []
       }
+      site_visits: {
+        Row: {
+          day: string
+          last_at: string
+          user_id: string | null
+          visitor_id: string
+        }
+        Insert: {
+          day?: string
+          last_at?: string
+          user_id?: string | null
+          visitor_id: string
+        }
+        Update: {
+          day?: string
+          last_at?: string
+          user_id?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       staff_members: {
         Row: {
           active: boolean
@@ -1885,6 +1906,14 @@ export type Database = {
       }
       send_announcement: { Args: { _id: string }; Returns: number }
       track_affiliate_click: { Args: { _code: string }; Returns: undefined }
+      visitor_stats: {
+        Args: never
+        Returns: {
+          accounts: number
+          guests: number
+          period: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "staff" | "user"
