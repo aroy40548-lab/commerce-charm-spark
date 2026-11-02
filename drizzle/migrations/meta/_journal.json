@@ -169,6 +169,13 @@
       "when": 1793632669586,
       "tag": "0023_affiliate_click_dedupe",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793634082076,
+      "tag": "0024_affiliate_link_visits",
+      "breakpoints": true
     }
   ]
 }
