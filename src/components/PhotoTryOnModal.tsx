@@ -1,0 +1,115 @@
+import { useEffect, useRef, useState } from "react";
+import { Camera, Loader2, RotateCcw, Upload } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+
+type Size = { id: string; title: string; available: boolean };
+
+/** Instant photo fitting: the customer's photo with the product image placed on top (drag, pinch/scroll to resize, fade). Nothing is uploaded. */
+export function PhotoTryOnModal({
+  open, onOpenChange, garment, title, sizes, selectedId, onSelect, onAdd, adding,
+}: {
+  open: boolean; onOpenChange: (o: boolean) => void; garment: string | null; title: string;
+  sizes: Size[]; selectedId: string | null; onSelect: (id: string) => void; onAdd: () => void; adding: boolean;
+}) {
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [pos, setPos] = useState({ x: 0.5, y: 0.42, scale: 0.55 });
+  const [opacity, setOpacity] = useState(0.9);
+  const stage = useRef<HTMLDivElement>(null);
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ d: number; scale: number } | null>(null);
+
+  useEffect(() => () => { if (photo) URL.revokeObjectURL(photo); }, [photo]);
+
+  const pick = (f?: File) => {
+    if (!f || !f.type.startsWith("image/")) return;
+    setPhoto(URL.createObjectURL(f));
+    setPos({ x: 0.5, y: 0.42, scale: 0.55 });
+  };
+
+  const onDown = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()];
+      pinch.current = { d: Math.hypot(a!.x - b!.x, a!.y - b!.y), scale: pos.scale };
+    }
+  };
+  const onMove = (e: React.PointerEvent) => {
+    const prev = pointers.current.get(e.pointerId);
+    const r = stage.current?.getBoundingClientRect();
+    if (!prev || !r) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size === 2 && pinch.current) {
+      const [a, b] = [...pointers.current.values()];
+      const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+      setPos((p) => ({ ...p, scale: clamp(pinch.current!.scale * (d / pinch.current!.d), 0.15, 1.6) }));
+    } else if (pointers.current.size === 1) {
+      setPos((p) => ({ ...p, x: clamp(p.x + (e.clientX - prev.x) / r.width, 0, 1), y: clamp(p.y + (e.clientY - prev.y) / r.height, 0, 1) }));
+    }
+  };
+  const onUp = (e: React.PointerEvent) => { pointers.current.delete(e.pointerId); if (pointers.current.size < 2) pinch.current = null; };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[92dvh] max-w-lg overflow-y-auto p-4 sm:p-6">
+        <DialogTitle className="zk-display text-2xl">Instant photo fitting</DialogTitle>
+        <DialogDescription className="text-sm text-muted-foreground">
+          Add a full-body photo, then drag and pinch {title} into place. Your photo stays on your phone.
+        </DialogDescription>
+
+        {!photo ? (
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-border text-sm hover:bg-muted">
+              <Upload className="h-6 w-6" /> Upload photo
+              <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+            </label>
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-border text-sm hover:bg-muted">
+              <Camera className="h-6 w-6" /> Take a photo
+              <input type="file" accept="image/*" capture="user" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+            </label>
+          </div>
+        ) : (
+          <>
+            <div
+              ref={stage}
+              onWheel={(e) => setPos((p) => ({ ...p, scale: clamp(p.scale - e.deltaY * 0.001, 0.15, 1.6) }))}
+              className="relative mt-2 aspect-[3/4] w-full touch-none select-none overflow-hidden bg-ink"
+            >
+              <img src={photo} alt="Your photo" className="h-full w-full object-contain" draggable={false} />
+              {garment && (
+                <img
+                  src={garment} alt={title} draggable={false}
+                  onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+                  className="absolute cursor-move"
+                  style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%`, width: `${pos.scale * 100}%`, opacity, transform: "translate(-50%, -50%)", mixBlendMode: "multiply" }}
+                />
+              )}
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <label className="zk-label text-[10px] text-muted-foreground" htmlFor="tryon-opacity">Fade</label>
+              <input id="tryon-opacity" type="range" min={0.3} max={1} step={0.05} value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} className="flex-1 accent-[hsl(var(--accent))]" />
+              <button type="button" onClick={() => setPhoto(null)} className="flex min-h-9 items-center gap-1 text-xs underline"><RotateCcw className="h-3.5 w-3.5" /> New photo</button>
+            </div>
+          </>
+        )}
+
+        {sizes.length > 1 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {sizes.map((s) => (
+              <button key={s.id} type="button" disabled={!s.available} onClick={() => onSelect(s.id)}
+                className={`min-h-10 min-w-11 rounded-lg border px-3 text-sm disabled:line-through disabled:opacity-40 ${selectedId === s.id ? "border-foreground bg-foreground text-background" : "border-border"}`}>
+                {s.title}
+              </button>
+            ))}
+          </div>
+        )}
+        <button type="button" onClick={onAdd} disabled={adding}
+          className="zk-label mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-xs text-background disabled:opacity-60">
+          {adding && <Loader2 className="h-4 w-4 animate-spin" />} Add to bag
+        </button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function clamp(n: number, a: number, b: number) { return Math.min(b, Math.max(a, n)); }
