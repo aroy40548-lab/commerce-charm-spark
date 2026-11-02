@@ -173,6 +173,27 @@ export type Database = {
           },
         ]
       }
+      affiliate_link_visits: {
+        Row: {
+          client_hash: string
+          code: string
+          created_at: string
+          product_id: string
+        }
+        Insert: {
+          client_hash: string
+          code: string
+          created_at?: string
+          product_id: string
+        }
+        Update: {
+          client_hash?: string
+          code?: string
+          created_at?: string
+          product_id?: string
+        }
+        Relationships: []
+      }
       affiliates: {
         Row: {
           clicks: number

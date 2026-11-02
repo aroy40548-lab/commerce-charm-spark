@@ -81,8 +81,17 @@ export const placeOrder = createServerFn({ method: "POST" })
         // Commission only counts the products this affiliate's link or reel pointed to.
         const ids = new Set<string>();
         if (data.affiliateProducts.length) {
+          // Only credit product links this visitor really opened (recorded server-side on click).
           const { data: ps } = await db.from("products").select("id").in("handle", data.affiliateProducts);
-          ps?.forEach((p) => ids.add(p.id));
+          const wanted = (ps ?? []).map((p) => p.id);
+          if (wanted.length) {
+            const { clientHash } = await import("./clientHash.server");
+            const since = new Date(Date.now() - windowDays * 86_400_000).toISOString();
+            const { data: seen } = await db.from("affiliate_link_visits").select("product_id")
+              .eq("code", data.affiliateCode.toUpperCase()).eq("client_hash", await clientHash("aff"))
+              .in("product_id", wanted).gte("created_at", since);
+            seen?.forEach((v) => ids.add(v.product_id));
+          }
         }
         if (data.affiliateReel) {
           const { data: reel } = await db.from("reels").select("id, user_id, reel_products(product_id)").eq("id", data.affiliateReel).maybeSingle();

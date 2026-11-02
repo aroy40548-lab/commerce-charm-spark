@@ -28,7 +28,8 @@ export function captureReferral(days = 365) {
     const prev = readReferralFull();
     const next = mergeReferral(prev, code, referralTarget(url.pathname), Date.now() + days * 86_400_000);
     localStorage.setItem(KEY, JSON.stringify(next));
-    if (prev?.code !== code || next.products.length !== prev.products.length) void trackAffiliateClick({ data: { code } }).catch(() => {});
+    const product = referralTarget(url.pathname).product;
+    if (prev?.code !== code || next.products.length !== prev.products.length || product) void trackAffiliateClick({ data: { code, product } }).catch(() => {});
     url.searchParams.delete("ref");
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
   } catch {
