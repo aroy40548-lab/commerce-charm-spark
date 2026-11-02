@@ -43,14 +43,17 @@ export interface ReelCard {
   comments: number;
   views: number;
   createdAt: string;
+  trimStart: number; trimEnd: number | null;
+  sound: { reelId: string; url: string; by: string; uses: number };
   products: Array<{ id: string; handle: string; title: string; price: number; image: string | null }>;
 }
 
 const REEL_SELECT =
-  "id, user_id, video_path, caption, views, created_at, reel_products(position, products(id, handle, title, price, status, product_images(url, position)))";
+  "id, user_id, video_path, caption, views, created_at, trim_start, trim_end, sound_reel_id, reel_products(position, products(id, handle, title, price, status, product_images(url, position)))";
 
 type ReelRow = {
   id: string; user_id: string; video_path: string; caption: string; views: number; created_at: string;
+  trim_start: number; trim_end: number | null; sound_reel_id: string | null;
   reel_products: Array<{ position: number; products: { id: string; handle: string; title: string; price: number; status: string; product_images: Array<{ url: string; position: number }> } | null }>;
 };
 
@@ -66,6 +69,19 @@ async function toCards(sb: Db, rows: ReelRow[], followed: Set<string> = new Set(
     sb.storage.from("reels").createSignedUrls(rows.map((r) => r.video_path), 60 * 60 * 6),
     me ? sb.from("saves").select("item_id").eq("user_id", me).eq("kind", "reel").in("item_id", ids) : Promise.resolve({ data: [] as Array<{ item_id: string }> }),
   ]);
+  // "Use this sound": each reel's audio comes from itself or the reel it borrowed from.
+  const srcIds = [...new Set(rows.map((r) => r.sound_reel_id ?? r.id))];
+  const extra = srcIds.filter((id) => !ids.includes(id));
+  const [{ data: srcRows }, { data: useRows }] = await Promise.all([
+    extra.length ? sb.from("reels").select("id, user_id, video_path").in("id", extra) : Promise.resolve({ data: [] as Array<{ id: string; user_id: string; video_path: string }> }),
+    sb.from("reels").select("sound_reel_id").in("sound_reel_id", srcIds),
+  ]);
+  const srcSigned = (srcRows ?? []).length ? await sb.storage.from("reels").createSignedUrls((srcRows ?? []).map((r) => r.video_path), 60 * 60 * 6) : { data: [] };
+  const srcNames = (srcRows ?? []).length ? await peopleFor(sb, (srcRows ?? []).map((r) => r.user_id)) : new Map();
+  const uses = new Map<string, number>();
+  for (const u of useRows ?? []) if (u.sound_reel_id) uses.set(u.sound_reel_id, (uses.get(u.sound_reel_id) ?? 0) + 1);
+  const srcInfo = new Map<string, { url: string; by: string }>();
+  for (const r of srcRows ?? []) srcInfo.set(r.id, { url: (srcSigned.data ?? []).find((x) => x.path === r.video_path)?.signedUrl ?? "", by: srcNames.get(r.user_id)?.username ?? "ZANKYO member" });
   const savedSet = new Set((saves.data ?? []).map((x) => x.item_id));
   const urlFor = new Map((signed.data ?? []).map((s) => [s.path, s.signedUrl]));
   const code = new Map((affs.data ?? []).map((a) => [a.user_id, a.code]));
@@ -85,6 +101,14 @@ async function toCards(sb: Db, rows: ReelRow[], followed: Set<string> = new Set(
     comments: (comments.data ?? []).filter((c) => c.reel_id === r.id).length,
     views: r.views,
     createdAt: r.created_at,
+    trimStart: Number(r.trim_start ?? 0),
+    trimEnd: r.trim_end == null ? null : Number(r.trim_end),
+    sound: (() => {
+      const sid = r.sound_reel_id ?? r.id;
+      const own = rows.find((x) => x.id === sid);
+      const info = own ? { url: urlFor.get(own.video_path) ?? "", by: names.get(own.user_id)?.username ?? "ZANKYO member" } : srcInfo.get(sid) ?? { url: "", by: "ZANKYO member" };
+      return { reelId: sid, url: info.url, by: info.by, uses: uses.get(sid) ?? 0 };
+    })(),
     products: [...r.reel_products]
       .sort((a, b) => a.position - b.position)
       .flatMap((rp) => (rp.products && rp.products.status === "active" ? [rp.products] : []))
@@ -247,6 +271,9 @@ export const publishReel = createServerFn({ method: "POST" })
       caption: z.string().trim().max(300).default(""),
       duration: z.number().positive().max(MAX_REEL_SECONDS + 0.5),
       productIds: z.array(z.string().uuid()).max(5).default([]),
+      trimStart: z.number().min(0).max(600).default(0),
+      trimEnd: z.number().positive().max(600).nullish(),
+      soundReelId: z.string().uuid().nullish(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -262,8 +289,14 @@ export const publishReel = createServerFn({ method: "POST" })
       await sb.storage.from("reels").remove([data.path]);
       throw new Error("Video is too large (max 50MB)");
     }
+    let soundReelId: string | null = null;
+    if (data.soundReelId) {
+      const { data: src } = await sb.from("reels").select("id, sound_reel_id").eq("id", data.soundReelId).eq("status", "live").maybeSingle();
+      soundReelId = src ? (src.sound_reel_id ?? src.id) : null;
+    }
+    const trimEnd = data.trimEnd != null && data.trimEnd > data.trimStart ? data.trimEnd : null;
     const { data: reel, error } = await sb.from("reels")
-      .insert({ user_id: context.userId, video_path: data.path, caption: data.caption, duration: data.duration })
+      .insert({ user_id: context.userId, video_path: data.path, caption: data.caption, duration: data.duration, trim_start: data.trimStart, trim_end: trimEnd, sound_reel_id: soundReelId })
       .select("id").single();
     if (error) throw new Error(error.message.includes("duration") ? `Reels must be ${MAX_REEL_SECONDS} seconds or shorter` : "Couldn't publish your reel");
     if (data.productIds.length) {
