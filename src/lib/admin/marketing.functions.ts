@@ -64,7 +64,7 @@ export const adminListAffiliates = createServerFn({ method: "POST" })
       db.from("store_settings").select("affiliate_rate, affiliates_enabled").eq("id", 1).single(),
     ]);
     return {
-      defaultRate: Number(settings?.affiliate_rate ?? 5),
+      defaultRate: Number(settings?.affiliate_rate ?? 2),
       enabled: settings?.affiliates_enabled ?? true,
       affiliates: (affs ?? []).map((a) => {
         const mine = (comms ?? []).filter((c) => c.affiliate_id === a.id);

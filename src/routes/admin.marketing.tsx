@@ -18,7 +18,7 @@ function Marketing() {
   return (
     <div>
       <PageHeader title="Affiliates"
-        subtitle={<>Anyone can join at <a href="/affiliate" target="_blank" rel="noreferrer" className="underline">zankyo.in/affiliate</a>. They earn {affs.data?.defaultRate ?? 5}% after you approve each sale. Change the rate in <Link to="/admin/settings" className="underline">Settings</Link>.</>} />
+        subtitle={<>Anyone can join at <a href="/affiliate" target="_blank" rel="noreferrer" className="underline">zankyo.in/affiliate</a>. They earn {affs.data?.defaultRate ?? 2}% after you approve each sale. Change the rate in <Link to="/admin/settings" className="underline">Settings</Link>.</>} />
       <ReadOnlyNote section="marketing" />
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Affiliate sales" value={inr(totals.sales)} />
