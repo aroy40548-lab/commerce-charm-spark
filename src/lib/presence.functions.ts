@@ -99,9 +99,12 @@ const istDay = () => new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0
 /** Counts a guest (no account) visit once per day per browser. */
 export const trackGuestVisit = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ visitorId: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async () => {
+    // Visitor id is derived on the server so callers cannot mint arbitrary ids.
+    const { clientHash } = await import("./clientHash.server");
+    const id = await clientHash("visit");
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
-    await db.from("site_visits").upsert({ visitor_id: `g:${data.visitorId}`, day: istDay(), last_at: new Date().toISOString() });
+    await db.from("site_visits").upsert({ visitor_id: `g:${id}`, day: istDay(), last_at: new Date().toISOString() });
     return { ok: true };
   });
 

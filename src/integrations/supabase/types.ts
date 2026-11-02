@@ -86,6 +86,27 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_clicks: {
+        Row: {
+          client_hash: string
+          code: string
+          created_at: string
+          day: string
+        }
+        Insert: {
+          client_hash: string
+          code: string
+          created_at?: string
+          day: string
+        }
+        Update: {
+          client_hash?: string
+          code?: string
+          created_at?: string
+          day?: string
+        }
+        Relationships: []
+      }
       affiliate_commissions: {
         Row: {
           affiliate_id: string
