@@ -2,7 +2,7 @@ import { toThreads } from "@/lib/commentThreads";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bookmark, RefreshCw, Search, MessageCircle, Plus, Share2, ThumbsDown, ThumbsUp, Volume2, VolumeX, Loader2, Trash2, Send, Clapperboard } from "lucide-react";
+import { Bookmark, RefreshCw, Search, MessageCircle, Plus, Share2, ThumbsDown, ThumbsUp, Volume2, VolumeX, Loader2, Trash2, Send, Clapperboard, Music2 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
@@ -121,6 +121,9 @@ function ReelItem({
   const qc = useQueryClient();
   const ref = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  const audio = useRef<HTMLAudioElement>(null);
+  const borrowed = reel.sound.reelId !== reel.id && !!reel.sound.url;
+  const [soundOpen, setSoundOpen] = useState(false);
   const viewed = useRef(false);
   const [vote, setVote] = useState(myVote);
   const [counts, setCounts] = useState({ likes: reel.likes, dislikes: reel.dislikes });
@@ -211,16 +214,27 @@ function ReelItem({
       <video
         ref={video}
         src={near ? reel.videoUrl : undefined}
-        muted={muted}
+        muted={muted || borrowed}
         loop
         playsInline
         preload={near ? "auto" : "none"}
         onClick={onTap}
+        onLoadedMetadata={(e) => { if (reel.trimStart > 0) e.currentTarget.currentTime = reel.trimStart; }}
+        onTimeUpdate={(e) => {
+          const v = e.currentTarget;
+          if ((reel.trimEnd != null && v.currentTime >= reel.trimEnd) || v.currentTime < reel.trimStart - 0.3) {
+            v.currentTime = reel.trimStart;
+            if (audio.current) audio.current.currentTime = 0;
+          }
+        }}
+        onPlay={() => { if (borrowed) void audio.current?.play().catch(() => {}); }}
+        onPause={() => audio.current?.pause()}
         onWaiting={() => setLoadingVid(true)}
         onPlaying={() => setLoadingVid(false)}
         onCanPlay={() => setLoadingVid(false)}
         className="h-full w-full bg-ink object-contain"
       />
+      {borrowed && <audio ref={audio} src={near ? reel.sound.url : undefined} muted={muted} loop preload="auto" />}
       <VideoSpinner show={loadingVid && near} />
       {heart > 0 && (
         <ThumbsUp key={heart} className="zk-reel-heart pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 fill-accent text-accent" />
@@ -265,9 +279,39 @@ function ReelItem({
           )}
         </div>
         {reel.caption && <p className="line-clamp-2 text-sm leading-5 text-white/90">{reel.caption}</p>}
+        <button onClick={() => setSoundOpen(true)} className="flex max-w-full items-center gap-1.5 text-xs text-white/90">
+          <Music2 className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">Original audio — @{reel.sound.by}</span>
+        </button>
         {product && <ProductsTray products={reel.products} overlay />}
       </div>
+      <SoundSheet open={soundOpen} onClose={() => setSoundOpen(false)} sound={reel.sound} />
     </div>
+  );
+}
+
+function SoundSheet({ open, onClose, sound }: { open: boolean; onClose: () => void; sound: ReelCard["sound"] }) {
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="bottom" className="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <SheetHeader>
+          <SheetTitle className="zk-label text-sm">Sound</SheetTitle>
+          <SheetDescription className="sr-only">Use this reel's audio in your own reel</SheetDescription>
+        </SheetHeader>
+        <div className="mt-4 flex items-center gap-4">
+          <div className="grid h-16 w-16 shrink-0 animate-[spin_6s_linear_infinite] place-items-center rounded-full border-4 border-foreground bg-ink">
+            <Music2 className="h-6 w-6 text-accent" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate font-semibold">Original audio — @{sound.by}</p>
+            <p className="text-sm text-muted-foreground">Used in {sound.uses} {sound.uses === 1 ? "reel" : "reels"}</p>
+          </div>
+        </div>
+        <Link to="/reels/studio" search={{ sound: sound.reelId }} onClick={onClose} className="zk-label mt-5 flex min-h-12 w-full items-center justify-center gap-2 bg-accent text-xs text-accent-foreground">
+          <Music2 className="h-4 w-4" /> Use this sound
+        </Link>
+      </SheetContent>
+    </Sheet>
   );
 }
 
