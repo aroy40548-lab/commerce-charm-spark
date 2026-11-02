@@ -18,6 +18,12 @@ export const trackAffiliateClick = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ code: codeSchema }).parse(d))
   .handler(async ({ data }) => {
     const sb = await db();
+    const code = data.code.toUpperCase();
+    const { clientHash } = await import("./clientHash.server");
+    const day = new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
+    // One counted click per visitor per code per day.
+    const { error } = await sb.from("affiliate_clicks").insert({ code, client_hash: await clientHash("aff"), day });
+    if (error) return { ok: true };
     await sb.rpc("track_affiliate_click", { _code: data.code });
     return { ok: true };
   });

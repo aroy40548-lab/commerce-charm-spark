@@ -292,7 +292,8 @@ export const adminSaveGiftCard = createServerFn({ method: "POST" })
       return { ok: true };
     }
     if (!data.value) throw new Error("Enter the gift card value");
-    const code = (data.code || `ZKGIFT-${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`).toUpperCase();
+    if (data.code && data.code.length < 16) throw new Error("Custom gift card codes must be at least 16 characters so they can't be guessed");
+    const code = (data.code || `ZKGIFT-${crypto.randomUUID().replace(/-/g, "")}`).toUpperCase();
     const { error } = await db.from("gift_cards").insert({ ...common, code, initial_value: data.value, balance: data.value });
     if (error) throw new Error(error.message.includes("unique") ? "That code already exists" : error.message);
     return { ok: true, code };
