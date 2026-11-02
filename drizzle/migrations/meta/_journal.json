@@ -162,6 +162,13 @@
       "when": 1793542788621,
       "tag": "0022_site_visits",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793632669586,
+      "tag": "0023_affiliate_click_dedupe",
+      "breakpoints": true
     }
   ]
 }
