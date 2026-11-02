@@ -514,3 +514,22 @@ export const adminBulkReels = createServerFn({ method: "POST" })
     if (data.action === "deleteComments") await sb.from("reel_comments").delete().in("id", data.ids);
     return { ok: true, count: data.ids.length };
   });
+
+// ---------- "Use this sound" lookup (public) ----------
+export const getReelSound = createServerFn({ method: "GET" })
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = await db();
+    const { data: r } = await sb.from("reels").select("id, user_id, video_path, sound_reel_id").eq("id", data.id).eq("status", "live").maybeSingle();
+    if (!r) return null;
+    let src = r;
+    if (r.sound_reel_id) {
+      const { data: p } = await sb.from("reels").select("id, user_id, video_path, sound_reel_id").eq("id", r.sound_reel_id).maybeSingle();
+      if (p) src = p;
+    }
+    const [{ data: signed }, names] = await Promise.all([
+      sb.storage.from("reels").createSignedUrl(src.video_path, 60 * 60 * 2),
+      peopleFor(sb, [src.user_id]),
+    ]);
+    return { reelId: src.id, url: signed?.signedUrl ?? "", by: names.get(src.user_id)?.username ?? "ZANKYO member" };
+  });
