@@ -106,9 +106,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
-    scripts: [
-      { src: "https://anywear.decart.ai/widget/latest/anywear.js?domain=zankyo.in", async: true },
-    ],
   }),
   // admin.zankyo.in only serves the admin panel (it also stays reachable at /admin).
   beforeLoad: ({ location }) => {
@@ -142,6 +139,14 @@ function AppShell() {
   useEffect(() => {
     const ok = pathname === "/" || pathname.startsWith("/collections") || pathname.startsWith("/product/");
     document.body.dataset["vton"] = ok ? "on" : "off";
+    // Load the Decart widget only after hydration and only on shop pages.
+    if (ok && !document.getElementById("zk-anywear")) {
+      const s = document.createElement("script");
+      s.id = "zk-anywear";
+      s.async = true;
+      s.src = "https://anywear.decart.ai/widget/latest/anywear.js?domain=zankyo.in";
+      document.body.appendChild(s);
+    }
   }, [pathname]);
   useEffect(() => { getAffiliateProgram().then((p) => captureReferral(p.cookieDays || 365)).catch(() => captureReferral()); }, []);
   useWishlistSync();
