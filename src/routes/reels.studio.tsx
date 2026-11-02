@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, Eye, Loader2, Share2, ThumbsUp, Trash2, Upload, X, MessageCircle } from "lucide-react";
@@ -11,10 +11,13 @@ import { useProducts } from "@/hooks/useProducts";
 import { ProductPicker } from "@/components/ProductPicker";
 import { formatMoney } from "@/lib/catalog";
 import { MAX_REEL_BYTES, MAX_REEL_SECONDS, REEL_TYPES, readVideoDuration, reelLengthOk, reelLink } from "@/lib/reels";
-import { createReelUpload, deleteMyReel, listMyReels, publishReel, updateMyReel } from "@/lib/reels.functions";
+import { createReelUpload, deleteMyReel, getReelSound, listMyReels, publishReel, updateMyReel } from "@/lib/reels.functions";
+import { VideoTrimmer } from "@/components/reels/VideoTrimmer";
+import { z } from "zod";
 
 export const Route = createFileRoute("/reels/studio")({
   ssr: false,
+  validateSearch: (s) => z.object({ sound: z.string().uuid().optional() }).parse(s),
   head: () => ({
     meta: [
       { title: "Reel studio — post your ZANKYO fit" },
@@ -61,6 +64,11 @@ function Uploader() {
   const [caption, setCaption] = useState("");
   const [productIds, setProductIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [trim, setTrim] = useState<[number, number]>([0, 0]);
+  const { sound: soundId } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const sound = useQuery({ queryKey: ["reel-sound", soundId], enabled: !!soundId, queryFn: () => getReelSound({ data: { id: soundId! } }) });
+  const clip = Math.max(0, trim[1] - trim[0]);
 
   const pick = async (f: File | undefined) => {
     if (!f) return;
@@ -68,8 +76,9 @@ function Uploader() {
     if (f.size > MAX_REEL_BYTES) { toast.error("Video is too large (max 50MB)"); return; }
     try {
       const d = await readVideoDuration(f);
-      if (!reelLengthOk(d)) { toast.error(`Reels must be ${MAX_REEL_SECONDS} seconds or shorter (this one is ${Math.round(d)}s)`); return; }
+      if (!Number.isFinite(d) || d <= 0 || d > 600) { toast.error("Video must be under 10 minutes — you'll trim it to 59s"); return; }
       setDuration(d);
+      setTrim([0, Math.min(d, MAX_REEL_SECONDS)]);
       setFile(f);
       setPreview(URL.createObjectURL(f));
     } catch {
@@ -79,12 +88,14 @@ function Uploader() {
 
   const publish = async () => {
     if (!file) return;
+    if (!reelLengthOk(clip)) { toast.error(`Trim your clip to ${MAX_REEL_SECONDS} seconds or less`); return; }
     setBusy(true);
     try {
-      const { path, token } = await createReelUpload({ data: { type: file.type as (typeof REEL_TYPES)[number], size: file.size, duration } });
+      const { path, token } = await createReelUpload({ data: { type: file.type as (typeof REEL_TYPES)[number], size: file.size, duration: clip } });
       const { error } = await supabase.storage.from("reels").uploadToSignedUrl(path, token, file, { contentType: file.type });
       if (error) throw new Error("Upload failed — check your connection");
-      await publishReel({ data: { path, caption, duration, productIds } });
+      await publishReel({ data: { path, caption, duration: clip, productIds, trimStart: trim[0], trimEnd: trim[1] < duration - 0.1 ? trim[1] : null, soundReelId: sound.data?.reelId ?? null } });
+      if (soundId) void navigate({ search: {} });
       toast.success("Your reel is live!");
       setFile(null); setPreview(null); setCaption(""); setProductIds([]);
       qc.invalidateQueries({ queryKey: ["my-reels"] });
@@ -100,17 +111,23 @@ function Uploader() {
   return (
     <section className="border border-foreground p-4 sm:p-5">
       <p className="zk-label text-[11px]">New reel</p>
+      {soundId && (
+        <div className="mt-3 flex items-center justify-between gap-2 border border-accent/50 bg-accent/10 px-3 py-2 text-sm">
+          <span className="truncate">{sound.isLoading ? "Loading sound…" : sound.data ? `🎵 Using sound by @${sound.data.by}` : "This sound isn't available"}</span>
+          <button type="button" onClick={() => void navigate({ search: {} })} aria-label="Remove sound" className="grid h-8 w-8 place-items-center"><X className="h-4 w-4" /></button>
+        </div>
+      )}
       {!file ? (
         <label className="mt-3 flex min-h-40 cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-border text-sm text-muted-foreground hover:bg-muted">
           <Upload className="h-6 w-6" />
-          Choose a video (under {MAX_REEL_SECONDS}s, max 50MB)
+          Choose a video (max 50MB) — trim it to {MAX_REEL_SECONDS}s next
           <input type="file" accept="video/mp4,video/quicktime,video/webm" className="sr-only" onChange={(e) => void pick(e.target.files?.[0])} />
         </label>
       ) : (
         <div className="mt-3 grid gap-4 sm:grid-cols-[180px_1fr]">
           <div className="relative">
-            {preview && <video src={preview} muted loop autoPlay playsInline className="aspect-[9/16] w-full bg-ink object-cover" />}
-            <p className="mt-1 text-xs text-muted-foreground">{Math.round(duration)}s · {(file.size / 1024 / 1024).toFixed(1)}MB</p>
+            {preview && <VideoTrimmer src={preview} duration={duration} max={MAX_REEL_SECONDS} value={trim} onChange={setTrim} soundUrl={sound.data?.url || null} />}
+            <p className="mt-1 text-xs text-muted-foreground">Clip {clip.toFixed(1)}s · {(file.size / 1024 / 1024).toFixed(1)}MB</p>
             <button type="button" onClick={() => { setFile(null); setPreview(null); }} className="mt-1 text-xs underline">Choose another</button>
           </div>
           <div className="space-y-4">
