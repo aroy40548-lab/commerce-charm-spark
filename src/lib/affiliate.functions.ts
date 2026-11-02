@@ -15,14 +15,20 @@ export const getAffiliateProgram = createServerFn({ method: "GET" }).handler(asy
 });
 
 export const trackAffiliateClick = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ code: codeSchema }).parse(d))
+  .inputValidator((d) => z.object({ code: codeSchema, product: z.string().max(255).optional().nullable() }).parse(d))
   .handler(async ({ data }) => {
     const sb = await db();
     const code = data.code.toUpperCase();
     const { clientHash } = await import("./clientHash.server");
+    const hash = await clientHash("aff");
+    // Server-side record of which product link this visitor actually opened; checkout only credits these.
+    if (data.product) {
+      const { data: p } = await sb.from("products").select("id").eq("handle", data.product).maybeSingle();
+      if (p) await sb.from("affiliate_link_visits").upsert({ code, client_hash: hash, product_id: p.id, created_at: new Date().toISOString() });
+    }
     const day = new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
     // One counted click per visitor per code per day.
-    const { error } = await sb.from("affiliate_clicks").insert({ code, client_hash: await clientHash("aff"), day });
+    const { error } = await sb.from("affiliate_clicks").insert({ code, client_hash: hash, day });
     if (error) return { ok: true };
     await sb.rpc("track_affiliate_click", { _code: data.code });
     return { ok: true };
