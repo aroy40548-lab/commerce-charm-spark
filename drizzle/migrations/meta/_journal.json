@@ -176,6 +176,13 @@
       "when": 1793634082076,
       "tag": "0024_affiliate_link_visits",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793634437603,
+      "tag": "0025_reel_trim_and_sound",
+      "breakpoints": true
     }
   ]
 }

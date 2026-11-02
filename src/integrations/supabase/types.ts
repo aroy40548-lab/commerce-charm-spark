@@ -1476,7 +1476,10 @@ export type Database = {
           duration: number
           id: string
           priority: number
+          sound_reel_id: string | null
           status: string
+          trim_end: number | null
+          trim_start: number
           user_id: string
           video_path: string
           views: number
@@ -1487,7 +1490,10 @@ export type Database = {
           duration?: number
           id?: string
           priority?: number
+          sound_reel_id?: string | null
           status?: string
+          trim_end?: number | null
+          trim_start?: number
           user_id: string
           video_path: string
           views?: number
@@ -1498,12 +1504,23 @@ export type Database = {
           duration?: number
           id?: string
           priority?: number
+          sound_reel_id?: string | null
           status?: string
+          trim_end?: number | null
+          trim_start?: number
           user_id?: string
           video_path?: string
           views?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reels_sound_reel_id_fkey"
+            columns: ["sound_reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       review_likes: {
         Row: {
