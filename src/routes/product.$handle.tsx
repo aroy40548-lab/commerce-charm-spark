@@ -8,6 +8,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
 import { PhotoTryOnModal } from "@/components/PhotoTryOnModal";
+import { OPEN_BAG_EVENT } from "@/components/BottomTabBar";
 import { ProductReviews } from "@/components/ProductReviews";
 import { CompleteTheFit, SizeChartButton, useProductExtras } from "@/components/ProductExtras";
 import { AffiliateLinkButton } from "@/components/AffiliateLinkButton";
