@@ -1,29 +1,59 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2, RotateCcw, Upload } from "lucide-react";
+import { Camera, Loader2, RotateCcw, Sparkles, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import type { TryOnZone } from "@/lib/tryon";
 
 type Size = { id: string; title: string; available: boolean };
 
-/** Instant photo fitting: the customer's photo with the product image placed on top (drag, pinch/scroll to resize, fade). Nothing is uploaded. */
+/** Photo fitting: AI garment swap (keeps face/pose/room, swaps only the detected zone) or a manual overlay. */
 export function PhotoTryOnModal({
-  open, onOpenChange, garment, title, sizes, selectedId, onSelect, onAdd, adding,
+  open, onOpenChange, garment, title, sizes, selectedId, onSelect, onAdd, adding, zone: initialZone = "top",
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; garment: string | null; title: string;
-  sizes: Size[]; selectedId: string | null; onSelect: (id: string) => void; onAdd: () => void; adding: boolean;
+  sizes: Size[]; selectedId: string | null; onSelect: (id: string) => void; onAdd: () => void; adding: boolean; zone?: TryOnZone;
 }) {
   const [photo, setPhoto] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [zone, setZone] = useState<TryOnZone>(initialZone);
+  const [ai, setAi] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const [pos, setPos] = useState({ x: 0.5, y: 0.42, scale: 0.55 });
   const [opacity, setOpacity] = useState(0.9);
   const stage = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ d: number; scale: number } | null>(null);
 
+  useEffect(() => setZone(initialZone), [initialZone]);
   useEffect(() => () => { if (photo) URL.revokeObjectURL(photo); }, [photo]);
 
   const pick = (f?: File) => {
     if (!f || !f.type.startsWith("image/")) return;
     setPhoto(URL.createObjectURL(f));
-    setPos({ x: 0.5, y: 0.42, scale: 0.55 });
+    setFile(f); setAi(null); setErr(null);
+    setPos({ x: 0.5, y: 0.42, scale: initialZone === "bottom" ? 0.5 : 0.55 });
+  };
+
+  const generate = async () => {
+    if (!file || !garment) return;
+    setBusy(true); setErr(null);
+    try {
+      const { data: s } = await supabase.auth.getSession();
+      if (!s.session) { setErr("Please sign in to use AI try-on."); return; }
+      const g = await fetch(garment).then((r) => r.blob());
+      const fd = new FormData();
+      fd.append("photo", file);
+      fd.append("garment", new File([g], "garment.png", { type: g.type || "image/png" }));
+      fd.append("zone", zone);
+      fd.append("title", title);
+      fd.append("size", sizes.find((x) => x.id === selectedId)?.title ?? "");
+      const res = await fetch("/api/tryon", { method: "POST", headers: { Authorization: `Bearer ${s.session.access_token}` }, body: fd });
+      const body = (await res.json().catch(() => ({}))) as { image?: string; error?: string };
+      if (!res.ok || !body.image) setErr(body.error ?? "Couldn't create the try-on.");
+      else setAi(body.image);
+    } catch { setErr("Couldn't create the try-on. Check your connection."); }
+    finally { setBusy(false); }
   };
 
   const onDown = (e: React.PointerEvent) => {
