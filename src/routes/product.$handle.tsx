@@ -7,6 +7,7 @@ import { formatMoney } from "@/lib/catalog";
 import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
+import { PhotoTryOnModal } from "@/components/PhotoTryOnModal";
 import { ProductReviews } from "@/components/ProductReviews";
 import { CompleteTheFit, SizeChartButton, useProductExtras } from "@/components/ProductExtras";
 import { AffiliateLinkButton } from "@/components/AffiliateLinkButton";
@@ -46,6 +47,7 @@ function ProductDetail() {
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const [variantId, setVariantId] = useState<string | null>(null);
   const [imgIdx, setImgIdx] = useState(0);
+  const [photoTry, setPhotoTry] = useState(false);
   const extras = useProductExtras(handle);
 
   const variants = product?.node.variants.edges.map((e) => e.node) ?? [];
@@ -105,9 +107,7 @@ function ProductDetail() {
 
   const handleTryOn = () => {
     const opened = openDecartTryOn(image?.url);
-    if (!opened) {
-      toast.error("The AI fitting room is still loading — try again in a moment.", { position: "top-center" });
-    }
+    if (!opened) setPhotoTry(true);
   };
 
   const productJsonLd = {
@@ -241,6 +241,16 @@ function ProductDetail() {
           >
             <Camera className="h-4 w-4" /> Virtual try-on (AI)
           </button>
+          <button onClick={() => setPhotoTry(true)} className="mt-2 w-full text-center text-xs underline underline-offset-4 text-muted-foreground">
+            Try instant photo fitting instead
+          </button>
+          <PhotoTryOnModal
+            open={photoTry} onOpenChange={setPhotoTry} garment={image?.url ?? null} title={node.title}
+            sizes={variants.map((v) => ({ id: v.id, title: v.title, available: v.availableForSale }))}
+            selectedId={selected?.id ?? null} onSelect={setVariantId}
+            onAdd={() => { void handleAdd().then(() => { setPhotoTry(false); window.dispatchEvent(new Event(OPEN_BAG_EVENT)); }); }}
+            adding={cartLoading}
+          />
 
           <button
             onClick={() =>
