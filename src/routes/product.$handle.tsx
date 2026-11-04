@@ -239,7 +239,7 @@ function ProductDetail() {
 
           <button
             onClick={handleTryOn}
-            className="zk-label mt-3 hidden min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted sm:flex"
+            className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted"
           >
             <Camera className="h-4 w-4" /> Virtual try-on (AI)
           </button>
@@ -247,7 +247,7 @@ function ProductDetail() {
             Try instant photo fitting instead
           </button>
           <PhotoTryOnModal
-            open={photoTry} onOpenChange={setPhotoTry} garment={image?.url ?? null} title={node.title}
+            open={photoTry} onOpenChange={setPhotoTry} garment={image?.url ?? null} title={node.title} productId={node.id}
             zone={detectZone({ title: node.title, productType: node.productType, tags: node.tags })}
             sizes={variants.map((v) => ({ id: v.id, title: v.title, available: v.availableForSale }))}
             selectedId={selected?.id ?? null} onSelect={setVariantId}
