@@ -12,7 +12,7 @@ type Size = { id: string; title: string; available: boolean };
 export function PhotoTryOnModal({
   open, onOpenChange, garment, title, sizes, selectedId, onSelect, onAdd, adding, zone: initialZone = "top", productId,
 }: {
-  productId?: string;
+  productId?: string | undefined;
   open: boolean; onOpenChange: (o: boolean) => void; garment: string | null; title: string;
   sizes: Size[]; selectedId: string | null; onSelect: (id: string) => void; onAdd: () => void; adding: boolean; zone?: TryOnZone;
 }) {
