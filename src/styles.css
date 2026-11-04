@@ -220,6 +220,13 @@
 [role="dialog"] [class*="vton"] {
   display: none !important;
 }
+/* Only exception: the main product photo on product pages, laptop/PC only. */
+@media (min-width: 1024px) {
+  body[data-vton="on"] .zk-vton-zone .vton-btn,
+  body[data-vton="on"] .zk-vton-zone [class*="vton-btn"] {
+    display: revert !important;
+  }
+}
 
 @keyframes zk-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .zk-marquee { animation: zk-marquee 28s linear infinite; }

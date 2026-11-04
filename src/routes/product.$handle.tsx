@@ -168,7 +168,7 @@ function ProductDetail() {
           {/* Tablet/laptop: main image + thumbnails */}
           <div className="hidden sm:block">
             {image && (
-              <img src={image.url} alt={image.altText ?? node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" />
+              <div className="zk-vton-zone relative"><img src={image.url} alt={image.altText ?? node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" /></div>
             )}
             {images.length > 1 && (
               <div className="mt-4 flex flex-wrap gap-2">
@@ -239,11 +239,11 @@ function ProductDetail() {
 
           <button
             onClick={handleTryOn}
-            className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted"
+            className="zk-label mt-3 hidden min-h-12 lg:flex w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted"
           >
             <Camera className="h-4 w-4" /> Virtual try-on (AI)
           </button>
-          <button onClick={() => setPhotoTry(true)} className="mt-2 w-full text-center text-xs underline underline-offset-4 text-muted-foreground">
+          <button onClick={() => setPhotoTry(true)} className="mt-2 hidden w-full text-center text-xs underline lg:block underline-offset-4 text-muted-foreground">
             Try instant photo fitting instead
           </button>
           <PhotoTryOnModal
