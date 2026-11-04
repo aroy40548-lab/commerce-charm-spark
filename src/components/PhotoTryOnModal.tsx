@@ -173,7 +173,7 @@ export function PhotoTryOnModal({
 
 export const TRYON_DRAFT_KEY = "zk-tryon-draft";
 
-function ShareBar({ image, title, productId, onBack }: { image: string; title: string; productId?: string; onBack: () => void }) {
+function ShareBar({ image, title, productId, onBack }: { image: string; title: string; productId?: string | undefined; onBack: () => void }) {
   const navigate = useNavigate();
   const link = typeof window !== "undefined" ? window.location.href.split("?")[0]! : "";
   const text = `My ZANKYO fit — ${title}`;
