@@ -111,10 +111,12 @@ export function PhotoTryOnModal({
             </label>
           </div>
         ) : ai ? (
-          <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden bg-ink">
-            <img src={ai} alt={`You wearing ${title}`} className="h-full w-full object-contain" />
-          </div>
-          <ShareBar image={ai} title={title} productId={productId} onBack={() => setAi(null)} />
+          <>
+            <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden bg-ink">
+              <img src={ai} alt={`You wearing ${title}`} className="h-full w-full object-contain" />
+            </div>
+            <ShareBar image={ai} title={title} productId={productId} onBack={() => setAi(null)} />
+          </>
         ) : (
           <>
             <div
