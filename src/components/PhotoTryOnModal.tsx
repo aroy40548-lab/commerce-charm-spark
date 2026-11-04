@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2, RotateCcw, Sparkles, Upload } from "lucide-react";
+import { Camera, Download, Loader2, RotateCcw, Send, Share2, Sparkles, Upload } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { TryOnZone } from "@/lib/tryon";
@@ -8,8 +10,9 @@ type Size = { id: string; title: string; available: boolean };
 
 /** Photo fitting: AI garment swap (keeps face/pose/room, swaps only the detected zone) or a manual overlay. */
 export function PhotoTryOnModal({
-  open, onOpenChange, garment, title, sizes, selectedId, onSelect, onAdd, adding, zone: initialZone = "top",
+  open, onOpenChange, garment, title, sizes, selectedId, onSelect, onAdd, adding, zone: initialZone = "top", productId,
 }: {
+  productId?: string | undefined;
   open: boolean; onOpenChange: (o: boolean) => void; garment: string | null; title: string;
   sizes: Size[]; selectedId: string | null; onSelect: (id: string) => void; onAdd: () => void; adding: boolean; zone?: TryOnZone;
 }) {
@@ -108,13 +111,12 @@ export function PhotoTryOnModal({
             </label>
           </div>
         ) : ai ? (
-          <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden bg-ink">
-            <img src={ai} alt={`You wearing ${title}`} className="h-full w-full object-contain" />
-            <div className="absolute inset-x-0 bottom-0 flex justify-between bg-background/80 p-2 text-xs">
-              <a href={ai} download="zankyo-tryon.png" className="underline">Save photo</a>
-              <button type="button" onClick={() => setAi(null)} className="underline">Back to my photo</button>
+          <>
+            <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden bg-ink">
+              <img src={ai} alt={`You wearing ${title}`} className="h-full w-full object-contain" />
             </div>
-          </div>
+            <ShareBar image={ai} title={title} productId={productId} onBack={() => setAi(null)} />
+          </>
         ) : (
           <>
             <div
@@ -144,7 +146,7 @@ export function PhotoTryOnModal({
             </div>
             <button type="button" onClick={() => void generate()} disabled={busy || !garment}
               className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground text-xs disabled:opacity-60">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Generate real look with AI
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Generate my look with AI
             </button>
           </>
         )}
@@ -166,6 +168,38 @@ export function PhotoTryOnModal({
         </button>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export const TRYON_DRAFT_KEY = "zk-tryon-draft";
+
+function ShareBar({ image, title, productId, onBack }: { image: string; title: string; productId?: string | undefined; onBack: () => void }) {
+  const navigate = useNavigate();
+  const link = typeof window !== "undefined" ? window.location.href.split("?")[0]! : "";
+  const text = `My ZANKYO fit — ${title}`;
+  const toFile = async () => new File([await fetch(image).then((r) => r.blob())], "zankyo-fit.png", { type: "image/png" });
+  const share = async () => {
+    try {
+      const f = await toFile();
+      if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: text, text: `${text} ${link}` });
+      else if (navigator.share) await navigator.share({ title: text, text, url: link });
+      else { await navigator.clipboard.writeText(link); toast.success("Link copied"); }
+    } catch { /* cancelled */ }
+  };
+  const toSocial = () => {
+    try { sessionStorage.setItem(TRYON_DRAFT_KEY, JSON.stringify({ image, productId, caption: text })); }
+    catch { toast.error("Photo too large to move — download it and post instead."); return; }
+    void navigate({ to: "/social/new" });
+  };
+  const btn = "zk-label flex min-h-11 items-center justify-center gap-2 rounded-full border border-border text-[10px]";
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-2">
+      <a href={image} download="zankyo-fit.png" className={btn}><Download className="h-4 w-4" /> Download fit</a>
+      <button type="button" onClick={toSocial} className={`${btn} border-accent bg-accent text-accent-foreground`}><Send className="h-4 w-4" /> Post to ZANKYO Social</button>
+      <button type="button" onClick={() => void share()} className={btn}><Share2 className="h-4 w-4" /> Share</button>
+      <a href={`https://wa.me/?text=${encodeURIComponent(`${text} ${link}`)}`} target="_blank" rel="noreferrer" className={btn}>WhatsApp</a>
+      <button type="button" onClick={onBack} className="col-span-2 text-xs underline">Back to my photo</button>
+    </div>
   );
 }
 

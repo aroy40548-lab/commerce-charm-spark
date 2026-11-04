@@ -215,10 +215,9 @@
 }
 
 /* Decart injects Try-On pills over photos; hide them on the homepage banners. */
-.zk-hide-vton .vton-btn,
-.zk-social .vton-btn,
-.zk-social [class*="vton"],
-body[data-vton="off"] .vton-btn {
+.vton-btn,
+[class*="vton-btn"],
+[role="dialog"] [class*="vton"] {
   display: none !important;
 }
 
