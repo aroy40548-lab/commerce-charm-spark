@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { TRYON_DRAFT_KEY } from "@/components/PhotoTryOnModal";
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Clapperboard, ImagePlus, Loader2, X } from "lucide-react";
@@ -34,22 +33,6 @@ function NewPost() {
   const [caption, setCaption] = useState("");
   const [productIds, setProductIds] = useState<string[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
-
-  // Prefill from AI try-on ("Post to ZANKYO Social").
-  useEffect(() => {
-    const raw = sessionStorage.getItem(TRYON_DRAFT_KEY);
-    if (!raw) return;
-    sessionStorage.removeItem(TRYON_DRAFT_KEY);
-    try {
-      const d = JSON.parse(raw) as { image: string; productId?: string; caption?: string };
-      void fetch(d.image).then((r) => r.blob()).then((b) => {
-        const file = new File([b], "zankyo-fit.png", { type: b.type || "image/png" });
-        setFiles([{ file, url: URL.createObjectURL(file) }]);
-      });
-      if (d.productId) setProductIds([d.productId]);
-      if (d.caption) setCaption(d.caption);
-    } catch { /* ignore */ }
-  }, []);
 
   if (loading) return null;
   if (!user) return <div className="mx-auto max-w-md p-6"><SignInPanel /></div>;

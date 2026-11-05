@@ -23,9 +23,9 @@ export function BottomTabBar() {
           <Home className="h-5 w-5" strokeWidth={pathname === "/" ? 2.4 : 1.6} />
           Home
         </Link>
-        <Link to="/reels" className={`${item} ${reels ? on : off}`}>
+        <Link to="/social" className={`${item} ${reels ? on : off}`}>
           <Clapperboard className="h-5 w-5" strokeWidth={reels ? 2.4 : 1.6} />
-          Reels
+          Social
         </Link>
         <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_BAG_EVENT))} className={`${item} ${off} relative`}>
           <span className="relative">

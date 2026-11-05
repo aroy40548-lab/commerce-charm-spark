@@ -8,7 +8,6 @@ import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
 import { PhotoTryOnModal } from "@/components/PhotoTryOnModal";
-import { detectZone } from "@/lib/tryon";
 import { OPEN_BAG_EVENT } from "@/components/BottomTabBar";
 import { ProductReviews } from "@/components/ProductReviews";
 import { CompleteTheFit, SizeChartButton, useProductExtras } from "@/components/ProductExtras";
@@ -168,7 +167,7 @@ function ProductDetail() {
           {/* Tablet/laptop: main image + thumbnails */}
           <div className="hidden sm:block">
             {image && (
-              <div className="zk-vton-zone relative"><img src={image.url} alt={image.altText ?? node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" /></div>
+              <img src={image.url} alt={image.altText ?? node.title} fetchPriority="high" className="aspect-square h-auto w-full rounded-lg object-contain" />
             )}
             {images.length > 1 && (
               <div className="mt-4 flex flex-wrap gap-2">
@@ -239,16 +238,15 @@ function ProductDetail() {
 
           <button
             onClick={handleTryOn}
-            className="zk-label mt-3 hidden min-h-12 lg:flex w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted"
+            className="zk-label mt-3 hidden min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground py-4 text-xs text-foreground transition-colors hover:bg-muted active:bg-muted sm:flex"
           >
             <Camera className="h-4 w-4" /> Virtual try-on (AI)
           </button>
-          <button onClick={() => setPhotoTry(true)} className="mt-2 hidden w-full text-center text-xs underline lg:block underline-offset-4 text-muted-foreground">
+          <button onClick={() => setPhotoTry(true)} className="mt-2 w-full text-center text-xs underline underline-offset-4 text-muted-foreground">
             Try instant photo fitting instead
           </button>
           <PhotoTryOnModal
-            open={photoTry} onOpenChange={setPhotoTry} garment={image?.url ?? null} title={node.title} productId={node.id}
-            zone={detectZone({ title: node.title, productType: node.productType, tags: node.tags })}
+            open={photoTry} onOpenChange={setPhotoTry} garment={image?.url ?? null} title={node.title}
             sizes={variants.map((v) => ({ id: v.id, title: v.title, available: v.availableForSale }))}
             selectedId={selected?.id ?? null} onSelect={setVariantId}
             onAdd={() => { void handleAdd().then(() => { setPhotoTry(false); window.dispatchEvent(new Event(OPEN_BAG_EVENT)); }); }}

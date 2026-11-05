@@ -137,7 +137,7 @@ function AppShell() {
   useEffect(() => observeDecartLauncher(), []);
   // Try-On only on the shop pages (home, collections, product); Decart badges elsewhere are hidden.
   useEffect(() => {
-    const ok = pathname.startsWith("/product/");
+    const ok = pathname === "/" || pathname.startsWith("/collections") || pathname.startsWith("/product/");
     document.body.dataset["vton"] = ok ? "on" : "off";
     // Load the Decart widget only after hydration and only on shop pages.
     if (ok && !document.getElementById("zk-anywear")) {

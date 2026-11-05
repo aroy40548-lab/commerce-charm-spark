@@ -40,7 +40,6 @@ import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
 import { Route as AdminReelsRouteImport } from './routes/admin.reels'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as ApiTryonRouteImport } from './routes/api/tryon'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as PIdRouteImport } from './routes/p.$id'
@@ -222,11 +221,6 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
-const ApiTryonRoute = ApiTryonRouteImport.update({
-  id: '/api/tryon',
-  path: '/api/tryon',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -385,7 +379,6 @@ export interface FileRoutesByFullPath {
   '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/api/tryon': typeof ApiTryonRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/p/$id': typeof PIdRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -443,7 +436,6 @@ export interface FileRoutesByTo {
   '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/api/tryon': typeof ApiTryonRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/p/$id': typeof PIdRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -503,7 +495,6 @@ export interface FileRoutesById {
   '/admin/reels': typeof AdminReelsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/api/tryon': typeof ApiTryonRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/p/$id': typeof PIdRoute
   '/product/$handle': typeof ProductHandleRoute
@@ -564,7 +555,6 @@ export interface FileRouteTypes {
     | '/admin/reels'
     | '/admin/reviews'
     | '/admin/settings'
-    | '/api/tryon'
     | '/blog/$slug'
     | '/p/$id'
     | '/product/$handle'
@@ -622,7 +612,6 @@ export interface FileRouteTypes {
     | '/admin/reels'
     | '/admin/reviews'
     | '/admin/settings'
-    | '/api/tryon'
     | '/blog/$slug'
     | '/p/$id'
     | '/product/$handle'
@@ -681,7 +670,6 @@ export interface FileRouteTypes {
     | '/admin/reels'
     | '/admin/reviews'
     | '/admin/settings'
-    | '/api/tryon'
     | '/blog/$slug'
     | '/p/$id'
     | '/product/$handle'
@@ -727,7 +715,6 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnboxingRoute: typeof UnboxingRoute
-  ApiTryonRoute: typeof ApiTryonRoute
   BlogSlugRoute: typeof BlogSlugRoute
   PIdRoute: typeof PIdRoute
   ProductHandleRoute: typeof ProductHandleRoute
@@ -966,13 +953,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
-    }
-    '/api/tryon': {
-      id: '/api/tryon'
-      path: '/api/tryon'
-      fullPath: '/api/tryon'
-      preLoaderRoute: typeof ApiTryonRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/blog/': {
       id: '/blog/'
@@ -1221,7 +1201,6 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   UnboxingRoute: UnboxingRoute,
-  ApiTryonRoute: ApiTryonRoute,
   BlogSlugRoute: BlogSlugRoute,
   PIdRoute: PIdRoute,
   ProductHandleRoute: ProductHandleRoute,
