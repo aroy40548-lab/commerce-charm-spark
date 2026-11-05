@@ -20,6 +20,7 @@ export function PhotoTryOnModal({
   const [file, setFile] = useState<File | null>(null);
   const [zone, setZone] = useState<TryOnZone>(initialZone);
   const [ai, setAi] = useState<string | null>(null);
+  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [pos, setPos] = useState({ x: 0.5, y: 0.42, scale: 0.55 });
@@ -34,13 +35,13 @@ export function PhotoTryOnModal({
   const pick = (f?: File) => {
     if (!f || !f.type.startsWith("image/")) return;
     setPhoto(URL.createObjectURL(f));
-    setFile(f); setAi(null); setErr(null);
+    setFile(f); setAi(null); setShow(false); setErr(null);
     setPos({ x: 0.5, y: 0.42, scale: initialZone === "bottom" ? 0.5 : 0.55 });
   };
 
   const generate = async () => {
     if (!file || !garment) return;
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); setShow(false);
     try {
       const { data: s } = await supabase.auth.getSession();
       if (!s.session) { setErr("Please sign in to use AI try-on."); return; }
@@ -84,7 +85,7 @@ export function PhotoTryOnModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92dvh] max-w-lg overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="zk-hide-vton max-h-[92dvh] max-w-lg overflow-y-auto p-4 sm:p-6">
         <DialogTitle className="zk-display text-2xl">Photo fitting</DialogTitle>
         <DialogDescription className="text-sm text-muted-foreground">
           Add your photo — AI changes only the {zone === "bottom" ? "pants" : zone === "full" ? "outfit" : "top"} to {title}. Your face, pose and room stay the same.
@@ -110,12 +111,13 @@ export function PhotoTryOnModal({
               <input type="file" accept="image/*" capture="user" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
             </label>
           </div>
-        ) : ai ? (
+        ) : ai && show ? (
           <>
+            <button type="button" onClick={() => setShow(false)} className="mt-2 flex min-h-9 items-center gap-1 self-start text-xs underline">← Back</button>
             <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden bg-ink">
-              <img src={ai} alt={`You wearing ${title}`} className="h-full w-full object-contain" />
+              <img data-vton="ignore" src={ai} alt={`You wearing ${title}`} className="h-full w-full object-contain" />
             </div>
-            <ShareBar image={ai} title={title} productId={productId} onBack={() => setAi(null)} />
+            <ShareBar image={ai} title={title} productId={productId} onBack={() => setShow(false)} />
           </>
         ) : (
           <>
@@ -124,10 +126,10 @@ export function PhotoTryOnModal({
               onWheel={(e) => setPos((p) => ({ ...p, scale: clamp(p.scale - e.deltaY * 0.001, 0.15, 1.6) }))}
               className="relative mt-2 aspect-[3/4] w-full touch-none select-none overflow-hidden bg-ink"
             >
-              <img src={photo} alt="Your photo" className="h-full w-full object-contain" draggable={false} />
+              <img data-vton="ignore" src={photo} alt="Your photo" className="h-full w-full object-contain" draggable={false} />
               {garment && !busy && (
                 <img
-                  src={garment} alt={title} draggable={false}
+                  data-vton="ignore" src={garment} alt={title} draggable={false}
                   onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
                   className="absolute cursor-move"
                   style={{ left: `${pos.x * 100}%`, top: `${(zone === "bottom" && pos.y === 0.42 ? 0.7 : pos.y) * 100}%`, width: `${pos.scale * 100}%`, opacity, transform: "translate(-50%, -50%)", mixBlendMode: "multiply" }}
@@ -144,10 +146,17 @@ export function PhotoTryOnModal({
               <input id="tryon-opacity" type="range" min={0.3} max={1} step={0.05} value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} className="flex-1 accent-[hsl(var(--accent))]" />
               <button type="button" onClick={() => { setPhoto(null); setFile(null); setAi(null); }} className="flex min-h-9 items-center gap-1 text-xs underline"><RotateCcw className="h-3.5 w-3.5" /> New photo</button>
             </div>
-            <button type="button" onClick={() => void generate()} disabled={busy || !garment}
-              className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground text-xs disabled:opacity-60">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Generate my look with AI
-            </button>
+            {ai && !busy ? (
+              <button type="button" onClick={() => setShow(true)}
+                className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-xs text-accent-foreground">
+                <Sparkles className="h-4 w-4" /> See the fit
+              </button>
+            ) : (
+              <button type="button" onClick={() => void generate()} disabled={busy || !garment}
+                className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground text-xs disabled:opacity-60">
+                {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating your fit…</> : <><Sparkles className="h-4 w-4" /> Generate the fit</>}
+              </button>
+            )}
           </>
         )}
         {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
