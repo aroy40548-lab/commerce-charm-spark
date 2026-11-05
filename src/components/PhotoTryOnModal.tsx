@@ -22,6 +22,7 @@ export function PhotoTryOnModal({
   const [ai, setAi] = useState<string | null>(null);
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [pos, setPos] = useState({ x: 0.5, y: 0.42, scale: 0.55 });
   const [opacity, setOpacity] = useState(0.9);
@@ -34,6 +35,7 @@ export function PhotoTryOnModal({
 
   const pick = (f?: File) => {
     if (!f || !f.type.startsWith("image/")) return;
+    setUploading(true);
     setPhoto(URL.createObjectURL(f));
     setFile(f); setAi(null); setShow(false); setErr(null);
     setPos({ x: 0.5, y: 0.42, scale: initialZone === "bottom" ? 0.5 : 0.55 });
@@ -124,16 +126,18 @@ export function PhotoTryOnModal({
             <div
               ref={stage}
               onWheel={(e) => setPos((p) => ({ ...p, scale: clamp(p.scale - e.deltaY * 0.001, 0.15, 1.6) }))}
-              className="relative mt-2 aspect-[3/4] w-full touch-none select-none overflow-hidden bg-ink"
+              className="relative mx-auto mt-2 aspect-[3/4] max-h-[42dvh] w-auto max-w-full select-none overflow-hidden bg-ink"
             >
-              <img data-vton="ignore" src={photo} alt="Your photo" className="h-full w-full object-contain" draggable={false} />
-              {garment && !busy && (
-                <img
-                  data-vton="ignore" src={garment} alt={title} draggable={false}
-                  onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
-                  className="absolute cursor-move"
-                  style={{ left: `${pos.x * 100}%`, top: `${(zone === "bottom" && pos.y === 0.42 ? 0.7 : pos.y) * 100}%`, width: `${pos.scale * 100}%`, opacity, transform: "translate(-50%, -50%)", mixBlendMode: "multiply" }}
-                />
+              <img data-vton="ignore" src={photo} alt="Your photo" className="h-full w-full object-contain" draggable={false}
+                onLoad={() => setUploading(false)} onError={() => { setUploading(false); setErr("Couldn't read that photo. Try another."); }} />
+              {garment && !busy && !uploading && (
+                <img data-vton="ignore" src={garment} alt={title} draggable={false}
+                  className="absolute bottom-2 right-2 h-16 w-16 rounded-md border border-border bg-background object-cover" />
+              )}
+              {uploading && (
+                <div className="absolute inset-0 grid place-items-center bg-background/70 text-sm">
+                  <span className="flex items-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Uploading photo…</span>
+                </div>
               )}
               {busy && (
                 <div className="absolute inset-0 grid place-items-center bg-background/60 text-sm">
@@ -141,9 +145,7 @@ export function PhotoTryOnModal({
                 </div>
               )}
             </div>
-            <div className="mt-3 flex items-center gap-3">
-              <label className="zk-label text-[10px] text-muted-foreground" htmlFor="tryon-opacity">Fade</label>
-              <input id="tryon-opacity" type="range" min={0.3} max={1} step={0.05} value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} className="flex-1 accent-[hsl(var(--accent))]" />
+            <div className="mt-3 flex items-center justify-end gap-3">
               <button type="button" onClick={() => { setPhoto(null); setFile(null); setAi(null); }} className="flex min-h-9 items-center gap-1 text-xs underline"><RotateCcw className="h-3.5 w-3.5" /> New photo</button>
             </div>
             {ai && !busy ? (
@@ -152,7 +154,7 @@ export function PhotoTryOnModal({
                 <Sparkles className="h-4 w-4" /> See the fit
               </button>
             ) : (
-              <button type="button" onClick={() => void generate()} disabled={busy || !garment}
+              <button type="button" onClick={() => void generate()} disabled={busy || uploading || !garment}
                 className="zk-label mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-foreground text-xs disabled:opacity-60">
                 {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating your fit…</> : <><Sparkles className="h-4 w-4" /> Generate the fit</>}
               </button>
