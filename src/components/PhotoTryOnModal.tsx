@@ -76,11 +76,11 @@ export function PhotoTryOnModal({
 
         {!photo ? (
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
-            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-border text-sm hover:bg-muted">
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border text-sm hover:bg-muted">
               <Upload className="h-6 w-6" /> Upload photo
               <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
             </label>
-            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-border text-sm hover:bg-muted">
+            <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border text-sm hover:bg-muted">
               <Camera className="h-6 w-6" /> Take a photo
               <input type="file" accept="image/*" capture="user" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
             </label>
@@ -88,7 +88,7 @@ export function PhotoTryOnModal({
         ) : ai && show ? (
           <>
             <button type="button" onClick={() => setShow(false)} className="mt-2 flex min-h-9 items-center gap-1 self-start text-xs underline">← Back</button>
-            <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden bg-ink">
+            <div className="relative mt-2 aspect-[3/4] w-full overflow-hidden rounded-2xl bg-ink">
               <img data-vton="ignore" src={ai} alt={`You wearing ${title}`} className="h-full w-full object-contain" />
             </div>
             <ShareBar image={ai} title={title} productId={productId} onBack={() => setShow(false)} />
@@ -97,7 +97,7 @@ export function PhotoTryOnModal({
           <>
             <div
               ref={stage}
-              className="relative mx-auto mt-2 aspect-[3/4] max-h-[42dvh] w-auto max-w-full select-none overflow-hidden bg-ink"
+              className="relative mx-auto mt-2 aspect-[3/4] max-h-[42dvh] w-auto max-w-full select-none overflow-hidden rounded-2xl bg-ink"
             >
               <img data-vton="ignore" src={photo} alt="Your photo" className="h-full w-full object-contain" draggable={false}
                 onLoad={() => setUploading(false)} onError={() => { setUploading(false); setErr("Couldn't read that photo. Try another."); }} />

@@ -44,7 +44,7 @@ export const Route = createFileRoute("/api/tryon")({
         });
         if (!res.ok) {
           console.error("tryon", res.status, (await res.text()).slice(0, 300));
-          const msg = res.status === 429 ? "Busy right now — try again in a minute." : res.status === 402 ? "AI try-on is paused right now." : "Couldn't create the try-on. Try another photo.";
+          const msg = res.status === 429 ? "Busy right now — try again in a minute." : res.status === 402 ? "AI fitting is temporarily unavailable. Please try again later." : "Couldn't create the try-on. Try another photo.";
           return json({ error: msg }, res.status);
         }
         const body = (await res.json()) as { data?: { b64_json?: string; url?: string }[] | null };
