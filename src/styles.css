@@ -218,8 +218,11 @@
 .zk-hide-vton .vton-btn,
 .zk-social .vton-btn,
 .zk-social [class*="vton"],
-body[data-vton="off"] .vton-btn {
+body[data-vton="off"] .vton-btn,
+[role="dialog"] .vton-btn,
+[role="dialog"] [class*="vton"] {
   display: none !important;
+  pointer-events: none !important;
 }
 
 @keyframes zk-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }

@@ -8,6 +8,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { openDecartTryOn } from "@/lib/decart";
 import { PhotoTryOnModal } from "@/components/PhotoTryOnModal";
+import { detectZone } from "@/lib/tryon";
 import { OPEN_BAG_EVENT } from "@/components/BottomTabBar";
 import { ProductReviews } from "@/components/ProductReviews";
 import { CompleteTheFit, SizeChartButton, useProductExtras } from "@/components/ProductExtras";
@@ -246,7 +247,8 @@ function ProductDetail() {
             Try instant photo fitting instead
           </button>
           <PhotoTryOnModal
-            open={photoTry} onOpenChange={setPhotoTry} garment={image?.url ?? null} title={node.title}
+            open={photoTry} onOpenChange={setPhotoTry} garment={image?.url ?? null} title={node.title} productId={node.id}
+            zone={detectZone({ title: node.title, productType: node.productType, tags: node.tags })}
             sizes={variants.map((v) => ({ id: v.id, title: v.title, available: v.availableForSale }))}
             selectedId={selected?.id ?? null} onSelect={setVariantId}
             onAdd={() => { void handleAdd().then(() => { setPhotoTry(false); window.dispatchEvent(new Event(OPEN_BAG_EVENT)); }); }}
