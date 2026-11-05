@@ -24,11 +24,7 @@ export function PhotoTryOnModal({
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [pos, setPos] = useState({ x: 0.5, y: 0.42, scale: 0.55 });
-  const [opacity, setOpacity] = useState(0.9);
   const stage = useRef<HTMLDivElement>(null);
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const pinch = useRef<{ d: number; scale: number } | null>(null);
 
   useEffect(() => setZone(initialZone), [initialZone]);
   useEffect(() => () => { if (photo) URL.revokeObjectURL(photo); }, [photo]);
@@ -38,7 +34,6 @@ export function PhotoTryOnModal({
     setUploading(true);
     setPhoto(URL.createObjectURL(f));
     setFile(f); setAi(null); setShow(false); setErr(null);
-    setPos({ x: 0.5, y: 0.42, scale: initialZone === "bottom" ? 0.5 : 0.55 });
   };
 
   const generate = async () => {
@@ -61,29 +56,6 @@ export function PhotoTryOnModal({
     } catch { setErr("Couldn't create the try-on. Check your connection."); }
     finally { setBusy(false); }
   };
-
-  const onDown = (e: React.PointerEvent) => {
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.current.size === 2) {
-      const [a, b] = [...pointers.current.values()];
-      pinch.current = { d: Math.hypot(a!.x - b!.x, a!.y - b!.y), scale: pos.scale };
-    }
-  };
-  const onMove = (e: React.PointerEvent) => {
-    const prev = pointers.current.get(e.pointerId);
-    const r = stage.current?.getBoundingClientRect();
-    if (!prev || !r) return;
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.current.size === 2 && pinch.current) {
-      const [a, b] = [...pointers.current.values()];
-      const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
-      setPos((p) => ({ ...p, scale: clamp(pinch.current!.scale * (d / pinch.current!.d), 0.15, 1.6) }));
-    } else if (pointers.current.size === 1) {
-      setPos((p) => ({ ...p, x: clamp(p.x + (e.clientX - prev.x) / r.width, 0, 1), y: clamp(p.y + (e.clientY - prev.y) / r.height, 0, 1) }));
-    }
-  };
-  const onUp = (e: React.PointerEvent) => { pointers.current.delete(e.pointerId); if (pointers.current.size < 2) pinch.current = null; };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,7 +97,6 @@ export function PhotoTryOnModal({
           <>
             <div
               ref={stage}
-              onWheel={(e) => setPos((p) => ({ ...p, scale: clamp(p.scale - e.deltaY * 0.001, 0.15, 1.6) }))}
               className="relative mx-auto mt-2 aspect-[3/4] max-h-[42dvh] w-auto max-w-full select-none overflow-hidden bg-ink"
             >
               <img data-vton="ignore" src={photo} alt="Your photo" className="h-full w-full object-contain" draggable={false}
