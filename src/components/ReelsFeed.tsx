@@ -125,6 +125,7 @@ function ReelItem({
   const borrowed = reel.sound.reelId !== reel.id && !!reel.sound.url;
   const [soundOpen, setSoundOpen] = useState(false);
   const viewed = useRef(false);
+  const visible = useRef(false);
   const [vote, setVote] = useState(myVote);
   const [counts, setCounts] = useState({ likes: reel.likes, dislikes: reel.dislikes });
   useEffect(() => setVote(myVote), [myVote]);
@@ -142,6 +143,7 @@ function ReelItem({
       ([e]) => {
         const v = video.current;
         if (!v) return;
+        visible.current = !!e?.isIntersecting;
         if (e?.isIntersecting) {
           void v.play().catch(() => {
             if (!v.muted) { v.muted = true; onBlocked(); void v.play().catch(() => {}); }
@@ -231,7 +233,7 @@ function ReelItem({
         onPause={() => audio.current?.pause()}
         onWaiting={() => setLoadingVid(true)}
         onPlaying={() => setLoadingVid(false)}
-        onCanPlay={() => setLoadingVid(false)}
+        onCanPlay={(e) => { setLoadingVid(false); const v = e.currentTarget; if (visible.current && v.paused) void v.play().catch(() => { if (!v.muted) { v.muted = true; onBlocked(); void v.play().catch(() => {}); } }); }}
         className="h-full w-full bg-ink object-contain"
       />
       {borrowed && <audio ref={audio} src={near ? reel.sound.url : undefined} muted={muted} loop preload="auto" />}

@@ -4,13 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Crown, Loader2, Pencil, Plus, Trash2, XCircle } from "lucide-react";
 import { adminDeleteRole, adminGetSettings, adminInviteStaff, adminListStaff, adminSaveRole, adminSaveSettings, adminUpdateStaff } from "@/lib/admin/settings.functions";
 import { AndroidAppCard } from "@/components/admin/AndroidAppCard";
+import { AiKeyCard, FeaturesCard } from "@/components/admin/FeaturesCard";
 import { SECTIONS, type Section } from "@/lib/admin/permissions";
 import { Card, Field, PageHeader, ReadOnlyNote, Spinner, StatusBadge, Tabs, Toggle, btn, btnGhost, dateTime, inputCls, useAction, useCanEdit, useStaff } from "@/components/admin/ui";
 
-type Tab = "store" | "shipping" | "affiliates" | "staff" | "integrations";
+type Tab = "store" | "features" | "shipping" | "affiliates" | "staff" | "integrations";
 export const Route = createFileRoute("/admin/settings")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab | undefined } => ({
-    tab: ["store", "shipping", "affiliates", "staff", "integrations"].includes(String(s["tab"])) ? (s["tab"] as Tab) : undefined,
+    tab: ["store", "features", "shipping", "affiliates", "staff", "integrations"].includes(String(s["tab"])) ? (s["tab"] as Tab) : undefined,
   }),
   component: Settings,
 });
@@ -22,8 +23,8 @@ function Settings() {
     <div>
       <PageHeader title="Settings" />
       <Tabs value={tab} onChange={(t) => navigate({ search: { tab: t === "store" ? undefined : t } })}
-        options={[["store", "Store details"], ["shipping", "Shipping & payments"], ["affiliates", "Affiliate program"], ["staff", "Staff & roles"], ["integrations", "Connections"]]} />
-      {tab === "staff" ? <Staff /> : <StoreSettings tab={tab} />}
+        options={[["store", "Store details"], ["features", "Features & AI"], ["shipping", "Shipping & payments"], ["affiliates", "Affiliate program"], ["staff", "Staff & roles"], ["integrations", "Connections"]]} />
+      {tab === "features" ? <div className="space-y-6"><FeaturesCard /><AiKeyCard /></div> : tab === "staff" ? <Staff /> : <StoreSettings tab={tab} />}
       {tab === "store" && <div className="mt-6"><AndroidAppCard /></div>}
     </div>
   );
