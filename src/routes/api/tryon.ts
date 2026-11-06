@@ -29,6 +29,25 @@ export const Route = createFileRoute("/api/tryon")({
         if (!(photo instanceof File) || !(garment instanceof File)) return json({ error: "Photo missing." }, 400);
         if (photo.size > 10 * 1024 * 1024) return json({ error: "Photo too large (max 10MB)." }, 400);
 
+        const prompt = buildTryOnPrompt(zone, String(form.get("title") ?? "").slice(0, 120), String(form.get("size") ?? "").slice(0, 20));
+        const photoUrl = await toDataUrl(photo);
+        const garmentUrl = await toDataUrl(garment);
+        let src: string | undefined;
+        const gKey = process.env["GEMINI_API_KEY"];
+        if (gKey) {
+          const part = (u: string) => { const [h, d] = u.split(","); return { inline_data: { mime_type: h!.slice(5, h!.indexOf(";")), data: d } }; };
+          const g = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent", {
+            method: "POST",
+            headers: { "x-goog-api-key": gKey, "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, part(photoUrl), part(garmentUrl)] }], generationConfig: { responseModalities: ["IMAGE", "TEXT"] } }),
+          });
+          if (g.ok) {
+            const gb = (await g.json()) as { candidates?: { content?: { parts?: { inlineData?: { mimeType?: string; data?: string } }[] } }[] };
+            const img = gb.candidates?.[0]?.content?.parts?.find((x) => x.inlineData?.data)?.inlineData;
+            if (img?.data) src = `data:${img.mimeType ?? "image/png"};base64,${img.data}`;
+          } else console.error("tryon gemini", g.status, (await g.text()).slice(0, 300));
+        }
+        if (!src) {
         const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
           method: "POST",
           headers: { Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]}`, "Content-Type": "application/json" },
@@ -36,9 +55,9 @@ export const Route = createFileRoute("/api/tryon")({
             model: "google/gemini-3-pro-image",
             modalities: ["image", "text"],
             messages: [{ role: "user", content: [
-              { type: "text", text: buildTryOnPrompt(zone, String(form.get("title") ?? "").slice(0, 120), String(form.get("size") ?? "").slice(0, 20)) },
-              { type: "image_url", image_url: { url: await toDataUrl(photo) } },
-              { type: "image_url", image_url: { url: await toDataUrl(garment) } },
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: photoUrl } },
+              { type: "image_url", image_url: { url: garmentUrl } },
             ] }],
           }),
         });
@@ -49,7 +68,8 @@ export const Route = createFileRoute("/api/tryon")({
         }
         const body = (await res.json()) as { data?: { b64_json?: string; url?: string }[] | null };
         const img = body.data?.[0];
-        const src = img?.b64_json ? `data:image/png;base64,${img.b64_json}` : img?.url;
+        src = img?.b64_json ? `data:image/png;base64,${img.b64_json}` : img?.url;
+        }
         if (!src) return json({ error: "AI couldn't make this look. Try a clearer full-body photo." }, 502);
         return json({ image: src });
       },
