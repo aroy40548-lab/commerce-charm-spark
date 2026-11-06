@@ -260,6 +260,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_secrets: {
+        Row: {
+          gemini_api_key: string | null
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          gemini_api_key?: string | null
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          gemini_api_key?: string | null
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -1723,6 +1741,7 @@ export type Database = {
           express_enabled: boolean
           express_label: string
           express_shipping_fee: number
+          features: Json
           free_shipping_over: number
           id: number
           low_stock_threshold: number
@@ -1749,6 +1768,7 @@ export type Database = {
           express_enabled?: boolean
           express_label?: string
           express_shipping_fee?: number
+          features?: Json
           free_shipping_over?: number
           id?: number
           low_stock_threshold?: number
@@ -1775,6 +1795,7 @@ export type Database = {
           express_enabled?: boolean
           express_label?: string
           express_shipping_fee?: number
+          features?: Json
           free_shipping_over?: number
           id?: number
           low_stock_threshold?: number
