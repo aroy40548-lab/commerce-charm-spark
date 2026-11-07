@@ -32,7 +32,7 @@ function Settings() {
 
 type S = Awaited<ReturnType<typeof adminGetSettings>>["settings"];
 
-function StoreSettings({ tab }: { tab: Exclude<Tab, "staff"> }) {
+function StoreSettings({ tab }: { tab: Exclude<Tab, "staff" | "features"> }) {
   const q = useQuery({ queryKey: ["admin-settings"], queryFn: () => adminGetSettings() });
   const canEdit = useCanEdit("settings");
   const { busy, run } = useAction();
