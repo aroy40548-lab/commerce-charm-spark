@@ -22,6 +22,8 @@ export const Route = createFileRoute("/api/tryon")({
         const { data: u } = await sb.auth.getUser(token);
         if (!u.user) return json({ error: "Please sign in to use AI try-on." }, 401);
 
+        const { featureOn, geminiKey } = await import("@/lib/features.server");
+        if (!(await featureOn("ai_photo_tryon"))) return json({ error: "AI photo fitting is turned off right now." }, 403);
         const form = await request.formData();
         const photo = form.get("photo");
         const garment = form.get("garment");
@@ -33,7 +35,7 @@ export const Route = createFileRoute("/api/tryon")({
         const photoUrl = await toDataUrl(photo);
         const garmentUrl = await toDataUrl(garment);
         let src: string | undefined;
-        const gKey = process.env["GEMINI_API_KEY"];
+        const gKey = await geminiKey();
         if (gKey) {
           const part = (u: string) => { const [h, d] = u.split(","); return { inline_data: { mime_type: h!.slice(5, h!.indexOf(";")), data: d } }; };
           const g = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent", {
